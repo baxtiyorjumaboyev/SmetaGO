@@ -1,0 +1,47 @@
+{% load static %}<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{% block title %}SmetaGo{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="{% static 'smeta/css/style.css' %}">
+<style>
+  .page{padding-block:24px 48px}
+  .page h1{font-family:var(--f-display);font-size:24px;margin:0}
+  .userbar{display:flex;align-items:center;gap:10px;margin-left:auto;color:var(--muted);font-size:14px}
+  .userbar form{margin:0}
+  .olist{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .ocard{display:flex;flex-direction:column;gap:10px}
+  .ocard a.oname{font-family:var(--f-display);font-weight:600;font-size:17px;color:var(--ink);text-decoration:none}
+  .ocard a.oname:hover{text-decoration:underline}
+  .ometa{color:var(--muted);font-size:13px}
+  .oacts{display:flex;gap:6px;flex-wrap:wrap}
+  .oacts form{margin:0}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .auth{max-width:420px;margin:40px auto}
+  .auth label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+  .auth input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;color:inherit;font:inherit}
+  .auth .helptext,.auth ul:not(.errorlist){font-size:12px;color:var(--muted)}
+  .errorlist{color:var(--danger);font-size:13px;padding-left:18px;margin:4px 0}
+  .auth a{color:var(--steel)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="{% url 'obyekt_list' %}" style="color:inherit;text-decoration:none"><div class="mark">S</div><div>SmetaGo<small>o'lchang · tanlang · hisoblang</small></div></a>
+    {% if user.is_authenticated %}
+    <div class="userbar">
+      <span>{{ user.username }}</span>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn sm">Chiqish</button></form>
+    </div>
+    {% endif %}
+  </div>
+  <div class="ruler" aria-hidden="true"></div>
+</header>
+<main class="wrap page">{% block content %}{% endblock %}</main>
+</body>
+</html>

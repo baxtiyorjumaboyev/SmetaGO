@@ -1,0 +1,43 @@
+{% load static %}<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ o.name }} · SmetaGo</title>
+<meta name="description" content="Smetachi uchun ilova: xonalarni o'lchash, elementlarni tanlash va avtomatik smeta.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="{% static 'smeta/css/style.css' %}">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="btn sm" href="{% url 'obyekt_list' %}" title="Barcha obyektlar">← Obyektlar</a>
+    <div class="brand"><div class="mark">S</div><div>SmetaGo<small>o'lchang · tanlang · hisoblang</small></div></div>
+    <div class="objmeta">
+      <input class="inp" id="o-name" data-o="name" aria-label="Obyekt nomi" placeholder="Obyekt nomi">
+      <select class="inp" id="o-region" data-o="region" aria-label="Hudud" style="width:auto"></select>
+      <select class="inp" id="o-quarter" data-o="quarter" aria-label="Narxlar choragi" style="width:auto"></select>
+    </div>
+  </div>
+  <div class="ruler" aria-hidden="true"></div>
+  <nav class="wrap tabs" id="tabs" role="tablist"></nav>
+</header>
+<main class="wrap" id="app"></main>
+<div class="totalbar" id="totalbar"></div>
+<div id="modal" hidden></div>
+<div id="toast" class="toast" hidden></div>
+{{ o.state|json_script:"smeta-state" }}
+{{ ref|json_script:"smeta-ref" }}
+<script>
+window.SMETAGO = {
+  saveUrl: "{% url 'obyekt_state' o.pk %}",
+  csrf: "{{ csrf_token }}",
+  name: "{{ o.name|escapejs }}"
+};
+</script>
+<script src="{% static 'smeta/js/data.js' %}"></script>
+<script src="{% static 'smeta/js/app.js' %}"></script>
+</body>
+</html>

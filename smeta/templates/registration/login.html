@@ -1,0 +1,13 @@
+{% extends "smeta/base.html" %}
+{% block title %}Kirish · SmetaGo{% endblock %}
+{% block content %}
+<form method="post" class="panel pad stack auth">{% csrf_token %}
+  <h1>Kirish</h1>
+  {% if form.non_field_errors %}<ul class="errorlist"><li>Login yoki parol noto'g'ri.</li></ul>{% endif %}
+  <div><label for="id_username">Login</label>{{ form.username }}</div>
+  <div><label for="id_password">Parol</label>{{ form.password }}</div>
+  <input type="hidden" name="next" value="{{ next }}">
+  <button class="btn pri">Kirish</button>
+  <p class="ometa">Hisobingiz yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'ting</a></p>
+</form>
+{% endblock %}

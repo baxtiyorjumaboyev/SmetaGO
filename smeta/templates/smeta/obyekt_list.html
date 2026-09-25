@@ -1,0 +1,41 @@
+{% extends "smeta/base.html" %}
+{% block title %}Obyektlar · SmetaGo{% endblock %}
+{% block content %}
+<div class="stack">
+  <div class="row">
+    <h1>Obyektlar</h1>
+    <div class="row" style="margin-left:auto">
+      <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}
+        <input type="hidden" name="namuna" value="1">
+        <button class="btn">Namunaviy obyekt</button>
+      </form>
+      <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}
+        <button class="btn pri">+ Yangi obyekt</button>
+      </form>
+    </div>
+  </div>
+
+  {% if obyektlar %}
+  <div class="olist">
+    {% for o in obyektlar %}
+    <article class="panel pad ocard">
+      <a class="oname" href="{% url 'obyekt_app' o.pk %}">{{ o.name }}</a>
+      <div class="ometa">
+        {% if o.region %}{{ o.region }} · {% endif %}{{ o.rooms_count }} xona<br>
+        O'zgartirilgan: {{ o.updated|date:"d.m.Y H:i" }}
+      </div>
+      <div class="oacts">
+        <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">Ochish</a>
+        <form method="post" action="{% url 'obyekt_copy' o.pk %}">{% csrf_token %}<button class="btn sm">Nusxa</button></form>
+        <form method="post" action="{% url 'obyekt_delete' o.pk %}" onsubmit="return confirm('«{{ o.name|escapejs }}» o\'chirilsinmi? Bu amalni qaytarib bo\'lmaydi.')">{% csrf_token %}<button class="btn sm ghost">O'chirish</button></form>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <section class="panel empty">
+    Hali obyekt yo'q. «+ Yangi obyekt» bilan boshlang yoki ilovani ko'rish uchun namunaviy obyekt oching.
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
