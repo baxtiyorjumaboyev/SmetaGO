@@ -3,7 +3,7 @@
 Bu fayl loyihani boshqa muhitda (boshqa cloud, boshqa kompyuter, yangi AI sessiyasi) davom ettirish uchun yozilgan. Bu yerda nima qilingani, qanday ishga tushirilishi, arxitektura qoidalari, ishlash tartibi va ochiq vazifalar bor. Foydalanuvchi uchun qo'llanma — `README.md`.
 
 - **Repozitoriya:** https://github.com/baxtiyorjumaboyev/SmetaGO (public, branch `main`)
-- **Holat (2026-09-26):** 3 ta commit, 17 ta unit test va 17 ta brauzer (e2e) tekshiruvi o'tadi.
+- **Holat (2026-09-26):** 19 ta unit test va brauzer (e2e) tekshiruvlari o'tadi.
 - **Stack:** Python 3.10+ (sinovda 3.14), Django 5.2, SQLite, toza HTML/CSS/JS (freymvork va build vositasi yo'q).
 
 ---
@@ -28,6 +28,7 @@ Endi u bir vaqtda:
 | 2 | Ma'lumotnoma bazaga | `6c51e3e` | Katalog (7 guruh, 53 element, 33 tur), 18 material narxi, 8 xona turi `data.js` dan bazaga o'tkazildi, admin panelda tahrirlanadi. "Markaziy narxlarni yuklash" tugmasi. |
 | 3 | Dizayn + tillar | `cabdfb0` | Yashil-qora palitra, kunduzgi/tungi rejim tugmasi, UZ/RU tugmalari. Butun interfeys ruschaga tarjima qilindi, katalog uchun ruscha nomlar bazada. |
 | 4 | Sayt + PWA | `b6d432b` | Manifest, service worker, ikonkalar, "Ilovani o'rnatish" tugmasi, oflayn navbat (internetsiz tahrirlash → aloqa tiklanganda yuborish), mehmonlar uchun landing sahifa. |
+| 5 | Excel (.xlsx) | (keyingi commit) | Foydalanuvchi talabi: **eng muhim funksiya**. "Excel yuklab olish" (pastki qatorda doim + Smeta bo'limida), ikki varaq: "Smeta" va "Xonalar". Ilova ichida "Excel ko'rinishi" (standart) — fayl bilan aynan bir xil. O'ng tepadagi "Ilovani o'rnatish" tugmasi **foydalanuvchi so'rovi bilan olib tashlandi** (landing'dagi o'rnatish bo'limi qoldi). Narxlar pastidagi "Soatlik stavka…" matni **so'rov bilan olib tashlandi**. Eski "Excel uchun nusxa olish" (TSV) o'rniga haqiqiy fayl. |
 
 Har bir bosqichda hisob-kitob natijasi asl statik versiya bilan solishtirildi: namunaviy obyekt uchun **materiallar 60 001 184, ish haqi 5 887 945, jami 69 183 585 so'm** — tiyinigacha bir xil. Hisoblash mantig'iga o'zgartirish kiritsangiz, shu raqamlar bilan tekshiring.
 
@@ -83,6 +84,7 @@ SmetaGO/
 │   ├── malumotnoma.py           # build_reference(lang) — bazadan frontend formatiga; load_seed / load_ru
 │   ├── i18n.py                  # Python RU lug'ati, tr(), LanguageMiddleware
 │   ├── pwa.py                   # manifest, service worker (versiya = fayllar hash'i), offline
+│   ├── excel.py                 # build_workbook(): varaq modeli -> .xlsx (openpyxl)
 │   ├── templatetags/smeta_i18n.py   # {% t "o'zbekcha matn" %}
 │   ├── seed/malumotnoma.json    # asl data.js dan olingan ma'lumotnoma
 │   ├── seed/ru.json             # ruscha nomlar (kalit bo'yicha)
@@ -141,7 +143,18 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 - Rejim tanlovi brauzerda (`localStorage` `smetago-theme`), `prefs.js` `<head>` da sinxron yuklanadi (sahifa miltillamasligi uchun). `theme-color` meta ham shu yerda yangilanadi.
 - Telefon chegaralari: 1180px, 760px, 400px. `.mobonly` / `.deskonly`.
 
-### 5.5 PWA
+### 5.5 Excel (.xlsx)
+- **Bitta varaq modeli, ikki ishlatilish.** `app.js` dagi `sheetSmeta()` va `sheetRooms()` modelni quradi (katak: `{v, f: "money"|"dec2"|"int", s: "title"|"meta"|"head"|"group"|"sub"|"total"|"grand"|"b"}`, varaq: `{name, cols, rows, freeze, table:[boshi, oxiri]}`).
+  - `viewSheet()` — ilova ichidagi "Excel ko'rinishi" (ustun harflari, qator raqamlari, varaq yorliqlari; rejimdan qat'i nazar oq "qog'oz").
+  - `downloadXlsx()` → `POST /api/obyekt/<id>/excel/` → `smeta/excel.py` `build_workbook()` (openpyxl) → fayl. Nom: `Smeta - <obyekt> - dd.mm.yyyy.xlsx`.
+  - Shu sabab ko'rinish va fayl doim bir xil. Ustun/qator qo'shsangiz — faqat modelni o'zgartiring.
+- Hisob brauzerda qoladi; server faqat yozadi (hisobni Python'da takrorlamang).
+- Faylda qiymatlar son sifatida yoziladi (formulalar emas) — telefon/Telegram ko'rgichlarida ham ko'rinishi uchun. Pul formati `#,##0`, miqdor `0.00`.
+- Xavfsizlik: faqat egasi; o'lcham chegaralari (5 varaq, 20000 qator, 40 ustun); `=` bilan boshlanadigan matn formula bo'lib bajarilmaydi (`data_type="s"`).
+- Internet kerak (oflayn bo'lsa toast). `openpyxl` — `requirements.txt` da.
+- Sinov: yangi obyekt, 2 xona → fayldagi JAMI va har xona summasi ilova bilan aynan mos (uz va ru).
+
+### 5.6 PWA
 - `/sw.js` Django view (`pwa.service_worker`) orqali **ildizdan** beriladi — butun saytni boshqarishi uchun. `Cache-Control: no-cache`.
 - SW versiyasi `smeta/static/smeta/**` va `smeta/templates/**` fayllari mazmunidan hash qilinadi. Istalgan statik fayl o'zgarsa, SW yangilanadi va eski statik kesh o'chadi. Qo'lda versiya oshirish shart emas.
 - Strategiyalar: `/static/` — avval kesh; sahifalar — avval tarmoq, internet bo'lmasa kesh, u ham bo'lmasa `/offline/`; `/api/`, `/admin/`, `/i18n/` — faqat tarmoq; Google Fonts — keshdan, fonda yangilanadi.
@@ -175,13 +188,14 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 
 ## 7. Testlar
 
-### Unit testlar — `python manage.py test smeta` (17 ta)
+### Unit testlar — `python manage.py test smeta` (19 ta)
 Tekshiradi:
 - ro'yxatdan o'tish va kirish; mehmonga landing, kirganga ro'yxat;
 - obyekt yaratish, saqlash, nusxa olish, o'chirish; noto'g'ri holat rad etilishi; begona obyektga kirib bo'lmasligi (404); CSRF;
 - ma'lumotnoma `seed` bilan bir xilligi; admin o'zgarishlarining ilovaga yetishi; admin sahifalari;
 - til: standart o'zbekcha, ruschaga o'tish, ruscha ma'lumotnoma, bo'sh ruscha nom → o'zbekcha;
-- PWA: manifest (maydonlar, ikonkalar mavjudligi, tili), service worker (precache fayllari mavjud), oflayn sahifa, ilova sahifasida PWA teglari.
+- PWA: manifest (maydonlar, ikonkalar mavjudligi, tili), service worker (precache fayllari mavjud), oflayn sahifa, ilova sahifasida PWA teglari;
+- Excel: fayl tuzilishi (varaqlar, uslublar, formatlar, muzlatish), `=` matni formula emas, noto'g'ri ma'lumot 400, begona obyekt 404.
 
 ### Brauzer (e2e) sinovlari — repoda yo'q, qayta yozish oson
 Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.launch(channel="chrome")`; cloud'da `playwright install chromium`) quyidagilar tekshirilgan:
@@ -203,7 +217,7 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
 | --- | --- | --- |
 | 1 | **Serverga joylash (HTTPS + domen)** | PWA'ni telefonga o'rnatish uchun shart. Taklif: PythonAnywhere yoki Render. `whitenoise`, `DEBUG=0`, maxfiy kalit, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `collectstatic`. Ishlab chiqarishda SQLite o'rniga PostgreSQL ko'rib chiqilsin. Domen `.uz` — cctld.uz ro'yxatidagi registrator orqali. |
 | 2 | **Hamkorni qo'shish** | Foydalanuvchi `ikrombekmurodov7@gmail.com` egasini repoga qo'shmoqchi. Bu pochta bilan GitHub hisobi topilmadi (pochta yashirin). **GitHub login kerak** — foydalanuvchidan so'rang, taxmin qilmang. Keyin: `gh api -X PUT repos/baxtiyorjumaboyev/SmetaGO/collaborators/<login> -f permission=push`. |
-| 3 | Excel (.xlsx) va PDF yuklab olish | Yo'l xaritasi 0.3. Hozir faqat nusxa olish (TSV / matn). |
+| 3 | PDF yuklab olish | Excel tayyor (5.5). PDF hali yo'q. |
 | 4 | Play Market | Serverga joylangach, PWA'ni TWA (Bubblewrap / PWABuilder) bilan paketlash; `assetlinks.json` kerak. |
 | 5 | Davlat standarti (ShNQ) smeta formati, resurs kodlari | Yo'l xaritasi 1.0. |
 | 6 | Narx integratsiyalari | Rasmiy resurs narxlari bazasi, birja, "Gloter" — ochiq savollar `docs/YOL-XARITASI.md` da. |

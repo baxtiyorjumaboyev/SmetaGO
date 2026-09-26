@@ -64,6 +64,15 @@ Katalog, material narxlari va xona turlari bazada saqlanadi va `/admin/` da tahr
 - Qoplama turlari (`FLOOR/WALL/CEIL`), beton retseptlari (`MIX`), hududlar va choraklar formulalarga bog'liq, shuning uchun `data.js` da qoladi.
 - **Mavjud obyektlarga ta'siri:** xonaga qo'shilgan elementlar narxi o'zgarmaydi (smeta tuzilgan paytdagi narx). Yangi material avtomatik qo'shiladi. Manba narxlarini yangilash uchun foydalanuvchi **Narxlar → "Markaziy narxlarni yuklash"** tugmasini bosadi, bunda uning tanlovi (o'rtacha / eng arzon / qo'lda) saqlanib qoladi.
 
+### Excel (.xlsx)
+
+Xonalar hisobi chiqqach, pastki qatordagi **⬇ Excel** tugmasi (yoki Smeta bo'limidagi **Excel yuklab olish**) tayyor `.xlsx` faylni yuklab beradi. Faylda ikki varaq bor:
+
+- **Smeta** — xonalar va beton ishlari bo'yicha har qator: miqdor, narx, material, ish haqi, jami; guruh oraliq jamilari; materiallar, ish haqi, kutilmagan xarajatlar, QQS va umumiy JAMI.
+- **Xonalar** — har xona o'lchamlari, pol maydoni, perimetr, devor, plintus, qoplamalar va xona summasi.
+
+Smeta bo'limidagi **Excel ko'rinishi** faylni ilovaning o'zida xuddi Excel'dagidek ko'rsatadi (A, B, C… ustunlar, qator raqamlari, varaq yorliqlari). Ko'rinish va fayl bitta modeldan quriladi (`app.js` → `sheetSmeta` / `sheetRooms`, server → `smeta/excel.py`). Fayl tanlangan tilda (UZ / RU) yaratiladi va yuklab olish uchun internet kerak.
+
 ### Sayt + ilova (PWA)
 
 Bitta kod ikki ko'rinishda ishlaydi:

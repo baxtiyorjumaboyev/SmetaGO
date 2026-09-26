@@ -28,6 +28,7 @@
 <script>
 window.SMETAGO = {
   saveUrl: "{% url 'obyekt_state' o.pk %}",
+  xlsxUrl: "{% url 'obyekt_excel' o.pk %}",
   csrf: "{{ csrf_token }}",
   name: "{{ o.name|escapejs }}",
   updated: "{{ o.updated|date:'c' }}"

@@ -298,9 +298,33 @@ textarea.fallback{width:100%;height:140px;font-family:var(--f-mono);font-size:12
   .brand small{display:none}
   .catgrid{grid-template-columns:1fr}
 }
+/* Excel ko'rinishi: yuklab olinadigan .xlsx bilan bir xil varaq (rejimdan qat'i nazar "qog'oz" ranglari) */
+.xl{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff;color:#0c140f;color-scheme:light}
+.xl-scroll{overflow:auto;max-height:72vh}
+.xlgrid{border-collapse:separate;border-spacing:0;table-layout:fixed;font:13px/1.35 Calibri,Carlito,"Segoe UI",system-ui,sans-serif}
+.xlgrid td,.xlgrid th{border:0;border-right:1px solid #e3e6e9;border-bottom:1px solid #e3e6e9;padding:3px 6px;height:23px;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:left;vertical-align:bottom;font:inherit;letter-spacing:0;text-transform:none;color:#0c140f;background:transparent}
+.xlgrid td.x-ov{overflow:visible}
+.xlgrid thead th{position:sticky;top:0;z-index:2;background:#f1f3f4;color:#5f6368;text-align:center;font-size:12px}
+.xlgrid tbody th{position:sticky;left:0;z-index:1;background:#f1f3f4;color:#5f6368;text-align:center;font-size:12px}
+.xlgrid thead th.xl-corner{left:0;z-index:3}
+.xlgrid tr.x-t td{border-color:#c9d5cc}
+.xlgrid .x-n{text-align:right;font-variant-numeric:tabular-nums}
+.xlgrid .x-title{font-size:18px;font-weight:700;height:30px}
+.xlgrid .x-meta{color:#536159}
+.xlgrid .x-head{background:#15803d;color:#fff;font-weight:700;text-align:center;vertical-align:middle;white-space:normal;height:42px}
+.xlgrid .x-group{background:#dcfce7;font-weight:700}
+.xlgrid .x-sub{background:#eef3ef;font-weight:700}
+.xlgrid .x-total,.xlgrid .x-b{font-weight:700}
+.xlgrid .x-grand{background:#0c140f;color:#4ade80;font-weight:700;font-size:14px}
+.xl-tabs{display:flex;gap:2px;padding:0 8px;background:#f1f3f4;border-top:1px solid #dadce0}
+.xl-tabs button{border:0;border-bottom:3px solid transparent;background:transparent;padding:7px 16px;font:600 13px "Segoe UI",system-ui,sans-serif;color:#5f6368;cursor:pointer}
+.xl-tabs button[aria-pressed="true"]{background:#fff;color:#15803d;border-bottom-color:#15803d}
+.totalbar .btn.xlbtn{background:transparent;color:var(--on-bar);border-color:rgba(255,255,255,.28)}
+.totalbar .btn.xlbtn:hover{border-color:var(--bar-accent);color:var(--bar-accent)}
+.btn:disabled{opacity:.55;cursor:progress}
+
 /* PWA: o'rnatish tugmasi, oflayn belgisi, o'rnatilgan ilova rejimi */
 .top{padding-top:env(safe-area-inset-top,0px)}
-.installbtn svg{flex:none}
 .is-app [data-install]{display:none!important}
 .netbadge{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--danger);color:#fff}
 @media (display-mode: standalone){body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}}

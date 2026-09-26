@@ -220,7 +220,7 @@ function renderDerived(){
    <p class="note" style="margin:0">${tr("* Jami = material + ish haqi (soatlik stavka {0} so'm, o'rtacha oylikdan). Xona bo'yicha:",fmt(rate()))} <b class="mono">${fmt(roomTotal(r))} ${SOM}</b></p>`;
 }
 function renderTotal(){const s=buildSmeta();
-  $("#totalbar").innerHTML=`<div class="wrap"><div class="t"><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div class="t"><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div class="t"><span>${esc(tr("Kutilmagan {0}%",S.settings.contingency))}${S.settings.vat?" + "+tr("QQS"):""}</span><b>${fmt(s.cont+s.vat)}</b></div><div class="t grand"><span>${tr("Jami smeta, so'm")}</span><b>${fmt(s.grand)}</b></div><div class="spacer"></div>${S.ui.tab!=="smeta"?`<button class="btn" data-act="tab" data-k="smeta">${tr("Smetani ochish →")}</button>`:""}</div>`;
+  $("#totalbar").innerHTML=`<div class="wrap"><div class="t"><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div class="t"><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div class="t"><span>${esc(tr("Kutilmagan {0}%",S.settings.contingency))}${S.settings.vat?" + "+tr("QQS"):""}</span><b>${fmt(s.cont+s.vat)}</b></div><div class="t grand"><span>${tr("Jami smeta, so'm")}</span><b>${fmt(s.grand)}</b></div><div class="spacer"></div><button class="btn xlbtn" data-act="xlsx" title="${tr("Excel yuklab olish")}" aria-label="${tr("Excel yuklab olish")}">${DL_ICON}<span>Excel</span></button>${S.ui.tab!=="smeta"?`<button class="btn" data-act="tab" data-k="smeta">${tr("Smetani ochish →")}</button>`:""}</div>`;
   S.rooms.forEach(r=>{const el=$("#rl-"+r.id);if(el)el.textContent=fmt(roomTotal(r))+" "+SOM});
 }
 
@@ -268,26 +268,91 @@ function viewPrices(){
     <label class="fld">${tr("Beton ishi, soat/m³")}<input class="inp numin" id="s-concreteHours" data-s="concreteHours" inputmode="decimal" value="${esc(st.concreteHours)}"></label>
    </div>
    <label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="s-vat" data-s="vat"${st.vat?" checked":""}> ${tr("QQS 12% qo'shilsin")}</label>
-   <p class="note" style="margin:0" id="rateNote">${tr("Soatlik stavka:")} <b class="mono">${fmt(rate())} ${SOM}</b>. ${tr("Standart qiymat — qurilish sohasida 2026-yil yanvar–iyun o'rtacha oylik ish haqi 7,03 mln so'm (Milliy statistika qo'mitasi). Narxlar namunaviy; o'z manbalaringizdagi narxlarni kiriting.")}</p>
   </div></div>`;
 }
 
+/* ---------- Excel: varaq modeli ----------
+ * Bitta model ikki joyda ishlatiladi: ekrandagi "Excel ko'rinishi" (viewSheet) va serverdagi .xlsx (smeta/excel.py).
+ * Katak: {v: qiymat, f: "money"|"dec2"|"int", s: "title"|"meta"|"head"|"group"|"sub"|"total"|"grand"|"b"} */
+const XC=(v,f,s)=>({v:v??"",f,s});
+const r2=x=>Math.round((x||0)*100)/100;
+const todayStr=()=>{const d=new Date(),p=x=>String(x).padStart(2,"0");return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`};
+const DL_ICON=`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>`;
+// butun qatorni bir uslubda to'ldirish (Excel'dagi rangli qator), berilgan ustunlarga qiymat
+const xlRow=(n,style,vals)=>Array.from({length:n},(_,i)=>vals[i]!==undefined?XC(vals[i][0],vals[i][1],style):XC("",null,style));
+function sheetSmeta(){const s=buildSmeta();const N=9;const R=[];let n=0;
+  R.push([XC(`${tr("SMETA")}: ${S.obj.name}`,null,"title")]);
+  R.push([XC(`${tr(S.obj.region)} · ${qLabel(S.obj.quarter)} · ${tr("Tuzilgan: {0}",todayStr())}`,null,"meta")]);
+  R.push([]);
+  const head=R.length;
+  R.push(["№",tr("Nomi"),tr("Tafsilot"),tr("Birlik"),tr("Miqdor"),tr("Narx, so'm"),tr("Material, so'm"),tr("Ish haqi, so'm"),tr("Jami, so'm")].map(h=>XC(h,null,"head")));
+  s.groups.forEach(g=>{
+    R.push(xlRow(N,"group",{1:[`${g.title}  (${g.sub})`]}));
+    g.lines.forEach(l=>{const t=lineTotals(l);n++;
+      R.push([XC(n,"int"),XC(l.name),XC(l.sub),XC(U(l.unit)),XC(r2(l.qty),"dec2"),XC(Math.round(l.price),"money"),XC(Math.round(t.mat),"money"),XC(Math.round(t.lab),"money"),XC(Math.round(t.tot),"money","b")])});
+    R.push(xlRow(N,"sub",{1:[tr("Jami: {0}",g.title)],6:[Math.round(g.mat),"money"],7:[Math.round(g.lab),"money"],8:[Math.round(g.mat+g.lab),"money"]}))});
+  const last=R.length-1;
+  R.push([]);
+  const tot=(label,v)=>xlRow(N,undefined,{1:[label],8:[Math.round(v),"money"]}).map((c,i)=>i===1||i===8?{...c,s:"total"}:null);
+  R.push(tot(tr("Materiallar"),s.mat),tot(tr("Ish haqi"),s.lab),tot(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency),s.cont));
+  if(S.settings.vat)R.push(tot(tr("QQS 12%"),s.vat));
+  R.push(xlRow(N,"grand",{1:[tr("JAMI, so'm")],8:[Math.round(s.grand),"money"]}));
+  return{name:tr("Smeta"),cols:[5,36,30,8,10,13,15,14,15],rows:R,freeze:head+1,table:[head,Math.max(head,last)]};
+}
+function sheetRooms(){const R=[];const N=16;let sumF=0,sumW=0,sumP=0,sumT=0;
+  R.push([XC(`${tr("Xonalar hisobi")}: ${S.obj.name}`,null,"title")]);
+  R.push([XC(`${tr(S.obj.region)} · ${qLabel(S.obj.quarter)} · ${tr("Tuzilgan: {0}",todayStr())}`,null,"meta")]);
+  R.push([]);
+  const head=R.length;
+  R.push(["№",tr("Xona"),tr("Xona turi"),tr("Uzunligi, m"),tr("Eni, m"),tr("Balandligi, m"),tr("Pol maydoni, m²"),tr("Perimetr, m"),tr("Devor (sof), m²"),tr("Plintus, m"),tr("Eshiklar"),tr("Derazalar"),tr("Pol"),tr("Devor"),tr("Shift"),tr("Jami, so'm")].map(h=>XC(h,null,"head")));
+  S.rooms.forEach((r,i)=>{const c=roomCalc(r);const tot=roomTotal(r);sumF+=c.floorA;sumW+=c.wallNet;sumP+=c.pl;sumT+=tot;
+    R.push([XC(i+1,"int"),XC(r.name),XC(rtLabel(r.type)),XC(r2(num(r.L)),"dec2"),XC(r2(num(r.W)),"dec2"),XC(r2(num(r.H)),"dec2"),XC(r2(c.floorA),"dec2"),XC(r2(c.perim),"dec2"),XC(r2(c.wallNet),"dec2"),XC(r2(c.pl),"dec2"),XC(r.doors.length,"int"),XC(r.windows.length,"int"),XC(lab(FLOOR[r.floor])),XC(lab(WALL[r.wall])),XC(lab(CEIL[r.ceil])),XC(Math.round(tot),"money","b")])});
+  R.push(xlRow(N,"grand",{1:[tr("JAMI")],6:[r2(sumF),"dec2"],8:[r2(sumW),"dec2"],9:[r2(sumP),"dec2"],15:[Math.round(sumT),"money"]}));
+  return{name:tr("Xonalar"),cols:[5,24,18,11,9,12,14,12,14,11,10,11,14,24,18,16],rows:R,freeze:head+1,table:[head,R.length-1]};
+}
+const xlSheets=()=>[sheetSmeta(),sheetRooms()];
+// Excel ko'rinishi: ustun harflari, qator raqamlari, varaq yorliqlari
+function viewSheet(sheets,cur){const sh=sheets[cur]||sheets[0];const ncol=sh.cols.length;
+  const colName=i=>{let s="";i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
+  const filled=c=>!!c&&c.v!=="";
+  // Excel kabi: matn o'ngdagi katak bo'sh bo'lsa unga "oqib" o'tadi, bo'lmasa kesiladi
+  const cell=(x,next)=>{if(!x)return "<td></td>";const v=x.v;const isN=typeof v==="number";
+    const txt=v===""?"":isN?(x.f==="money"?fmt(v):x.f==="dec2"?fd(v):String(v)):esc(v);
+    const cls=[x.s?"x-"+x.s:"",isN?"x-n":"",!isN&&txt&&!filled(next)&&x.s!=="head"?"x-ov":""].filter(Boolean).join(" ");return `<td${cls?` class="${cls}"`:""}>${txt}</td>`};
+  const [t0,t1]=sh.table||[-1,-2];const pad=4;
+  const body=sh.rows.map((r,i)=>`<tr${i>=t0&&i<=t1?' class="x-t"':""}><th>${i+1}</th>${Array.from({length:ncol},(_,j)=>cell(r[j],r[j+1])).join("")}</tr>`).join("")
+    +Array.from({length:pad},(_,k)=>`<tr><th>${sh.rows.length+k+1}</th>${"<td></td>".repeat(ncol)}</tr>`).join("");
+  // Excel ustun kengligi (belgilarda) -> px; jadval kengligi aniq bo'lishi shart, aks holda brauzer kengliklarni o'zi tanlaydi
+  const px=sh.cols.map(w=>Math.round(w*7.5+10));const total=42+px.reduce((a,b)=>a+b,0);
+  return `<div class="xl"><div class="xl-scroll"><table class="xlgrid" style="width:${total}px"><colgroup><col style="width:42px">${px.map(w=>`<col style="width:${w}px">`).join("")}</colgroup>
+   <thead><tr><th class="xl-corner"></th>${sh.cols.map((_,i)=>`<th>${colName(i)}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>
+   <div class="xl-tabs">${sheets.map((x,i)=>`<button type="button" data-act="xlSheet" data-i="${i}" aria-pressed="${sh===x}">${esc(x.name)}</button>`).join("")}</div></div>`}
+const safeFile=s=>String(s).replace(/[\\/:*?"<>|\u0000-\u001f]+/g," ").replace(/\s+/g," ").trim().slice(0,120)||"Smeta";
+async function downloadXlsx(){
+  if(!SERVER||!SERVER.xlsxUrl){toast(tr("Excel fayl uchun internet kerak"));return}
+  const btns=document.querySelectorAll('[data-act="xlsx"]');btns.forEach(b=>b.disabled=true);
+  try{
+    const r=await fetch(SERVER.xlsxUrl,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body:JSON.stringify({sheets:xlSheets()})});
+    if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status);
+    const blob=await r.blob();const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=safeFile(`${tr("Smeta")} - ${S.obj.name} - ${todayStr()}`)+".xlsx";document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);toast(tr("Excel fayl yuklab olindi"));
+  }catch(e){toast(e.message==="auth"?tr("Sessiya tugagan — qayta kiring"):(!navigator.onLine||e instanceof TypeError)?tr("Excel fayl uchun internet kerak"):tr("Excel faylni yaratib bo'lmadi, qayta urinib ko'ring"))}
+  finally{btns.forEach(b=>b.disabled=false)}
+}
+
 function viewSmeta(){
-  const s=buildSmeta();let n=0;
+  const s=buildSmeta();let n=0;const mode=S.ui.smetaView==="table"?"table":"excel";
   const rows=s.groups.map(g=>`<tr class="grp"><td colspan="9">${esc(g.title)} <span class="note" style="font-family:var(--f-mono);font-weight:400">${esc(g.sub)}</span></td></tr>`+
    g.lines.map(l=>{const t=lineTotals(l);n++;return `<tr><td class="num hm">${n}</td><td><div class="itemname">${esc(l.name)}</div>${l.sub?`<div class="itemsub">${esc(l.sub)}</div>`:""}<div class="itemsub mobonly mono">${fmt(l.price)} ${SOM}/${esc(U(l.unit))}</div></td><td class="hm">${esc(U(l.unit))}</td><td class="num r">${fd(l.qty)}<span class="mobonly"> ${esc(U(l.unit))}</span></td><td class="num r hm">${fmt(l.price)}</td><td class="num r hm">${fmt(t.mat)}</td><td class="num r hm">${fmt(t.lab)}</td><td class="num r"><b>${fmt(t.tot)}</b></td><td class="hm"><span class="tag${l.kind==="auto"?" auto":l.kind==="own"?" own":""}">${esc(l.src)}</span></td></tr>`}).join("")+
    `<tr class="sub"><td class="hm"></td><td colspan="2" class="colfix">${esc(tr("Jami: {0}",g.title))}</td><td class="hm" colspan="2"></td><td class="num r hm">${fmt(g.mat)}</td><td class="num r hm">${fmt(g.lab)}</td><td class="num r">${fmt(g.mat+g.lab)}</td><td class="hm"></td></tr>`).join("");
   return `<div class="pagehead"><div><h2>${esc(tr("Smeta: {0}",S.obj.name))}</h2><p>${esc(tr("{0} · {1} narxlarida · soddalashtirilgan hisob (davlat standarti formati keyingi versiyada)",tr(S.obj.region),qLabel(S.obj.quarter)))}</p></div>
-   <div class="row"><button class="btn dark" data-act="copyTsv">${tr("Excel uchun nusxa olish")}</button><button class="btn" data-act="copyTxt">${tr("Matn sifatida nusxa")}</button></div></div>
+   <div class="row"><button class="btn pri" data-act="xlsx">${DL_ICON} ${tr("Excel yuklab olish")}</button><button class="btn" data-act="copyTxt">${tr("Matn sifatida nusxa")}</button></div></div>
   <div class="section"><div class="sumgrid"><div><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div><span>${esc(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency))}</span><b>${fmt(s.cont)}</b></div>${S.settings.vat?`<div><span>${tr("QQS 12%")}</span><b>${fmt(s.vat)}</b></div>`:""}<div class="g"><span>${tr("Jami, so'm")}</span><b>${fmt(s.grand)}</b></div></div>
-  <div class="tscroll"><table><thead><tr><th class="hm">№</th><th>${tr("Nomi")}</th><th class="hm">${tr("Birlik")}</th><th class="r">${tr("Miqdor")}</th><th class="r hm">${tr("Narx")}</th><th class="r hm">${tr("Material")}</th><th class="r hm">${tr("Ish haqi")}</th><th class="r">${tr("Jami")}</th><th class="hm">${tr("Manba")}</th></tr></thead><tbody>${rows||`<tr><td colspan="9" class="empty">${tr("Smeta bo'sh.")}</td></tr>`}</tbody></table></div>
+  <div class="row" style="align-items:center;justify-content:space-between"><div class="seg" role="group" aria-label="${tr("Ko'rinish")}"><button type="button" data-act="smetaView" data-k="excel" aria-pressed="${mode==="excel"}">${tr("Excel ko'rinishi")}</button><button type="button" data-act="smetaView" data-k="table" aria-pressed="${mode==="table"}">${tr("Jadval")}</button></div>${mode==="excel"?`<span class="note">${tr("Yuklab olinadigan fayl aynan shunday bo'ladi")}</span>`:""}</div>
+  ${mode==="excel"?viewSheet(xlSheets(),+S.ui.xlSheet||0):`<div class="tscroll"><table><thead><tr><th class="hm">№</th><th>${tr("Nomi")}</th><th class="hm">${tr("Birlik")}</th><th class="r">${tr("Miqdor")}</th><th class="r hm">${tr("Narx")}</th><th class="r hm">${tr("Material")}</th><th class="r hm">${tr("Ish haqi")}</th><th class="r">${tr("Jami")}</th><th class="hm">${tr("Manba")}</th></tr></thead><tbody>${rows||`<tr><td colspan="9" class="empty">${tr("Smeta bo'sh.")}</td></tr>`}</tbody></table></div>`}
   <div id="fallback"></div></div>`;
 }
-function smetaTsv(){const s=buildSmeta();const L=[["№",tr("Nomi"),tr("Tafsilot"),tr("Birlik"),tr("Miqdor"),tr("Narx"),tr("Material"),tr("Ish haqi"),tr("Jami")].join("\t")];let n=0;
-  s.groups.forEach(g=>{L.push(["",g.title+" ("+g.sub+")"].join("\t"));g.lines.forEach(l=>{const t=lineTotals(l);n++;L.push([n,l.name,l.sub,U(l.unit),fd(l.qty),Math.round(l.price),Math.round(t.mat),Math.round(t.lab),Math.round(t.tot)].join("\t"))})});
-  L.push(["",tr("Materiallar"),"","","","",Math.round(s.mat)].join("\t"),["",tr("Ish haqi"),"","","","","",Math.round(s.lab)].join("\t"),["",tr("Kutilmagan xarajatlar {0}%",S.settings.contingency),"","","","","","",Math.round(s.cont)].join("\t"));
-  if(S.settings.vat)L.push(["",tr("QQS 12%"),"","","","","","",Math.round(s.vat)].join("\t"));
-  L.push(["",tr("JAMI"),"","","","","","",Math.round(s.grand)].join("\t"));return L.join("\n")}
 function smetaTxt(){const s=buildSmeta();let o=`${tr("SMETA")}: ${S.obj.name}\n${tr(S.obj.region)}, ${qLabel(S.obj.quarter)}\n\n`;let n=0;
   s.groups.forEach(g=>{o+=`${g.title} (${g.sub})\n`;g.lines.forEach(l=>{n++;o+=`${n}. ${l.name} — ${fd(l.qty)} ${U(l.unit)} × ${fmt(l.price)} = ${fmt(lineTotals(l).tot)} ${SOM}\n`});o+=`   ${tr("Jami: {0}",fmt(g.mat+g.lab))} ${SOM}\n\n`});
   o+=`${tr("Materiallar")}: ${fmt(s.mat)}\n${tr("Ish haqi")}: ${fmt(s.lab)}\n${tr("Kutilmagan xarajatlar")}: ${fmt(s.cont)}\n${S.settings.vat?tr("QQS 12%")+": "+fmt(s.vat)+"\n":""}${tr("JAMI")}: ${fmt(s.grand)} ${SOM}`;return o}
@@ -375,7 +440,9 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "delItem":r.items=r.items.filter(i=>i.uid!==b.dataset.uid);renderDerived();renderTotal();save();break;
    case "addConc":S.concrete.push({id:uid(),name:tr("Yangi beton ishi"),grade:"M200",cem:"M500",mode:"vol",L:"",W:"",T:"",V:"1",factory:""});render();renderConcreteDerived();break;
    case "delConc":S.concrete=S.concrete.filter(c=>c.id!==b.dataset.id);render();renderConcreteDerived();break;
-   case "copyTsv":copy(smetaTsv());break;
+   case "xlsx":downloadXlsx();break;
+   case "smetaView":S.ui.smetaView=b.dataset.k;render();break;
+   case "xlSheet":S.ui.xlSheet=+b.dataset.i;render();break;
    case "copyTxt":copy(smetaTxt());break;
   }
 });
@@ -391,7 +458,7 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
   if(t.dataset.c){const c=S.concrete.find(x=>x.id===t.dataset.c);c[t.dataset.k]=t.value;if(t.dataset.rerender){render();}renderConcreteDerived();renderTotal();save();return}
   if(t.dataset.p){const p=S.prices.find(x=>x.id===t.dataset.p);if(t.dataset.i!=null)p.src[+t.dataset.i]=t.value;else p[t.dataset.k]=t.value;
     if(t.dataset.k==="mode"){render();return}const el=$("#pr-"+p.id);if(el)el.innerHTML=`<b>${fmt(priceOf(p.id))}</b>`;renderTotal();save();return}
-  if(t.dataset.s){S.settings[t.dataset.s]=t.type==="checkbox"?t.checked:t.value;const n=$("#rateNote b");if(n)n.textContent=fmt(rate())+" "+SOM;renderTotal();save();return}
+  if(t.dataset.s){S.settings[t.dataset.s]=t.type==="checkbox"?t.checked:t.value;renderTotal();save();return}
 });
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
 

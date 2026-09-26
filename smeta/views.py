@@ -3,10 +3,12 @@ import json
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
-from django.http import HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
+from django.utils.http import content_disposition_header
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from .excel import build_workbook
 from .i18n import current_lang, tr
 from .malumotnoma import build_reference
 from .models import Obyekt
@@ -76,6 +78,23 @@ def obyekt_state(request, pk):
     o.sync_from_state()
     o.save()
     return JsonResponse({"ok": True, "updated": o.updated.isoformat()})
+
+
+XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+@login_required
+@require_POST
+def obyekt_excel(request, pk):
+    """Brauzer hisoblagan smeta (varaq modeli) -> .xlsx fayl. Qarang: smeta/excel.py"""
+    o = get_object_or_404(Obyekt, pk=pk, owner=request.user)
+    try:
+        content = build_workbook(json.loads(request.body))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"error": "Varaq ma'lumoti noto'g'ri"}, status=400)
+    resp = HttpResponse(content, content_type=XLSX_TYPE)
+    resp["Content-Disposition"] = content_disposition_header(True, f"{o.name or 'Smeta'}.xlsx")
+    return resp
 
 
 def register(request):

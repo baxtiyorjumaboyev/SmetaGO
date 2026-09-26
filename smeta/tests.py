@@ -185,6 +185,53 @@ class SmetaTests(TestCase):
         for needle in ('rel="manifest"', 'name="theme-color"', "apple-touch-icon", "smeta/js/pwa.js", "updated:"):
             self.assertIn(needle, page)
 
+    XLSX_SHEETS = {"sheets": [
+        {"name": "Smeta", "cols": [5, 30, 12], "freeze": 2, "table": [1, 3], "rows": [
+            [{"v": "SMETA: Test", "s": "title"}],
+            [{"v": "№", "s": "head"}, {"v": "Nomi", "s": "head"}, {"v": "Jami, so'm", "s": "head"}],
+            [{"v": 1, "f": "int"}, {"v": "Laminat"}, {"v": 2383333, "f": "money"}],
+            [{"v": 2, "f": "int"}, {"v": "=HYPERLINK(\"http://x\")"}, {"v": 12.5, "f": "dec2"}],
+            None,
+            [None, {"v": "JAMI", "s": "grand"}, {"v": 2383346, "f": "money", "s": "grand"}],
+        ]},
+        {"name": "Xonalar", "cols": [5, 20], "rows": [[{"v": "Xonalar hisobi", "s": "title"}]]},
+    ]}
+
+    def test_excel_download(self):
+        from io import BytesIO
+
+        from openpyxl import load_workbook
+
+        o = Obyekt.objects.create(owner=self.user, name="Chilonzor: 2/xona")
+        r = self.c.post(reverse("obyekt_excel", args=[o.pk]), json.dumps(self.XLSX_SHEETS), content_type="application/json")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r["Content-Type"], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        self.assertIn("attachment", r["Content-Disposition"])
+        wb = load_workbook(BytesIO(r.content))
+        self.assertEqual(wb.sheetnames, ["Smeta", "Xonalar"])
+        ws = wb["Smeta"]
+        self.assertEqual(ws["A1"].value, "SMETA: Test")
+        self.assertTrue(ws["A1"].font.b)
+        self.assertEqual(ws["B2"].fill.fgColor.rgb[-6:], "15803D")  # sarlavha — yashil
+        self.assertEqual((ws["C3"].value, ws["C3"].number_format), (2383333, "#,##0"))
+        self.assertEqual(ws["C4"].number_format, "0.00")
+        self.assertEqual(ws["B4"].data_type, "s")  # "=..." formula emas, matn bo'lib qoladi
+        self.assertEqual(ws["C6"].value, 2383346)
+        self.assertEqual(ws.freeze_panes, "A3")
+        self.assertEqual(ws.column_dimensions["B"].width, 30)
+        self.assertIsNotNone(ws["A3"].border.left.style)  # jadval chegaralari
+
+    def test_excel_rejects_bad_input_and_other_users(self):
+        o = Obyekt.objects.create(owner=self.user)
+        url = reverse("obyekt_excel", args=[o.pk])
+        for bad in ("{bad", "{}", '{"sheets": []}', '{"sheets": [{"rows": [[{"v": true}]]}]}',
+                    '{"sheets": [{"rows": [[{"v": 1e999}]]}]}'):
+            self.assertEqual(self.c.post(url, bad, content_type="application/json").status_code, 400, bad)
+        self.assertEqual(self.c.get(url).status_code, 405)
+        other = Obyekt.objects.create(owner=User.objects.create_user("begona2", password="x"))
+        r = self.c.post(reverse("obyekt_excel", args=[other.pk]), json.dumps(self.XLSX_SHEETS), content_type="application/json")
+        self.assertEqual(r.status_code, 404)
+
     def test_csrf_required_for_save(self):
         o = Obyekt.objects.create(owner=self.user)
         c = Client(enforce_csrf_checks=True)
