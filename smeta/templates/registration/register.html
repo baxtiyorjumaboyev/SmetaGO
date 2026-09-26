@@ -1,14 +1,14 @@
-{% extends "smeta/base.html" %}
-{% block title %}Ro'yxatdan o'tish · SmetaGo{% endblock %}
+{% extends "smeta/base.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Ro'yxatdan o'tish" %} · SmetaGo{% endblock %}
 {% block content %}
 <form method="post" class="panel pad stack auth">{% csrf_token %}
-  <h1>Ro'yxatdan o'tish</h1>
+  <h1>{% t "Ro'yxatdan o'tish" %}</h1>
   {{ form.non_field_errors }}
-  <div><label for="id_username">Login</label>{{ form.username }}{{ form.username.errors }}</div>
-  <div><label for="id_password1">Parol</label>{{ form.password1 }}{{ form.password1.errors }}
-    <div class="helptext">Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin.</div></div>
-  <div><label for="id_password2">Parolni takrorlang</label>{{ form.password2 }}{{ form.password2.errors }}</div>
-  <button class="btn pri">Ro'yxatdan o'tish</button>
-  <p class="ometa">Hisobingiz bormi? <a href="{% url 'login' %}">Kirish</a></p>
+  <div><label for="id_username">{% t "Login" %}</label>{{ form.username }}{{ form.username.errors }}</div>
+  <div><label for="id_password1">{% t "Parol" %}</label>{{ form.password1 }}{{ form.password1.errors }}
+    <div class="helptext">{% t "Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin." %}</div></div>
+  <div><label for="id_password2">{% t "Parolni takrorlang" %}</label>{{ form.password2 }}{{ form.password2.errors }}</div>
+  <button class="btn pri">{% t "Ro'yxatdan o'tish" %}</button>
+  <p class="ometa">{% t "Hisobingiz bormi?" %} <a href="{% url 'login' %}">{% t "Kirish" %}</a></p>
 </form>
 {% endblock %}

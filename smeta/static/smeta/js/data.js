@@ -8,28 +8,29 @@ const REGIONS=["Toshkent sh.","Toshkent vil.","Andijon","Buxoro","Farg'ona","Jiz
 const QUARTERS=["2026-yil III chorak","2026-yil IV chorak","2027-yil I chorak"];
 const DOOR_H=2.1;
 
+// l — o'zbekcha, ru — ruscha nom (lab() tanlaydi, i18n.js)
 const FLOOR={
-  laminat:{l:"Laminat",pid:"laminat",h:.3,pl:"plintus_pvc"},
-  kafel:{l:"Kafel",pid:"kafel_pol",h:1,pl:"plintus_kafel"},
-  linoleum:{l:"Linoleum",pid:"linoleum",h:.15,pl:"plintus_pvc"},
-  parket:{l:"Parket",pid:"parket",h:.6,pl:"plintus_yogoch"},
-  yoq:{l:"O'zgarmaydi",pid:null,h:0,pl:null}
+  laminat:{l:"Laminat",ru:"Ламинат",pid:"laminat",h:.3,pl:"plintus_pvc"},
+  kafel:{l:"Kafel",ru:"Плитка",pid:"kafel_pol",h:1,pl:"plintus_kafel"},
+  linoleum:{l:"Linoleum",ru:"Линолеум",pid:"linoleum",h:.15,pl:"plintus_pvc"},
+  parket:{l:"Parket",ru:"Паркет",pid:"parket",h:.6,pl:"plintus_yogoch"},
+  yoq:{l:"O'zgarmaydi",ru:"Без изменений",pid:null,h:0,pl:null}
 };
 const WALL={
-  boyoq:{l:"Bo'yoq (shpaklyovka bilan)",pid:"boyoq_devor",h:.35},
-  oboy:{l:"Oboy",pid:"oboy",h:.25},
-  kafel:{l:"Kafel (to'liq balandlik)",pid:"kafel_devor",h:1.1},
-  gipsokarton:{l:"Gipsokarton",pid:"gipsokarton",h:.6},
-  yoq:{l:"O'zgarmaydi",pid:null,h:0}
+  boyoq:{l:"Bo'yoq (shpaklyovka bilan)",ru:"Покраска (со шпаклёвкой)",pid:"boyoq_devor",h:.35},
+  oboy:{l:"Oboy",ru:"Обои",pid:"oboy",h:.25},
+  kafel:{l:"Kafel (to'liq balandlik)",ru:"Плитка (на всю высоту)",pid:"kafel_devor",h:1.1},
+  gipsokarton:{l:"Gipsokarton",ru:"Гипсокартон",pid:"gipsokarton",h:.6},
+  yoq:{l:"O'zgarmaydi",ru:"Без изменений",pid:null,h:0}
 };
 const CEIL={
-  shift_boyoq:{l:"Bo'yoq",pid:"shift_boyoq",h:.35},
-  natyajnoy:{l:"Natyajnoy shift",pid:"natyajnoy",h:.3},
-  gipsokarton:{l:"Gipsokarton",pid:"gipsokarton",h:.7},
-  armstrong:{l:"Armstrong",pid:"armstrong",h:.3},
-  yoq:{l:"O'zgarmaydi",pid:null,h:0}
+  shift_boyoq:{l:"Bo'yoq",ru:"Покраска",pid:"shift_boyoq",h:.35},
+  natyajnoy:{l:"Natyajnoy shift",ru:"Натяжной потолок",pid:"natyajnoy",h:.3},
+  gipsokarton:{l:"Gipsokarton",ru:"Гипсокартон",pid:"gipsokarton",h:.7},
+  armstrong:{l:"Armstrong",ru:"Армстронг",pid:"armstrong",h:.3},
+  yoq:{l:"O'zgarmaydi",ru:"Без изменений",pid:null,h:0}
 };
-const PLINTH_LABEL={plintus_pvc:"PVC (plastik)",plintus_kafel:"Kafel plintus",plintus_yogoch:"Yog'och"};
+const PLINTH_LABEL={plintus_pvc:{l:"PVC (plastik)",ru:"ПВХ (пластик)"},plintus_kafel:{l:"Kafel plintus",ru:"Плиточный плинтус"},plintus_yogoch:{l:"Yog'och",ru:"Деревянный"}};
 
 // concrete per 1 m3 on PC M500 (СНиП 82-02-95, ГОСТ 7473-2010 reference table)
 const MIX={M150:[230,850,1200,145],M200:[280,800,1200,155],M250:[320,750,1200,160],M300:[350,720,1200,165],M350:[380,700,1200,170],M400:[420,670,1200,175]};

@@ -7,6 +7,7 @@ from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from .i18n import current_lang, tr
 from .malumotnoma import build_reference
 from .models import Obyekt
 
@@ -24,7 +25,7 @@ def obyekt_create(request):
     namuna = request.POST.get("namuna") == "1"
     o = Obyekt.objects.create(
         owner=request.user,
-        name="Namunaviy obyekt" if namuna else "Yangi obyekt",
+        name=tr("Namunaviy obyekt") if namuna else tr("Yangi obyekt"),
         state={"namuna": True} if namuna else {},
     )
     return redirect("obyekt_app", pk=o.pk)
@@ -33,7 +34,7 @@ def obyekt_create(request):
 @login_required
 def obyekt_app(request, pk):
     o = get_object_or_404(Obyekt, pk=pk, owner=request.user)
-    return render(request, "smeta/app.html", {"o": o, "ref": build_reference()})
+    return render(request, "smeta/app.html", {"o": o, "ref": build_reference(current_lang())})
 
 
 @login_required
@@ -41,7 +42,7 @@ def obyekt_app(request, pk):
 def obyekt_copy(request, pk):
     o = get_object_or_404(Obyekt, pk=pk, owner=request.user)
     state = json.loads(json.dumps(o.state))
-    name = f"{o.name} (nusxa)"[:200]
+    name = f"{o.name} {tr('(nusxa)')}"[:200]
     if isinstance(state.get("obj"), dict):
         state["obj"]["name"] = name
     Obyekt.objects.create(owner=request.user, name=name, state=state)

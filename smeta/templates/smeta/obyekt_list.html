@@ -1,16 +1,16 @@
-{% extends "smeta/base.html" %}
-{% block title %}Obyektlar · SmetaGo{% endblock %}
+{% extends "smeta/base.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Obyektlar" %} · SmetaGo{% endblock %}
 {% block content %}
 <div class="stack">
   <div class="row">
-    <h1>Obyektlar</h1>
+    <h1>{% t "Obyektlar" %}</h1>
     <div class="row" style="margin-left:auto">
       <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}
         <input type="hidden" name="namuna" value="1">
-        <button class="btn">Namunaviy obyekt</button>
+        <button class="btn">{% t "Namunaviy obyekt" %}</button>
       </form>
       <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}
-        <button class="btn pri">+ Yangi obyekt</button>
+        <button class="btn pri">{% t "+ Yangi obyekt" %}</button>
       </form>
     </div>
   </div>
@@ -21,20 +21,20 @@
     <article class="panel pad ocard">
       <a class="oname" href="{% url 'obyekt_app' o.pk %}">{{ o.name }}</a>
       <div class="ometa">
-        {% if o.region %}{{ o.region }} · {% endif %}{{ o.rooms_count }} xona<br>
-        O'zgartirilgan: {{ o.updated|date:"d.m.Y H:i" }}
+        {% if o.region %}{% t o.region %} · {% endif %}{% t "{0} xona" o.rooms_count %}<br>
+        {% t "O'zgartirilgan" %}: {{ o.updated|date:"d.m.Y H:i" }}
       </div>
       <div class="oacts">
-        <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">Ochish</a>
-        <form method="post" action="{% url 'obyekt_copy' o.pk %}">{% csrf_token %}<button class="btn sm">Nusxa</button></form>
-        <form method="post" action="{% url 'obyekt_delete' o.pk %}" onsubmit="return confirm('«{{ o.name|escapejs }}» o\'chirilsinmi? Bu amalni qaytarib bo\'lmaydi.')">{% csrf_token %}<button class="btn sm ghost">O'chirish</button></form>
+        <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">{% t "Ochish" %}</a>
+        <form method="post" action="{% url 'obyekt_copy' o.pk %}">{% csrf_token %}<button class="btn sm">{% t "Nusxa" %}</button></form>
+        <form method="post" action="{% url 'obyekt_delete' o.pk %}" data-confirm="{% t "«{0}» o'chirilsinmi? Bu amalni qaytarib bo'lmaydi." o.name %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}<button class="btn sm ghost">{% t "O'chirish" %}</button></form>
       </div>
     </article>
     {% endfor %}
   </div>
   {% else %}
   <section class="panel empty">
-    Hali obyekt yo'q. «+ Yangi obyekt» bilan boshlang yoki ilovani ko'rish uchun namunaviy obyekt oching.
+    {% t "Hali obyekt yo'q. «+ Yangi obyekt» bilan boshlang yoki ilovani ko'rish uchun namunaviy obyekt oching." %}
   </section>
   {% endif %}
 </div>

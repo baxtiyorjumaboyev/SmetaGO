@@ -1,0 +1,63 @@
+{
+ "groups": {
+  "Mebel": "Мебель",
+  "Oshxona": "Кухня",
+  "Elektrika": "Электрика",
+  "Santexnika": "Сантехника",
+  "Isitish va ventilyatsiya": "Отопление и вентиляция",
+  "Eshik va deraza": "Двери и окна",
+  "Qurilish ishlari": "Строительные работы"
+ },
+ "items": {
+  "stol": "Стол", "stul": "Стул", "shkaf": "Шкаф", "divan": "Диван", "kreslo": "Кресло",
+  "kushetka": "Кушетка", "krovat": "Кровать", "tumba": "Тумба", "javon": "Полка",
+  "garnitur": "Кухонный гарнитур", "seyf": "Сейф", "shtativ": "Вешалка / стойка",
+  "gaz_plita": "Газовая плита", "elektr_plita": "Электроплита", "vytyazhka": "Вытяжка",
+  "muzlatgich": "Холодильник", "osh_rakovina": "Кухонная мойка", "mikro": "Микроволновая печь",
+  "svetilnik": "Светильник / плафон", "lpo": "ЛПО (линейный светильник)", "led_panel": "LED-панель 600×600",
+  "lyustra": "Люстра", "bra": "Бра (настенный светильник)", "vyklyuchatel": "Выключатель",
+  "rozetka": "Розетка", "shchit": "Электрощит", "avtomat": "Автомат (выключатель)",
+  "kabel": "Кабель ВВГ 3×2,5",
+  "unitaz": "Унитаз", "rakovina": "Раковина", "vanna": "Ванна", "dush": "Душевая кабина",
+  "smesitel": "Смеситель", "isitgich": "Водонагреватель", "polotense": "Полотенцесушитель", "trap": "Трап",
+  "radiator": "Радиатор", "konditsioner": "Кондиционер", "vent_panjara": "Вентиляционная решётка",
+  "vent_teshik": "Вентиляционное отверстие (сверление)", "vent_shaxta": "Вентиляционная шахта (канал)",
+  "ventilyator": "Вентилятор (вытяжной)",
+  "ichki_eshik": "Межкомнатная дверь", "kirish_eshik": "Входная дверь (металлическая)",
+  "deraza": "Пластиковое окно", "tokcha": "Подоконник", "jalyuzi": "Шторы / жалюзи",
+  "gruntovka": "Грунтовка", "shpaklyovka": "Шпаклёвка", "styajka": "Стяжка (5 см)",
+  "fartuk": "Кухонный фартук из плитки", "panel": "Декоративная панель", "demontaj": "Демонтажные работы"
+ },
+ "variants": {
+  "Ofis stoli": "Офисный стол", "Oshxona stoli": "Кухонный стол", "Jurnal stoli": "Журнальный столик",
+  "Oddiy stul": "Обычный стул", "Ofis stuli (g'ildirakli)": "Офисный стул (на колёсиках)",
+  "2 eshikli": "2-дверный", "3 eshikli": "3-дверный", "Kupe": "Купе", "Hujjat shkafi": "Шкаф для документов",
+  "1 kishilik": "Односпальная", "2 kishilik": "Двуспальная", "Ikki qavatli": "Двухъярусная",
+  "4 konforkali": "4 конфорки", "2 konforkali": "2 конфорки",
+  "Eni 60 sm": "Ширина 60 см", "Eni 90 sm": "Ширина 90 см",
+  "Plafon": "Плафон", "LED svetilnik": "LED-светильник", "Nuqtali (spot)": "Точечный (спот)",
+  "2×18 Vt": "2×18 Вт", "2×36 Vt": "2×36 Вт", "4×18 Vt": "4×18 Вт",
+  "1 klavishali": "1-клавишный", "2 klavishali": "2-клавишный", "3 klavishali": "3-клавишный",
+  "1 o'rinli": "Одинарная", "2 o'rinli": "Двойная", "Namlikdan himoyalangan": "Влагозащищённая",
+  "50 l": "50 л", "80 l": "80 л"
+ },
+ "materials": {
+  "sement": "Цемент", "sheben": "Щебень", "qum": "Песок", "suv": "Вода",
+  "laminat": "Ламинат", "kafel_pol": "Плитка (пол)", "linoleum": "Линолеум", "parket": "Паркет",
+  "plintus_pvc": "Плинтус ПВХ, 2,5 м", "plintus_yogoch": "Плинтус деревянный, 2,5 м", "plintus_kafel": "Плиточный плинтус",
+  "boyoq_devor": "Краска для стен + шпаклёвка", "oboy": "Обои", "kafel_devor": "Плитка (стены)",
+  "gipsokarton": "Гипсокартон (с каркасом)", "shift_boyoq": "Краска для потолка",
+  "natyajnoy": "Натяжной потолок", "armstrong": "Потолок Армстронг"
+ },
+ "sources": {
+  "Quvasoy · Jizzax · Ohangaron": "Кувасай · Джизак · Ахангаран",
+  "1-, 2-, 3-karyer": "Карьеры № 1, 2, 3",
+  "Suvoqova tarifi": "Тариф водоканала",
+  "Do'kon / bozor / marketpleys": "Магазин / рынок / маркетплейс"
+ },
+ "room_types": {
+  "Mehmonxona": "Гостиная", "Yotoqxona": "Спальня", "Oshxona": "Кухня", "Hammom": "Ванная",
+  "Koridor": "Коридор", "Ofis xonasi": "Офисное помещение", "Navbatchi xona": "Дежурная комната",
+  "Boshqa": "Другое"
+ }
+}

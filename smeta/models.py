@@ -18,6 +18,7 @@ UNIT_CHOICES = [(u, u) for u in ("dona", "m", "m²", "m³", "kg", "seksiya", "ko
 
 class CatalogGroup(models.Model):
     name = models.CharField("Nomi", max_length=100, unique=True)
+    name_ru = models.CharField("Nomi (ruscha)", max_length=100, blank=True)
     order = models.PositiveIntegerField("Tartib", default=0)
 
     class Meta:
@@ -36,6 +37,7 @@ class CatalogItem(models.Model):
     group = models.ForeignKey(CatalogGroup, on_delete=models.PROTECT, related_name="items",
                               verbose_name="Guruh")
     name = models.CharField("Nomi", max_length=150)
+    name_ru = models.CharField("Nomi (ruscha)", max_length=150, blank=True)
     unit = models.CharField("Birlik", max_length=20, choices=UNIT_CHOICES, default="dona")
     price = models.DecimalField("Narx, so'm", max_digits=14, decimal_places=0, default=0)
     hours = models.DecimalField("O'rnatish, soat/birlik", max_digits=6, decimal_places=2, default=0)
@@ -56,6 +58,7 @@ class CatalogItem(models.Model):
 class CatalogVariant(models.Model):
     item = models.ForeignKey(CatalogItem, on_delete=models.CASCADE, related_name="variants")
     label = models.CharField("Turi", max_length=150)
+    label_ru = models.CharField("Turi (ruscha)", max_length=150, blank=True)
     price = models.DecimalField("Narx, so'm", max_digits=14, decimal_places=0)
     hours = models.DecimalField("Soat (bo'sh — elementniki)", max_digits=6, decimal_places=2,
                                 null=True, blank=True)
@@ -77,12 +80,14 @@ class Material(models.Model):
 
     key = models.CharField("Kalit (id)", max_length=50, unique=True, validators=[key_validator])
     name = models.CharField("Nomi", max_length=150)
+    name_ru = models.CharField("Nomi (ruscha)", max_length=150, blank=True)
     unit = models.CharField("Birlik", max_length=20, choices=UNIT_CHOICES)
     group = models.CharField("Guruh", max_length=20, choices=GROUPS)
     src1 = models.DecimalField("1-manba", max_digits=14, decimal_places=0, default=0)
     src2 = models.DecimalField("2-manba", max_digits=14, decimal_places=0, default=0)
     src3 = models.DecimalField("3-manba", max_digits=14, decimal_places=0, default=0)
     sources = models.CharField("Manbalar nomi", max_length=200, blank=True)
+    sources_ru = models.CharField("Manbalar nomi (ruscha)", max_length=200, blank=True)
     order = models.PositiveIntegerField("Tartib", default=0)
     updated = models.DateTimeField("Yangilangan", auto_now=True)
 
@@ -97,6 +102,7 @@ class Material(models.Model):
 
 class RoomType(models.Model):
     name = models.CharField("Nomi", max_length=100, unique=True)
+    name_ru = models.CharField("Nomi (ruscha)", max_length=100, blank=True)
     floor = models.CharField("Pol", max_length=20, choices=FLOOR_CHOICES, default="laminat")
     wall = models.CharField("Devor", max_length=20, choices=WALL_CHOICES, default="boyoq")
     ceil = models.CharField("Shift", max_length=20, choices=CEIL_CHOICES, default="shift_boyoq")

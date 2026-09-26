@@ -111,6 +111,42 @@ class SmetaTests(TestCase):
         item = CatalogItem.objects.get(key="shkaf")
         self.assertEqual(c.get(f"/admin/smeta/catalogitem/{item.pk}/change/").status_code, 200)
 
+    def test_default_language_is_uzbek(self):
+        r = self.c.get("/", HTTP_ACCEPT_LANGUAGE="ru")  # brauzer tili hisobga olinmaydi
+        self.assertContains(r, '<html lang="uz">')
+        self.assertContains(r, "Obyektlar")
+
+    def test_switch_to_russian(self):
+        r = self.c.post("/i18n/setlang/", {"language": "ru", "next": "/"})
+        self.assertRedirects(r, "/", fetch_redirect_response=False)
+        page = self.c.get("/")
+        self.assertContains(page, '<html lang="ru">')
+        self.assertContains(page, "Объекты")
+        self.assertContains(page, "+ Новый объект")
+        self.c.post(reverse("obyekt_create"))
+        self.assertEqual(Obyekt.objects.get().name, "Новый объект")
+
+    def test_app_page_reference_in_russian(self):
+        self.c.cookies["django_language"] = "ru"
+        o = Obyekt.objects.create(owner=self.user)
+        page = self.c.get(reverse("obyekt_app", args=[o.pk])).content.decode()
+        self.assertIn('<html lang="ru">', page)
+        self.assertIn("/static/smeta/js/i18n.js", page)
+        ref = json.loads(page.split('id="smeta-ref" type="application/json">')[1].split("</script>")[0])
+        self.assertEqual(ref["catalog"][0]["g"], "Мебель")
+        items = {it["id"]: it for g in ref["catalog"] for it in g["items"]}
+        self.assertEqual(items["shkaf"]["n"], "Шкаф")
+        self.assertEqual(items["shkaf"]["v"][0][0], "2-дверный")
+        # xona turi kaliti o'zbekcha qoladi (obyektlarda saqlanadi), nomi — ruscha
+        self.assertEqual(ref["roomTypes"]["Mehmonxona"]["l"], "Гостиная")
+        lam = next(p for p in ref["prices"] if p["id"] == "laminat")
+        self.assertEqual((lam["n"], lam["g"]), ("Ламинат", "Pol"))
+
+    def test_empty_russian_name_falls_back_to_uzbek(self):
+        CatalogItem.objects.filter(key="divan").update(name_ru="")
+        items = {it["id"]: it for g in build_reference("ru")["catalog"] for it in g["items"]}
+        self.assertEqual(items["divan"]["n"], "Divan")
+
     def test_csrf_required_for_save(self):
         o = Obyekt.objects.create(owner=self.user)
         c = Client(enforce_csrf_checks=True)

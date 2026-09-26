@@ -1,10 +1,10 @@
-{% load static %}<!doctype html>
-<html lang="uz">
+{% load static smeta_i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{ o.name }} · SmetaGo</title>
-<meta name="description" content="Smetachi uchun ilova: xonalarni o'lchash, elementlarni tanlash va avtomatik smeta.">
+<script src="{% static 'smeta/js/prefs.js' %}"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -13,13 +13,14 @@
 <body>
 <header class="top">
   <div class="wrap">
-    <a class="btn sm" href="{% url 'obyekt_list' %}" title="Barcha obyektlar">← Obyektlar</a>
-    <div class="brand"><div class="mark">S</div><div>SmetaGo<small>o'lchang · tanlang · hisoblang</small></div></div>
+    <a class="btn sm" href="{% url 'obyekt_list' %}" title="{% t 'Barcha obyektlar' %}">←<span class="deskonly"> {% t "Obyektlar" %}</span></a>
+    <div class="brand"><div class="mark">S</div><div>SmetaGo<small>{% t "o'lchang · tanlang · hisoblang" %}</small></div></div>
     <div class="objmeta">
-      <input class="inp" id="o-name" data-o="name" aria-label="Obyekt nomi" placeholder="Obyekt nomi">
-      <select class="inp" id="o-region" data-o="region" aria-label="Hudud" style="width:auto"></select>
-      <select class="inp" id="o-quarter" data-o="quarter" aria-label="Narxlar choragi" style="width:auto"></select>
+      <input class="inp" id="o-name" data-o="name" aria-label="{% t 'Obyekt nomi' %}" placeholder="{% t 'Obyekt nomi' %}">
+      <select class="inp" id="o-region" data-o="region" aria-label="{% t 'Hudud' %}" style="width:auto"></select>
+      <select class="inp" id="o-quarter" data-o="quarter" aria-label="{% t 'Narxlar choragi' %}" style="width:auto"></select>
     </div>
+    {% include "smeta/_prefs.html" %}
   </div>
   <div class="ruler" aria-hidden="true"></div>
   <nav class="wrap tabs" id="tabs" role="tablist"></nav>
@@ -37,6 +38,7 @@ window.SMETAGO = {
   name: "{{ o.name|escapejs }}"
 };
 </script>
+<script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
 <script src="{% static 'smeta/js/app.js' %}"></script>
 </body>

@@ -64,6 +64,21 @@ Katalog, material narxlari va xona turlari bazada saqlanadi va `/admin/` da tahr
 - Qoplama turlari (`FLOOR/WALL/CEIL`), beton retseptlari (`MIX`), hududlar va choraklar formulalarga bog'liq, shuning uchun `data.js` da qoladi.
 - **Mavjud obyektlarga ta'siri:** xonaga qo'shilgan elementlar narxi o'zgarmaydi (smeta tuzilgan paytdagi narx). Yangi material avtomatik qo'shiladi. Manba narxlarini yangilash uchun foydalanuvchi **Narxlar → "Markaziy narxlarni yuklash"** tugmasini bosadi, bunda uning tanlovi (o'rtacha / eng arzon / qo'lda) saqlanib qoladi.
 
+### Til (UZ / RU) va rejim (kunduzgi / tungi)
+
+Tepa qismdagi **UZ | RU** tugmalari tilni, 🌙/☀️ tugmasi rejimni almashtiradi. Ikkalasi ham eslab qolinadi: til — cookie'da (`django_language`), rejim — brauzerda (`smetago-theme`). Standart til — o'zbekcha (brauzer tili hisobga olinmaydi). Rejim tanlanmagan bo'lsa, tizim sozlamasi ishlaydi.
+
+| Nima tarjima qilinadi | Qayerda |
+| --- | --- |
+| Ilova matnlari (bo'limlar, tugmalar, smeta, nusxa olish) | `static/smeta/js/i18n.js` → `RU` lug'ati. Kodda: `tr("o'zbekcha matn")`, birliklar `U("m²")` |
+| Sahifalar (ro'yxat, kirish, ro'yxatdan o'tish) | `smeta/i18n.py` → `RU`. Shablonda: `{% t "o'zbekcha matn" %}` |
+| Katalog, turlar, materiallar, xona turlari | Bazada `name_ru` / `label_ru` / `sources_ru` — admin panelda. Bo'sh bo'lsa o'zbekchasi chiqadi |
+| Qoplamalar, plintus turlari | `data.js` → `FLOOR` / `WALL` / `CEIL` dagi `ru` maydoni |
+
+Obyekt ichida hamma narsa o'zbekcha kalitlar bilan saqlanadi, shuning uchun tilni istalgan payt almashtirish mumkin. Faqat foydalanuvchi o'zi yozgan nomlar (xona nomi, o'z elementi) yozilganicha qoladi.
+
+Ranglar `css/style.css` boshidagi tokenlarda: yashil (`--accent`) + qora (`--ink`, `--bar`). Tungi palitra ikki joyda yoziladi (tizim sozlamasi va `data-theme="dark"`).
+
 Testlar: `.\.venv\Scripts\python.exe manage.py test smeta`
 
 **Saqlash qanday ishlaydi.** `app.js` avvalgidek `S` holati bilan ishlaydi. Sahifa Django orqali ochilganda (`window.SMETAGO` bor) holat shablonga joylanadi, `save()` esa uni 0,7 soniyadan keyin `PUT` bilan serverga yuboradi. Sahifa yopilayotganda saqlanmagan o'zgarish ham jo'natiladi. Obyekt nomi ro'yxat uchun `S.obj.name` dan olinadi.
