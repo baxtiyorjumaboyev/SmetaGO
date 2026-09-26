@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- SmetaGo ikonkasi: qora fon, yashil belgi, pastda o'lchov chizg'ichi -->
+  <rect width="512" height="512" rx="112" fill="#0c140f"/>
+  <rect x="128" y="104" width="256" height="256" rx="56" fill="#22c55e"/>
+  <path d="M312 170c-14-22-38-34-64-34-40 0-68 22-68 54 0 30 22 44 62 54l14 4c26 7 36 15 36 30 0 18-18 30-44 30-26 0-46-12-56-32" fill="none" stroke="#03140a" stroke-width="30" stroke-linecap="round"/>
+  <g fill="#22c55e">
+    <rect x="96" y="392" width="320" height="10" rx="5"/>
+    <rect x="96" y="360" width="10" height="42" rx="5"/>
+    <rect x="160" y="376" width="8" height="26" rx="4"/>
+    <rect x="224" y="376" width="8" height="26" rx="4"/>
+    <rect x="252" y="360" width="10" height="42" rx="5"/>
+    <rect x="288" y="376" width="8" height="26" rx="4"/>
+    <rect x="352" y="376" width="8" height="26" rx="4"/>
+    <rect x="406" y="360" width="10" height="42" rx="5"/>
+  </g>
+</svg>

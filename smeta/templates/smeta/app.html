@@ -1,14 +1,8 @@
 {% load static smeta_i18n %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+{% include "smeta/_head.html" %}
 <title>{{ o.name }} · SmetaGo</title>
-<script src="{% static 'smeta/js/prefs.js' %}"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="{% static 'smeta/css/style.css' %}">
 </head>
 <body>
 <header class="top">
@@ -35,7 +29,8 @@
 window.SMETAGO = {
   saveUrl: "{% url 'obyekt_state' o.pk %}",
   csrf: "{{ csrf_token }}",
-  name: "{{ o.name|escapejs }}"
+  name: "{{ o.name|escapejs }}",
+  updated: "{{ o.updated|date:'c' }}"
 };
 </script>
 <script src="{% static 'smeta/js/i18n.js' %}"></script>

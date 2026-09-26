@@ -41,10 +41,18 @@ function blank(base,name){const nr=mkRoom("Mehmonxona");return{v:1,sample:false,
 /* Django orqali ochilganda (window.SMETAGO bor) holat serverdan keladi va serverga saqlanadi.
  * Aks holda (index.html to'g'ridan-to'g'ri ochilsa) avvalgidek localStorage ishlatiladi. */
 const SERVER=window.SMETAGO||null;
+/* Oflayn navbat: serverga yetib bormagan oxirgi holat qurilmada saqlanadi ({ts, state})
+ * va aloqa tiklanganda yuboriladi. Serverdagi nusxa undan yangiroq bo'lsa (boshqa qurilmadan
+ * o'zgartirilgan) — navbat e'tiborga olinmaydi. */
+const PKEY=SERVER?"smetago-pending:"+SERVER.saveUrl:null;
+const readPending=()=>{try{const p=JSON.parse(localStorage.getItem(PKEY));return p&&p.state&&p.state.v===1?p:null}catch(e){return null}};
 let S;
 if(SERVER){
   let st=null;try{st=JSON.parse($("#smeta-state").textContent)}catch(e){}
   S=st&&st.v===1?st:null;
+  const pend=readPending();
+  if(pend&&pend.ts>(Date.parse(SERVER.updated)||0))S=pend.state;
+  else if(pend){try{localStorage.removeItem(PKEY)}catch(e){}}
   if(!S){S=sample();if(!(st&&st.namuna))S=blank(S,SERVER.name)}
 }else{
   try{const raw=localStorage.getItem("smetago-v1");S=raw?JSON.parse(raw):null}catch(e){S=null}
@@ -54,14 +62,21 @@ if(SERVER){
 {const have=new Set(S.prices.map(p=>p.id));defaultPrices().forEach(p=>{if(!have.has(p.id))S.prices.push(p)})}
 // katalog guruhi nomi tilga bog'liq: til almashganda eski guruh topilmasa — "Tavsiya"
 if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
-let saveT=null;
+let saveT=null,offlineNoted=false;
 function persist(){saveT=null;const body=JSON.stringify(S);
   if(!SERVER){try{localStorage.setItem("smetago-v1",body)}catch(e){}return}
+  const ts=Date.now();try{localStorage.setItem(PKEY,JSON.stringify({ts,state:S}))}catch(e){}
   fetch(SERVER.saveUrl,{method:"PUT",credentials:"same-origin",keepalive:body.length<60000,headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body})
    .then(r=>{if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status)})
-   .catch(e=>toast(e.message==="auth"?tr("Sessiya tugagan — qayta kiring"):tr("Serverga saqlanmadi, qayta urinib ko'ring")))}
+   .then(()=>{offlineNoted=false;window.smetagoNet?.(true);const p=readPending();if(p&&p.ts===ts)try{localStorage.removeItem(PKEY)}catch(e){}})
+   .catch(e=>{if(e.message==="auth")toast(tr("Sessiya tugagan — qayta kiring"));
+     else if(!navigator.onLine||e instanceof TypeError){window.smetagoNet?.(false);if(!offlineNoted){offlineNoted=true;toast(tr("Internet yo'q — o'zgarishlar qurilmada saqlandi"))}}
+     else toast(tr("Serverga saqlanmadi, qayta urinib ko'ring"))})}
 function save(){clearTimeout(saveT);saveT=setTimeout(persist,SERVER?700:300)}
 addEventListener("pagehide",()=>{if(saveT){clearTimeout(saveT);persist()}});
+addEventListener("online",()=>{if(SERVER&&readPending()){persist();toast(tr("Aloqa tiklandi — o'zgarishlar yuborilmoqda"))}});
+// "online" hodisasi kelmasa ham (Wi-Fi bor, internet yo'q edi) navbat vaqti-vaqti bilan qayta yuboriladi
+setInterval(()=>{if(SERVER&&!saveT&&readPending())persist()},30000);
 if(SERVER)save();
 
 /* ---------- calculations ---------- */

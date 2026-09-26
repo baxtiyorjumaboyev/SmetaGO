@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.models import User
+from django.contrib.staticfiles import finders
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -18,7 +19,11 @@ class SmetaTests(TestCase):
 
     def test_register_and_login_pages(self):
         anon = Client()
-        self.assertRedirects(anon.get("/"), "/kirish/?next=/")
+        landing = anon.get("/")  # mehmonga — sayt (bosh sahifa)
+        self.assertEqual(landing.status_code, 200)
+        self.assertContains(landing, reverse("register"))
+        self.assertContains(landing, 'rel="manifest"')
+        self.assertRedirects(anon.get(reverse("obyekt_create")), "/kirish/?next=/obyekt/yangi/")
         self.assertEqual(anon.get(reverse("login")).status_code, 200)
         r = anon.post(reverse("register"), {
             "username": "vali", "password1": "Qurilish-2026!", "password2": "Qurilish-2026!",
@@ -146,6 +151,39 @@ class SmetaTests(TestCase):
         CatalogItem.objects.filter(key="divan").update(name_ru="")
         items = {it["id"]: it for g in build_reference("ru")["catalog"] for it in g["items"]}
         self.assertEqual(items["divan"]["n"], "Divan")
+
+    def test_pwa_manifest(self):
+        r = Client().get("/manifest.webmanifest")
+        self.assertEqual(r["Content-Type"], "application/manifest+json")
+        m = r.json()
+        self.assertEqual((m["display"], m["scope"], m["short_name"]), ("standalone", "/", "SmetaGo"))
+        sizes = {(i["sizes"], i["purpose"]) for i in m["icons"]}
+        self.assertTrue({("192x192", "any"), ("512x512", "any"), ("512x512", "maskable")} <= sizes)
+        for icon in m["icons"]:  # ikonka fayllari haqiqatan bor
+            self.assertTrue(finders.find(icon["src"].removeprefix("/static/")), icon["src"])
+        c = Client()
+        c.cookies["django_language"] = "ru"
+        self.assertEqual(c.get("/manifest.webmanifest").json()["lang"], "ru")
+
+    def test_service_worker(self):
+        r = Client().get("/sw.js")
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r["Content-Type"].startswith("application/javascript"))
+        self.assertIn("no-cache", r["Cache-Control"])
+        js = r.content.decode()
+        self.assertIn('"/offline/"', js)
+        self.assertIn("/static/smeta/js/app.js", js)
+        precache = json.loads(js.split("const PRECACHE = ")[1].split(";")[0])
+        for url in precache:  # oldindan keshlanadigan hamma fayl mavjud bo'lishi shart
+            if url.startswith("/static/"):
+                self.assertTrue(finders.find(url.removeprefix("/static/")), url)
+        self.assertEqual(Client().get("/offline/").status_code, 200)
+
+    def test_app_page_is_installable(self):
+        o = Obyekt.objects.create(owner=self.user)
+        page = self.c.get(reverse("obyekt_app", args=[o.pk])).content.decode()
+        for needle in ('rel="manifest"', 'name="theme-color"', "apple-touch-icon", "smeta/js/pwa.js", "updated:"):
+            self.assertIn(needle, page)
 
     def test_csrf_required_for_save(self):
         o = Obyekt.objects.create(owner=self.user)

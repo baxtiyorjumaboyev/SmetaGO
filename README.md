@@ -64,6 +64,24 @@ Katalog, material narxlari va xona turlari bazada saqlanadi va `/admin/` da tahr
 - Qoplama turlari (`FLOOR/WALL/CEIL`), beton retseptlari (`MIX`), hududlar va choraklar formulalarga bog'liq, shuning uchun `data.js` da qoladi.
 - **Mavjud obyektlarga ta'siri:** xonaga qo'shilgan elementlar narxi o'zgarmaydi (smeta tuzilgan paytdagi narx). Yangi material avtomatik qo'shiladi. Manba narxlarini yangilash uchun foydalanuvchi **Narxlar → "Markaziy narxlarni yuklash"** tugmasini bosadi, bunda uning tanlovi (o'rtacha / eng arzon / qo'lda) saqlanib qoladi.
 
+### Sayt + ilova (PWA)
+
+Bitta kod ikki ko'rinishda ishlaydi:
+
+- **Sayt:** mehmon `/` da bosh sahifani (landing) ko'radi, tizimga kirgan foydalanuvchi — obyektlar ro'yxatini.
+- **Ilova:** "Ilovani o'rnatish" tugmasi (Android, Windows, macOS: Chrome/Edge) yoki iPhone'da Safari → «Ulashish» → «Bosh ekranga qo'shish». O'rnatilgan ilova ikonka bilan, brauzer panelisiz ochiladi.
+
+| Fayl | Vazifasi |
+| --- | --- |
+| `smeta/pwa.py` | `/manifest.webmanifest` (tilga qarab), `/sw.js`, `/offline/` |
+| `templates/smeta/sw.js` | Service worker: statik fayllar keshdan, sahifalar avval tarmoqdan, internet yo'q bo'lsa — keshdan |
+| `static/smeta/js/pwa.js` | SW ro'yxatdan o'tkazish, o'rnatish tugmasi, "Oflayn" belgisi |
+| `static/smeta/icons/` | Ikonkalar (`icon.svg`, `maskable.svg` va PNG'lar) |
+
+**Internetsiz ishlash.** Avval ochilgan obyektlar internetsiz ochiladi va tahrirlanadi. O'zgarishlar qurilmada navbatga yoziladi (`localStorage`, `smetago-pending:*`) va aloqa tiklanganda serverga o'zi yuboriladi. Serverdagi nusxa yangiroq bo'lsa (boshqa qurilmadan o'zgartirilgan), navbat e'tiborga olinmaydi.
+
+**Muhim:** ilova o'rnatilishi va oflayn ishlashi uchun sayt **HTTPS** orqali ochilishi kerak (faqat `localhost` istisno). Telefonda `http://192.168...` orqali sayt ochiladi, lekin o'rnatish tugmasi chiqmaydi — buning uchun serverga domen va SSL bilan joylang. Service worker versiyasi statik fayllar mazmunidan avtomatik hisoblanadi: yangi kod joylanganda foydalanuvchilar yangi versiyani o'zi oladi.
+
 ### Til (UZ / RU) va rejim (kunduzgi / tungi)
 
 Tepa qismdagi **UZ | RU** tugmalari tilni, 🌙/☀️ tugmasi rejimni almashtiradi. Ikkalasi ham eslab qolinadi: til — cookie'da (`django_language`), rejim — brauzerda (`smetago-theme`). Standart til — o'zbekcha (brauzer tili hisobga olinmaydi). Rejim tanlanmagan bo'lsa, tizim sozlamasi ishlaydi.

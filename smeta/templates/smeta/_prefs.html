@@ -1,4 +1,9 @@
 {% load smeta_i18n %}<div class="prefs">
+  <span class="netbadge" data-netbadge hidden>{% t "Oflayn" %}</span>
+  <button type="button" class="btn sm pri installbtn" data-install hidden title="{% t "Ilovani o'rnatish" %}" aria-label="{% t "Ilovani o'rnatish" %}">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span class="deskonly">{% t "Ilovani o'rnatish" %}</span>
+  </button>
+  <span id="pwa-l10n" hidden data-offline="{% t "Internet yo'q. Bu amal uchun aloqa kerak." %}" data-ios="{% t "iPhone / iPad: Safari'da «Ulashish» tugmasini bosing, so'ng «Bosh ekranga qo'shish»." %}"></span>
   <form class="seg" method="post" action="{% url 'set_language' %}" aria-label="{% t 'Til' %}">{% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <button name="language" value="uz" lang="uz" title="O'zbekcha" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}false{% else %}true{% endif %}">UZ</button>

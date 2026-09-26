@@ -12,8 +12,10 @@ from .malumotnoma import build_reference
 from .models import Obyekt
 
 
-@login_required
 def obyekt_list(request):
+    """Bosh sahifa: mehmonga — sayt (landing), kirgan foydalanuvchiga — obyektlar ro'yxati."""
+    if not request.user.is_authenticated:
+        return render(request, "smeta/landing.html")
     return render(request, "smeta/obyekt_list.html", {
         "obyektlar": request.user.obyektlar.all(),
     })

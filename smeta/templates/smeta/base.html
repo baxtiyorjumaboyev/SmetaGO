@@ -1,14 +1,8 @@
 {% load static smeta_i18n %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+{% include "smeta/_head.html" %}
 <title>{% block title %}SmetaGo{% endblock %}</title>
-<script src="{% static 'smeta/js/prefs.js' %}"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="{% static 'smeta/css/style.css' %}">
 <style>
   .page{padding-block:24px 48px}
   .page h1{font-family:var(--f-display);font-size:24px;margin:0}
@@ -38,12 +32,17 @@
     {% if user.is_authenticated %}
     <div class="userbar">
       <span>{{ user.username }}</span>
-      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn sm">{% t "Chiqish" %}</button></form>
+      <form method="post" action="{% url 'logout' %}" data-logout>{% csrf_token %}<button class="btn sm">{% t "Chiqish" %}</button></form>
+    </div>
+    {% elif request.resolver_match.url_name != "login" and request.resolver_match.url_name != "register" %}
+    <div class="userbar deskonly">{# telefonda bosh sahifaning o'zida katta tugmalar bor #}
+      <a class="btn sm" href="{% url 'login' %}">{% t "Kirish" %}</a>
+      <a class="btn sm pri" href="{% url 'register' %}">{% t "Ro'yxatdan o'tish" %}</a>
     </div>
     {% endif %}
   </div>
   <div class="ruler" aria-hidden="true"></div>
 </header>
-<main class="wrap page">{% block content %}{% endblock %}</main>
+{% block main %}<main class="wrap page">{% block content %}{% endblock %}</main>{% endblock %}
 </body>
 </html>

@@ -1,0 +1,85 @@
+{% extends "smeta/base.html" %}{% load static smeta_i18n %}
+{% block title %}SmetaGo — {% t "smeta kalkulyatori" %}{% endblock %}
+{% block main %}
+<main class="landing">
+  <section class="wrap hero">
+    <div class="hero-text">
+      <p class="eyebrow">{% t "Smetachi, PTO, pudratchi va nazoratchi uchun" %}</p>
+      <h1>{% t "Obyektni o'lchang — smeta o'zi tayyor bo'ladi" %}</h1>
+      <p class="lead">{% t "Xonalarni o'lchang, xonadagi narsalarni katalogdan tanlang. SmetaGo material hajmi, narxi va ish haqini hisoblab, tayyor smeta chiqaradi." %}</p>
+      <div class="hero-cta">
+        <a class="btn pri lg" href="{% url 'register' %}">{% t "Bepul boshlash" %}</a>
+        <a class="btn lg" href="{% url 'login' %}">{% t "Kirish" %}</a>
+      </div>
+      <p class="note">{% t "Telefon, planshet va kompyuterda ishlaydi · internetsiz ham" %}</p>
+    </div>
+    <div class="hero-card panel" aria-hidden="true">
+      <div class="hc-head"><b>{% t "Mehmonxona" %}</b><span class="mono">5 × 4 × 2,8 {% t "m" %}</span></div>
+      <ul class="hc-lines">
+        <li><span>{% t "Pol: laminat" %}</span><b class="mono">22,00 {% t "m²" %}</b></li>
+        <li><span>{% t "Plintus: PVC" %}</span><b class="mono">7 {% t "dona" %}</b></li>
+        <li><span>{% t "Devor: bo'yoq" %}</span><b class="mono">42,48 {% t "m²" %}</b></li>
+        <li><span>{% t "Shift: natyajnoy" %}</span><b class="mono">20,00 {% t "m²" %}</b></li>
+        <li><span>{% t "Svetilnik, rozetka, konditsioner…" %}</span><b class="mono">+9</b></li>
+      </ul>
+      <div class="hc-total"><span>{% t "Xona bo'yicha jami" %}</span><b class="mono">23 315 846 {% t "so'm" %}</b></div>
+      <div class="ruler"></div>
+    </div>
+  </section>
+
+  <section class="wrap features">
+    <article class="panel pad feat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17h18M3 17V7l4 3 5-6 5 6 4-3v10M7 17v-3M12 17v-4M17 17v-3"/></svg>
+      <h3>{% t "Xonalar va o'lchov" %}</h3>
+      <p>{% t "Uzunlik, en, balandlik, eshik va derazalar. Pol, plintus, devor va shift avtomatik hisoblanadi." %}</p>
+    </article>
+    <article class="panel pad feat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M17.5 14v7M14 17.5h7"/></svg>
+      <h3>{% t "Katalog" %}</h3>
+      <p>{% t "50 dan ortiq element: mebel, elektrika, santexnika, isitish. Ro'yxatda yo'q narsani o'zingiz qo'shasiz." %}</p>
+    </article>
+    <article class="panel pad feat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>
+      <h3>{% t "Beton" %}</h3>
+      <p>{% t "M150–M400 markalar: sement, shag'al, qum va suv miqdori, 1 m³ tannarxi va zavod narxi bilan solishtirish." %}</p>
+    </article>
+    <article class="panel pad feat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+      <h3>{% t "Narxlar va smeta" %}</h3>
+      <p>{% t "Har material uchun 3 manbadan narx, ish haqi, kutilmagan xarajatlar va QQS. Excel'ga bir bosishda nusxa." %}</p>
+    </article>
+  </section>
+
+  <section class="wrap appband">
+    <div class="panel appcard">
+      <img src="{% static 'smeta/icons/icon-192.png' %}" width="96" height="96" alt="">
+      <div class="stack" style="gap:10px">
+        <h2>{% t "Ilova sifatida o'rnating" %}</h2>
+        <ul class="ticks">
+          <li>{% t "Telefon ekranida ikonka bilan, brauzer panelisiz ochiladi" %}</li>
+          <li>{% t "Internetsiz ishlaydi — o'zgarishlar aloqa tiklanganda o'zi yuboriladi" %}</li>
+          <li>{% t "O'zbekcha va ruscha, kunduzgi va tungi rejim" %}</li>
+        </ul>
+        <div class="row" style="align-items:center">
+          <button type="button" class="btn pri" data-install hidden>{% t "Ilovani o'rnatish" %}</button>
+          <span class="note">{% t "Android va kompyuter: Chrome yoki Edge'da «O'rnatish». iPhone: Safari → «Ulashish» → «Bosh ekranga qo'shish»." %}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap steps">
+    <h2>{% t "Qanday ishlaydi" %}</h2>
+    <ol>
+      <li><b>1</b><span>{% t "Ro'yxatdan o'ting — bepul, bir daqiqa" %}</span></li>
+      <li><b>2</b><span>{% t "Obyekt oching, xonalarni o'lchang va narsalarni tanlang" %}</span></li>
+      <li><b>3</b><span>{% t "Tayyor smetani Excel yoki Telegramga yuboring" %}</span></li>
+    </ol>
+  </section>
+
+  <footer class="wrap site-foot">
+    <span>© 2026 SmetaGo</span>
+    <span>{% t "Narxlar namunaviy — o'z manbalaringizdagi narxlarni kiriting." %}</span>
+  </footer>
+</main>
+{% endblock %}

@@ -298,4 +298,58 @@ textarea.fallback{width:100%;height:140px;font-family:var(--f-mono);font-size:12
   .brand small{display:none}
   .catgrid{grid-template-columns:1fr}
 }
+/* PWA: o'rnatish tugmasi, oflayn belgisi, o'rnatilgan ilova rejimi */
+.top{padding-top:env(safe-area-inset-top,0px)}
+.installbtn svg{flex:none}
+.is-app [data-install]{display:none!important}
+.netbadge{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--danger);color:#fff}
+@media (display-mode: standalone){body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}}
+
+/* sayt: bosh sahifa (landing) */
+.landing{padding-bottom:24px}
+.btn.lg{padding:12px 20px;font-size:16px;border-radius:10px}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:40px;align-items:center;padding-block:56px 40px}
+.hero h1{font-size:clamp(30px,4.4vw,50px);line-height:1.08;letter-spacing:-.02em;margin:8px 0 14px}
+.hero .eyebrow{color:var(--accent)}
+.hero .lead{font-size:18px;color:var(--muted);margin:0 0 22px;max-width:56ch}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.hero-card{padding:18px 18px 0;overflow:hidden;box-shadow:var(--shadow)}
+.hc-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.hc-head b{font-family:var(--f-display);font-size:18px}
+.hc-head span{color:var(--muted);font-size:13px}
+.hc-lines{list-style:none;margin:0;padding:6px 0}
+.hc-lines li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.hc-lines li:last-child{border-bottom:0;color:var(--muted)}
+.hc-total{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 -18px;padding:14px 18px;background:var(--bar);color:var(--on-bar)}
+.hc-total span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.75}
+.hc-total b{color:var(--bar-accent);font-size:20px;font-weight:500;white-space:nowrap}
+.hero-card .ruler{margin:0 -18px}
+.features{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding-block:8px 32px}
+.feat{display:flex;flex-direction:column;gap:8px}
+.feat svg{width:34px;height:34px;padding:6px;border-radius:9px;background:var(--accent-soft);stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.feat h3{font-size:17px}
+.feat p{margin:0;color:var(--muted);font-size:14px}
+.appcard{display:flex;gap:24px;align-items:center;padding:24px;background:var(--bar);color:var(--on-bar);border-color:var(--bar)}
+.appcard img{border-radius:22px;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+.appcard h2{font-size:24px}
+.appcard .note{color:var(--on-bar);opacity:.7}
+.ticks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ticks li{padding-left:26px;position:relative}
+.ticks li::before{content:"";position:absolute;left:2px;top:.45em;width:12px;height:7px;border-left:2.5px solid var(--bar-accent);border-bottom:2.5px solid var(--bar-accent);transform:rotate(-45deg)}
+.steps{padding-block:36px 8px}
+.steps h2{font-size:24px;margin-bottom:14px}
+.steps ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.steps li{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.steps li b{width:34px;height:34px;flex:none;border-radius:99px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-family:var(--f-display)}
+.site-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding-block:28px 0;margin-top:28px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+@media (max-width:1180px){.features{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .hero{grid-template-columns:minmax(0,1fr);gap:24px;padding-block:28px 20px}
+  .hero .lead{font-size:16px}
+  .hero-cta .btn{flex:1;justify-content:center}
+  .features,.steps ol{grid-template-columns:minmax(0,1fr)}
+  .appcard{flex-direction:column;align-items:flex-start;padding:18px}
+  .appcard img{width:72px;height:72px;border-radius:16px}
+  .hc-total b{font-size:17px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

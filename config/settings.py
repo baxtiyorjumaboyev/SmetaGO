@@ -49,6 +49,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.template.context_processors.i18n",
+                "smeta.pwa.pwa_context",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -86,4 +87,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "obyekt_list"
-LOGOUT_REDIRECT_URL = "login"
+LOGOUT_REDIRECT_URL = "obyekt_list"  # mehmon uchun bu bosh sahifa (sayt)

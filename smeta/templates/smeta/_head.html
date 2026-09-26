@@ -1,0 +1,20 @@
+{% load static smeta_i18n %}<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="{% t "Xonalarni o'lchang, katalogdan tanlang — material, narx va ish haqi bilan tayyor smeta." %}">
+{# PWA: ilova sifatida o'rnatish #}
+<link rel="manifest" href="{% url 'manifest' %}" crossorigin="use-credentials">
+<meta name="theme-color" content="{{ pwa_theme_light }}" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="{{ pwa_theme_dark }}" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SmetaGo">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="{% static 'smeta/icons/icon.svg' %}" type="image/svg+xml">
+<link rel="icon" href="{% static 'smeta/icons/favicon-32.png' %}" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="{% static 'smeta/icons/apple-touch-icon.png' %}">
+<script src="{% static 'smeta/js/prefs.js' %}"></script>
+<script src="{% static 'smeta/js/pwa.js' %}" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="{% static 'smeta/css/style.css' %}">

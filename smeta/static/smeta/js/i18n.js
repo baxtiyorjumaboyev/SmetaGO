@@ -9,6 +9,8 @@ const RU={
  "so'm":"сум","sm":"см","Vt":"Вт","avto":"авто","qo'lda":"вручную","katalog":"каталог","ish haqi":"оплата труда",
  "Sessiya tugagan — qayta kiring":"Сессия истекла — войдите снова",
  "Serverga saqlanmadi, qayta urinib ko'ring":"Не сохранено на сервере, попробуйте ещё раз",
+ "Internet yo'q — o'zgarishlar qurilmada saqlandi":"Нет интернета — изменения сохранены на устройстве",
+ "Aloqa tiklandi — o'zgarishlar yuborilmoqda":"Связь восстановлена — изменения отправляются",
  // namunaviy obyekt
  "Oyna (hammom uchun)":"Зеркало (для ванной)",
  "Namuna: 2 xonali kvartira, Chilonzor":"Пример: 2-комнатная квартира, Чиланзар",
