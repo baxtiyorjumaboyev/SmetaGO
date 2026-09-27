@@ -7,6 +7,8 @@ const REF=(()=>{try{const el=document.getElementById("smeta-ref");return el?JSON
 const REGIONS=["Toshkent sh.","Toshkent vil.","Andijon","Buxoro","Farg'ona","Jizzax","Xorazm","Namangan","Navoiy","Qashqadaryo","Qoraqalpog'iston","Samarqand","Sirdaryo","Surxondaryo"];
 const QUARTERS=["2026-yil III chorak","2026-yil IV chorak","2027-yil I chorak"];
 const DOOR_H=2.1;
+// eshik turlari: holatda o'zbekcha nom saqlanadi, ko'rsatishda tr() (ruscha — i18n.js)
+const DOOR_TYPES=["Akfa alyumin","Akfa PVX","MDF yog'och","Temir eshik","Yog'och eshik","Vitrajli eshik"];
 
 // l — o'zbekcha, ru — ruscha nom (lab() tanlaydi, i18n.js)
 const FLOOR={

@@ -17,14 +17,16 @@ const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
 const itemName=it=>(it.cid&&CAT_INDEX[it.cid]?CAT_INDEX[it.cid].n:it.name);
 
 /* ---------- state ---------- */
-function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:["0,9"],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
+// eshik: t — turi (DOOR_TYPES, bo'sh = tanlanmagan), w — eni, h — bo'yi (m)
+const mkDoor=(t="",w="0,9",h=fd(DOOR_H,1))=>({t,w,h});
+function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
 function mkItem(cid,opt={}){const c=CAT_INDEX[cid];if(!c)return null;const v=c.v&&c.v[opt.vi??0];return{uid:uid(),cid,name:c.n,variant:v?v[0]:"",unit:c.u,qty:opt.qty??1,price:v?v[1]:c.p,h:v&&v[2]!=null?v[2]:c.h,dims:opt.dims||"",watt:opt.watt||"",note:opt.note||"",custom:false}}
 function sample(){const sm=" "+tr("sm");
-  const m=mkRoom("Mehmonxona",null,"5","4","2,8");m.doors=["0,9","0,9","0,9"];m.windows=[{w:"1,5",h:"1,5"}];
+  const m=mkRoom("Mehmonxona",null,"5","4","2,8");m.doors=[mkDoor("MDF yog'och"),mkDoor("MDF yog'och"),mkDoor("Vitrajli eshik")];m.windows=[{w:"1,5",h:"1,5"}];
   m.items=[mkItem("svetilnik",{vi:1,qty:4,watt:"12"}),mkItem("lyustra"),mkItem("vyklyuchatel",{vi:1}),mkItem("rozetka",{vi:1,qty:3}),mkItem("divan",{dims:"220×90×85"+sm}),mkItem("kreslo",{qty:2}),mkItem("konditsioner",{vi:1}),mkItem("radiator",{qty:10}),mkItem("vent_panjara")].filter(Boolean);
-  const o=mkRoom("Oshxona",null,"3,5","3","2,8");o.doors=["0,8"];o.windows=[{w:"1,2",h:"1,4"}];o.tileLen="3";o.tileH="0,6";
+  const o=mkRoom("Oshxona",null,"3,5","3","2,8");o.doors=[mkDoor("MDF yog'och","0,8")];o.windows=[{w:"1,2",h:"1,4"}];o.tileLen="3";o.tileH="0,6";
   o.items=[mkItem("gaz_plita"),mkItem("vytyazhka",{vi:0,dims:"60×50×40"+sm}),mkItem("osh_rakovina"),mkItem("smesitel"),mkItem("garnitur",{qty:3}),mkItem("rozetka",{qty:4}),mkItem("vyklyuchatel"),mkItem("svetilnik",{qty:2,watt:"18"}),mkItem("vent_shaxta",{qty:2.8})].filter(Boolean);
-  const h=mkRoom("Hammom",null,"2","1,7","2,7");h.doors=["0,7"];
+  const h=mkRoom("Hammom",null,"2","1,7","2,7");h.doors=[mkDoor("Akfa PVX","0,7")];
   h.items=[mkItem("unitaz"),mkItem("rakovina"),mkItem("vanna",{dims:"170×70"+sm}),mkItem("smesitel",{qty:2}),mkItem("isitgich"),mkItem("ventilyator",{watt:"25"}),mkItem("svetilnik",{vi:2,qty:3,watt:"7"})].filter(Boolean);
   const own={uid:uid(),cid:null,name:tr("Oyna (hammom uchun)"),variant:"",unit:"dona",qty:1,price:450000,h:.5,dims:"60×80"+sm,watt:"",note:"",custom:true};h.items.push(own);
   return{
@@ -60,6 +62,8 @@ if(SERVER){
 }
 // ma'lumotnomaga keyin qo'shilgan materiallar eski obyektlarda ham paydo bo'lsin
 {const have=new Set(S.prices.map(p=>p.id));defaultPrices().forEach(p=>{if(!have.has(p.id))S.prices.push(p)})}
+// eski obyektlarda eshik faqat eni edi ("0,9") — turi va bo'yi bilan obyektga aylantiriladi
+S.rooms.forEach(r=>{r.doors=(r.doors||[]).map(d=>d&&typeof d==="object"?d:mkDoor("",String(d??"")))});
 // katalog guruhi nomi tilga bog'liq: til almashganda eski guruh topilmasa — "Tavsiya"
 if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
 let saveT=null,offlineNoted=false;
@@ -88,8 +92,8 @@ const rate=()=>num(S.settings.monthly)/Math.max(1,num(S.settings.hoursMonth));
 
 function roomCalc(r){
   const L=num(r.L),W=num(r.W),H=num(r.H),res=num(S.settings.reserve)/100;
-  const floorA=L*W,perim=2*(L+W),doorsW=sum(r.doors.map(num));
-  const doorA=sum(r.doors.map(d=>num(d)*DOOR_H)),winA=sum(r.windows.map(w=>num(w.w)*num(w.h)));
+  const floorA=L*W,perim=2*(L+W),doorsW=sum(r.doors.map(d=>num(d.w)));
+  const doorA=sum(r.doors.map(d=>num(d.w)*num(d.h))),winA=sum(r.windows.map(w=>num(w.w)*num(w.h)));
   const tileLen=num(r.tileLen),tileA=tileLen*num(r.tileH);
   const wallNet=Math.max(0,perim*H-doorA-winA);
   const plAuto=Math.max(0,perim-doorsW-(r.floor==="kafel"?0:tileLen));
@@ -162,9 +166,9 @@ function viewRooms(){
       <label class="fld">${tr("Eni")}<input class="inp numin" id="r-W" data-f="W" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00"></label>
       <label class="fld">${tr("Balandligi")}<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00"></label>
      </div></fieldset>
-    <fieldset><legend class="eyebrow">${tr("Eshiklar — eni, m (plintusdan ayiriladi)")}</legend>
-     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<input class="inp numin" id="d-${i}" data-door="${i}" inputmode="decimal" value="${esc(d)}" aria-label="${tr("{0}-eshik eni",i+1)}"><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}
-     <button class="btn sm" data-act="addDoor">${tr("+ Eshik")}</button></div></fieldset>
+    <fieldset><legend class="eyebrow">${tr("Eshiklar — turi, eni × bo'yi, m (eni plintusdan ayiriladi)")}</legend>
+     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}</select><input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}"><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
+     <div class="openings adddoor">${DOOR_TYPES.map(t=>`<button class="btn sm" data-act="addDoor" data-t="${esc(t)}">+ ${esc(tr(t))}</button>`).join("")}</div></fieldset>
     <fieldset><legend class="eyebrow">${tr("Derazalar — eni × balandligi, m")}</legend>
      <div class="openings">${r.windows.map((w,i)=>`<span class="opening">${i+1}<input class="inp numin" id="w-${i}-w" data-win="${i}" data-k="w" inputmode="decimal" value="${esc(w.w)}" aria-label="${tr("Deraza eni")}">×<input class="inp numin" id="w-${i}-h" data-win="${i}" data-k="h" inputmode="decimal" value="${esc(w.h)}" aria-label="${tr("Deraza balandligi")}"><button class="x" data-act="delWin" data-i="${i}" aria-label="${tr("Derazani olib tashlash")}">×</button></span>`).join("")}
      <button class="btn sm" data-act="addWin">${tr("+ Deraza")}</button></div></fieldset>
@@ -426,7 +430,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "syncPrices":if(!S.ui.confirmSync){S.ui.confirmSync=true;render();break}
     defaultPrices().forEach(np=>{const p=S.prices.find(x=>x.id===np.id);if(p)Object.assign(p,{n:np.n,u:np.u,g:np.g,src:np.src,s:np.s});else S.prices.push(np)});
     S.ui.confirmSync=false;render();toast(tr("Manba narxlari yangilandi"));break;
-   case "addDoor":r.doors.push("0,9");render();$("#d-"+(r.doors.length-1))?.select();break;
+   case "addDoor":r.doors.push(mkDoor(b.dataset.t));render();$("#d-"+(r.doors.length-1)+"-w")?.select();break;
    case "delDoor":r.doors.splice(+b.dataset.i,1);render();break;
    case "addWin":r.windows.push({w:"1,2",h:"1,4"});render();$("#w-"+(r.windows.length-1)+"-w")?.select();break;
    case "delWin":r.windows.splice(+b.dataset.i,1);render();break;
@@ -452,7 +456,7 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
   if(t.closest("#modal")){if(t.id==="m-variant"){const c=CAT_INDEX[M.cid];$("#m-price").value=c.v[+t.value][1]}updModalSum();return}
   if(t.dataset.f&&r){r[t.dataset.f]=t.value;S.sample=false;if(t.dataset.f==="name"){const b=document.querySelector(`.roombtn[data-id="${r.id}"] b`);if(b)b.textContent=t.value}
     renderDerived();renderTotal();save();return}
-  if(t.dataset.door!=null){r.doors[+t.dataset.door]=t.value;renderDerived();renderTotal();save();return}
+  if(t.dataset.door!=null){r.doors[+t.dataset.door][t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
   if(t.dataset.win!=null){r.windows[+t.dataset.win][t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
   if(t.dataset.it){const it=r.items.find(i=>i.uid===t.dataset.it);if(it){it[t.dataset.k]=t.value;const el=$("#is-"+it.uid);if(el)el.textContent=fmt(lineTotals(itemLine(it)).tot)}renderTotal();save();return}
   if(t.dataset.c){const c=S.concrete.find(x=>x.id===t.dataset.c);c[t.dataset.k]=t.value;if(t.dataset.rerender){render();}renderConcreteDerived();renderTotal();save();return}

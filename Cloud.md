@@ -125,6 +125,7 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 
 ### 5.2 Invariantlar
 - **Holatda kalitlar har doim o'zbekcha**: xona turi (`room.type = "Mehmonxona"`), birlik (`"dona"`, `"m²"`), material guruhi (`"Pol"`), hudud (`"Toshkent sh."`), chorak (`"2026-yil III chorak"`). Tarjima faqat ko'rsatishda: `tr()`, `U()`, `rtLabel()`, `qLabel()`. Shu sabab tilni istalgan payt almashtirish obyektni buzmaydi. Hisoblash mantiqi ham shu kalitlarga tayanadi (masalan, `pp.u==="dona"`).
+- **Eshik** — `{t, w, h}`: turi (`DOOR_TYPES` dagi o'zbekcha nom, bo'sh = tanlanmagan), eni va bo'yi. Eni plintusdan, `eni × bo'yi` devordan ayiriladi. Eski obyektlarda eshik faqat eni edi (`"0,9"`) — yuklanganda `mkDoor("", eni)` ga aylantiriladi (bo'yi `DOOR_H`), shuning uchun `v` o'zgarmadi. Eshik turi hozircha narxga ta'sir qilmaydi.
 - **Katalog elementi `key` va material `key`** yaratilgandan keyin o'zgarmaydi: ular saqlangan obyektlarda (`item.cid`) va `data.js` dagi `FLOOR/WALL/CEIL` (`pid`, `pl`) da ishlatiladi. Admin'da faqat o'qiladi.
 - **Xonaga qo'shilgan element** o'z nusxasini saqlaydi (nom, narx, soat). Ma'lumotnoma o'zgarsa, eski smetalar o'zgarmaydi. Katalog elementi nomi ko'rsatishda joriy tildan olinadi (`itemName()`); variant (turi) qo'shilgan paytdagi tilda qoladi.
 - **Holat versiyasi `v: 1`.** Tuzilma o'zgarsa — `v: 2` va `app.js` da migratsiya kodi (qarang: `docs/ARXITEKTURA.md` 5-bo'lim). Server `v != 1` ni rad etadi (`views.obyekt_state`) — birga yangilang.
