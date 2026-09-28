@@ -24,12 +24,46 @@ class SmetaTests(TestCase):
         self.assertContains(landing, reverse("register"))
         self.assertContains(landing, 'rel="manifest"')
         self.assertRedirects(anon.get(reverse("obyekt_create")), "/kirish/?next=/obyekt/yangi/")
-        self.assertEqual(anon.get(reverse("login")).status_code, 200)
-        r = anon.post(reverse("register"), {
-            "username": "vali", "password1": "Qurilish-2026!", "password2": "Qurilish-2026!",
-        })
+        login_page = anon.get(reverse("login"))
+        self.assertContains(login_page, reverse("password_reset"))  # "Parolni unutdingizmi?"
+        form = {"username": "vali", "password1": "Qurilish-2026!", "password2": "Qurilish-2026!"}
+        r = anon.post(reverse("register"), form)  # emailsiz — rad etiladi
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(User.objects.filter(username="vali").exists())
+        r = anon.post(reverse("register"), {**form, "email": "vali@example.com"})
         self.assertRedirects(r, "/")
-        self.assertTrue(User.objects.filter(username="vali").exists())
+        self.assertEqual(User.objects.get(username="vali").email, "vali@example.com")
+        # shu email bilan ikkinchi hisob ochilmaydi (katta-kichik harf farqi yo'q)
+        r = Client().post(reverse("register"), {**form, "username": "sobir", "email": "Vali@Example.com"})
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(User.objects.filter(username="sobir").exists())
+
+    def test_password_reset(self):
+        from django.core import mail
+
+        self.user.email = "ali@example.com"
+        self.user.save()
+        anon = Client()
+        # noma'lum email: xat ketmaydi, lekin sahifa bir xil (hisob borligi oshkor bo'lmaydi)
+        r = anon.post(reverse("password_reset"), {"email": "yoq@example.com"})
+        self.assertRedirects(r, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 0)
+        r = anon.post(reverse("password_reset"), {"email": "ALI@example.com"})
+        self.assertRedirects(r, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.to, ["ali@example.com"])
+        self.assertIn("ali", msg.body)
+        link = next(w for w in msg.body.split() if "/parol-tiklash/" in w)
+        path = link.split("://", 1)[1].split("/", 1)[1]
+        r = anon.get("/" + path, follow=True)  # token sessiyaga olinadi, forma ochiladi
+        self.assertContains(r, 'name="new_password1"')
+        r = anon.post(r.redirect_chain[-1][0], {"new_password1": "Yangi-parol-2026", "new_password2": "Yangi-parol-2026"})
+        self.assertRedirects(r, reverse("password_reset_complete"))
+        self.assertTrue(Client().login(username="ali", password="Yangi-parol-2026"))
+        # havola bir marta ishlaydi
+        self.assertContains(Client().get("/" + path, follow=True), reverse("password_reset"))
+        self.assertNotContains(Client().get("/" + path, follow=True), 'name="new_password1"')
 
     def test_create_open_and_save(self):
         r = self.c.post(reverse("obyekt_create"))

@@ -8,6 +8,7 @@
   <div><label for="id_password">{% t "Parol" %}</label>{{ form.password }}</div>
   <input type="hidden" name="next" value="{{ next }}">
   <button class="btn pri">{% t "Kirish" %}</button>
+  <p class="ometa"><a href="{% url 'password_reset' %}">{% t "Parolni unutdingizmi?" %}</a></p>
   <p class="ometa">{% t "Hisobingiz yo'qmi?" %} <a href="{% url 'register' %}">{% t "Ro'yxatdan o'ting" %}</a></p>
 </form>
 {% endblock %}

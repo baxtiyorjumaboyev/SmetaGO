@@ -1,0 +1,11 @@
+{% extends "smeta/base.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Parolni tiklash" %} · SmetaGo{% endblock %}
+{% block content %}
+<form method="post" class="panel pad stack auth">{% csrf_token %}
+  <h1>{% t "Parolni tiklash" %}</h1>
+  <p class="ometa">{% t "Ro'yxatdan o'tishda kiritgan emailingizni yozing — yangi parol o'rnatish havolasini yuboramiz." %}</p>
+  <div><label for="id_email">{% t "Email" %}</label>{{ form.email }}{{ form.email.errors }}</div>
+  <button class="btn pri">{% t "Havolani yuborish" %}</button>
+  <p class="ometa"><a href="{% url 'login' %}">{% t "Kirish sahifasiga qaytish" %}</a></p>
+</form>
+{% endblock %}

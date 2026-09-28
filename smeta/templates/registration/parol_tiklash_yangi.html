@@ -1,0 +1,20 @@
+{% extends "smeta/base.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Yangi parol" %} · SmetaGo{% endblock %}
+{% block content %}
+{% if validlink %}
+<form method="post" class="panel pad stack auth">{% csrf_token %}
+  <h1>{% t "Yangi parol" %}</h1>
+  {{ form.non_field_errors }}
+  <div><label for="id_new_password1">{% t "Yangi parol" %}</label>{{ form.new_password1 }}{{ form.new_password1.errors }}
+    <div class="helptext">{% t "Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin." %}</div></div>
+  <div><label for="id_new_password2">{% t "Parolni takrorlang" %}</label>{{ form.new_password2 }}{{ form.new_password2.errors }}</div>
+  <button class="btn pri">{% t "Parolni saqlash" %}</button>
+</form>
+{% else %}
+<div class="panel pad stack auth">
+  <h1>{% t "Havola yaroqsiz" %}</h1>
+  <p>{% t "Bu havola eskirgan yoki allaqachon ishlatilgan. Yangi havola so'rang." %}</p>
+  <p class="ometa"><a href="{% url 'password_reset' %}">{% t "Yangi havola so'rash" %}</a></p>
+</div>
+{% endif %}
+{% endblock %}

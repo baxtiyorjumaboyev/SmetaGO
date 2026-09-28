@@ -1,0 +1,12 @@
+{% load smeta_i18n %}{% autoescape off %}{% t "Assalomu alaykum, {0}!" user.get_username %}
+
+{% t "SmetaGo'da parolingizni tiklash so'raldi. Yangi parol o'rnatish uchun havolani oching:" %}
+
+{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}
+
+{% t "Havola 24 soat amal qiladi va bir marta ishlatiladi. Agar buni siz so'ramagan bo'lsangiz, xatni e'tiborsiz qoldiring — parolingiz o'zgarmaydi." %}
+
+{% t "Loginingiz" %}: {{ user.get_username }}
+
+SmetaGo
+{% endautoescape %}

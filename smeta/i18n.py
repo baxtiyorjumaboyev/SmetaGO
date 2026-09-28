@@ -43,6 +43,38 @@ RU = {
     "Parolni takrorlang": "Повторите пароль",
     "Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin.": "Не менее 8 символов, не только цифры.",
     "Hisobingiz bormi?": "Уже есть аккаунт?",
+    "Email": "Email",
+    "Parolni unutsangiz, tiklash havolasi shu manzilga yuboriladi.":
+        "Если забудете пароль, ссылка для восстановления придёт на этот адрес.",
+    "Bu email bilan hisob allaqachon bor.": "Аккаунт с таким email уже существует.",
+    # parolni tiklash
+    "Parolni unutdingizmi?": "Забыли пароль?",
+    "Parolni tiklash": "Восстановление пароля",
+    "Ro'yxatdan o'tishda kiritgan emailingizni yozing — yangi parol o'rnatish havolasini yuboramiz.":
+        "Введите email, указанный при регистрации, — мы отправим ссылку для установки нового пароля.",
+    "Havolani yuborish": "Отправить ссылку",
+    "Kirish sahifasiga qaytish": "Вернуться ко входу",
+    "Pochtangizni tekshiring": "Проверьте почту",
+    "Agar bu email bilan hisob bo'lsa, unga yangi parol o'rnatish havolasi yuborildi. Xat bir necha daqiqada keladi — «Spam» papkasini ham ko'ring.":
+        "Если аккаунт с таким email существует, на него отправлена ссылка для установки нового пароля. "
+        "Письмо придёт в течение нескольких минут — проверьте и папку «Спам».",
+    "Havola 24 soat amal qiladi va bir marta ishlatiladi.": "Ссылка действует 24 часа и только один раз.",
+    "Yangi parol": "Новый пароль",
+    "Parolni saqlash": "Сохранить пароль",
+    "Havola yaroqsiz": "Ссылка недействительна",
+    "Bu havola eskirgan yoki allaqachon ishlatilgan. Yangi havola so'rang.":
+        "Ссылка устарела или уже использована. Запросите новую.",
+    "Yangi havola so'rash": "Запросить новую ссылку",
+    "Parol o'zgartirildi": "Пароль изменён",
+    "Endi yangi parol bilan kirishingiz mumkin.": "Теперь вы можете войти с новым паролем.",
+    "Assalomu alaykum, {0}!": "Здравствуйте, {0}!",
+    "SmetaGo'da parolingizni tiklash so'raldi. Yangi parol o'rnatish uchun havolani oching:":
+        "Для вашего аккаунта SmetaGo запрошено восстановление пароля. Чтобы задать новый пароль, откройте ссылку:",
+    "Havola 24 soat amal qiladi va bir marta ishlatiladi. Agar buni siz so'ramagan bo'lsangiz, xatni e'tiborsiz qoldiring — parolingiz o'zgarmaydi.":
+        "Ссылка действует 24 часа и только один раз. Если вы не запрашивали восстановление, просто "
+        "проигнорируйте письмо — пароль не изменится.",
+    "Loginingiz": "Ваш логин",
+    "SmetaGo: parolni tiklash": "SmetaGo: восстановление пароля",
     # PWA / ilova
     "smeta kalkulyatori": "калькулятор смет",
     "Xonalarni o'lchang, katalogdan tanlang — material, narx va ish haqi bilan tayyor smeta.":
