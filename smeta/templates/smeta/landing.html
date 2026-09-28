@@ -13,17 +13,15 @@
       </div>
       <p class="note">{% t "Telefon, planshet va kompyuterda ishlaydi · internetsiz ham" %}</p>
     </div>
-    <div class="hero-card panel" aria-hidden="true">
-      <div class="hc-head"><b>{% t "Mehmonxona" %}</b><span class="mono">5 × 4 × 2,8 {% t "m" %}</span></div>
-      <ul class="hc-lines">
-        <li><span>{% t "Pol: laminat" %}</span><b class="mono">22,00 {% t "m²" %}</b></li>
-        <li><span>{% t "Plintus: PVC" %}</span><b class="mono">7 {% t "dona" %}</b></li>
-        <li><span>{% t "Devor: bo'yoq" %}</span><b class="mono">42,48 {% t "m²" %}</b></li>
-        <li><span>{% t "Shift: natyajnoy" %}</span><b class="mono">20,00 {% t "m²" %}</b></li>
-        <li><span>{% t "Svetilnik, rozetka, konditsioner…" %}</span><b class="mono">+9</b></li>
-      </ul>
-      <div class="hc-total"><span>{% t "Xona bo'yicha jami" %}</span><b class="mono">23 315 846 {% t "so'm" %}</b></div>
-      <div class="ruler"></div>
+    {# jonli kalkulyator: o'lcham o'zgarsa reja, maydonlar va jami darhol yangilanadi (landing.js) #}
+    <div class="hero-card panel" id="hero-calc">
+      <div class="hc-head"><b>{% t "Xonani o'lchab ko'ring" %}</b><span>{% t "raqamlarni o'zgartiring" %}</span></div>
+      <div class="hc-inputs" id="hc-inputs"></div>
+      <div class="hc-plan" id="hc-plan" aria-hidden="true"></div>
+      <ul class="hc-lines" id="hc-lines"></ul>
+      <div class="hc-total"><span>{% t "Xona bo'yicha jami" %}<small>{% t "material + ish haqi" %}</small></span><b class="mono" id="hc-total">—</b></div>
+      <div class="hc-cta"><a class="btn pri" href="{% url 'register' %}">{% t "Saqlash uchun ro'yxatdan o'ting" %}</a></div>
+      <div class="ruler" aria-hidden="true"></div>
     </div>
   </section>
 
@@ -82,4 +80,9 @@
     <span>{% t "Narxlar namunaviy — o'z manbalaringizdagi narxlarni kiriting." %}</span>
   </footer>
 </main>
+{{ ref|json_script:"smeta-ref" }}
+<script src="{% static 'smeta/js/i18n.js' %}"></script>
+<script src="{% static 'smeta/js/data.js' %}"></script>
+<script src="{% static 'smeta/js/calc.js' %}"></script>
+<script src="{% static 'smeta/js/landing.js' %}"></script>
 {% endblock %}

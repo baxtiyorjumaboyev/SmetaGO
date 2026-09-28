@@ -1,27 +1,17 @@
 /* SmetaGo — ilova mantig'i: holat (state), hisob-kitob, chizish (render) va hodisalar.
- * i18n.js va data.js dan keyin yuklanadi. Tuzilishi: docs/ARXITEKTURA.md
+ * i18n.js, data.js va calc.js (hisob-kitob) dan keyin yuklanadi. Tuzilishi: docs/ARXITEKTURA.md
  * Barcha ko'rinadigan matnlar tr("o'zbekcha matn") orqali (ruscha tarjima — i18n.js),
  * birliklar U("m²") orqali. Holatda (S) hamma kalitlar o'zbekcha saqlanadi.
  */
 /* ---------- helpers ---------- */
 const $=(s,r=document)=>r.querySelector(s);
 const uid=()=>Math.random().toString(36).slice(2,9);
-const num=v=>{const x=parseFloat(String(v??"").replace(/\s/g,"").replace(",","."));return isFinite(x)?x:0};
-const fmt=n=>Math.round(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
-const fd=(n,d=2)=>(Math.round((n||0)*10**d)/10**d).toFixed(d).replace(".",",");
-const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const sum=a=>a.reduce((x,y)=>x+y,0);
 const SOM=tr("so'm");
 const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
 // katalog elementi joriy tilda (xonaga qo'shilgan paytdagi nom — zaxira)
 const itemName=it=>(it.cid&&CAT_INDEX[it.cid]?CAT_INDEX[it.cid].n:it.name);
 
 /* ---------- state ---------- */
-// eshik: t — turi (DOOR_TYPES, bo'sh = tanlanmagan), w — eni, h — bo'yi (m)
-const mkDoor=(t="",w="0,9",h=fd(DOOR_H,1),q="1")=>({t,w,h,q});
-// eshik soni (q): bo'sh bo'lsa 1 ta; eshik/deraza maydoni — eni × bo'yi
-const doorQ=d=>{const s=String(d.q??"").trim();return s===""?1:num(s)};
-const openA=o=>num(o.w)*num(o.h);
 function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
 function mkItem(cid,opt={}){const c=CAT_INDEX[cid];if(!c)return null;const v=c.v&&c.v[opt.vi??0];return{uid:uid(),cid,name:c.n,variant:v?v[0]:"",unit:c.u,qty:opt.qty??1,price:v?v[1]:c.p,h:v&&v[2]!=null?v[2]:c.h,dims:opt.dims||"",watt:opt.watt||"",note:opt.note||"",custom:false}}
 function sample(){const sm=" "+tr("sm");
@@ -35,7 +25,7 @@ function sample(){const sm=" "+tr("sm");
   return{
     v:1,sample:true,
     obj:{name:tr("Namuna: 2 xonali kvartira, Chilonzor"),region:"Toshkent sh.",quarter:QUARTERS[0]},
-    settings:{reserve:10,piece:2.5,contingency:5,vat:false,monthly:7030000,hoursMonth:176,rhoSheben:1400,rhoQum:1500,concreteHours:3},
+    settings:{...DEFAULT_SETTINGS},
     prices:defaultPrices(),
     rooms:[m,o,h],
     concrete:[{id:uid(),name:tr("Hovli yo'lagi"),grade:"M200",cem:"M500",mode:"dims",L:"10",W:"1",T:"0,1",V:"",factory:""},{id:uid(),name:tr("Ayvon poydevori"),grade:"M250",cem:"M400",mode:"vol",L:"",W:"",T:"",V:"3,2",factory:"1150000"}],
@@ -86,56 +76,6 @@ addEventListener("online",()=>{if(SERVER&&readPending()){persist();toast(tr("Alo
 setInterval(()=>{if(SERVER&&!saveT&&readPending())persist()},30000);
 if(SERVER)save();
 
-/* ---------- calculations ---------- */
-function priceStats(p){const v=p.src.map(num).filter(x=>x>0);if(!v.length)return{min:0,max:0,avg:0};return{min:Math.min(...v),max:Math.max(...v),avg:sum(v)/v.length}}
-function priceOf(id){const p=S.prices.find(x=>x.id===id);if(!p)return 0;if(p.mode==="manual")return num(p.manual);return priceStats(p)[p.mode]||0}
-const MODE_L={avg:tr("o'rtacha"),min:tr("eng arzon"),max:tr("eng qimmat"),manual:tr("qo'lda")};
-function srcLabel(id){const p=S.prices.find(x=>x.id===id);return p?tr("{0} narx",MODE_L[p.mode]):""}
-const rate=()=>num(S.settings.monthly)/Math.max(1,num(S.settings.hoursMonth));
-
-function roomCalc(r){
-  const L=num(r.L),W=num(r.W),H=num(r.H),res=num(S.settings.reserve)/100;
-  // qoplamaning o'z o'lchami (fL/fW — pol, wL/wW/wH — devor, cL/cW — shift); bo'sh bo'lsa — xonaniki
-  const dim=(v,d)=>String(v??"").trim()!==""?num(v):d;
-  const fL=dim(r.fL,L),fW=dim(r.fW,W),wL=dim(r.wL,L),wW=dim(r.wW,W),wH=dim(r.wH,H),cL=dim(r.cL,L),cW=dim(r.cW,W);
-  const floorA=fL*fW,perim=2*(fL+fW),ceilA=cL*cW;
-  const doorsW=sum(r.doors.map(d=>num(d.w)*doorQ(d)));
-  const doorA=sum(r.doors.map(d=>openA(d)*doorQ(d))),winA=sum(r.windows.map(openA));
-  const tileLen=num(r.tileLen),tileA=tileLen*num(r.tileH);
-  const wallNet=Math.max(0,2*(wL+wW)*wH-doorA-winA);
-  // aniq o'lchov + zaxira: "20,00 m² + 10% = 22,00 m²"
-  const plusRes=(a,u)=>res>0?` + ${S.settings.reserve}% = ${fd(a*(1+res))} ${U(u)}`:"";
-  const plAuto=Math.max(0,perim-doorsW-(r.floor==="kafel"?0:tileLen));
-  const ov=String(r.plinthOv??"").trim();const pl=ov!==""?num(ov):plAuto;
-  const lines=[];const F=FLOOR[r.floor],Wf=WALL[r.wall],C=CEIL[r.ceil];const m=U("m"),m2=U("m²");
-  if(F.pid&&floorA>0)lines.push({name:tr("Pol qoplamasi: {0}",lab(F)),sub:`${fd(fL)} × ${fd(fW)} = ${fd(floorA)} ${m2}${plusRes(floorA,"m²")}`,unit:"m²",qty:floorA*(1+res),price:priceOf(F.pid),hrs:floorA*F.h,src:srcLabel(F.pid),kind:"auto"});
-  if(F.pl&&pl>0){const pp=S.prices.find(p=>p.id===F.pl);const piece=num(S.settings.piece)||2.5;
-    const qty=pp.u==="dona"?Math.ceil(pl*(1+res)/piece):pl*(1+res);
-    const tail=pp.u==="dona"?`${plusRes(pl,"m")} → ${tr("{0} dona × {1} m",qty,fd(piece,1))}`:plusRes(pl,"m");
-    lines.push({name:tr("Plintus: {0}",lab(PLINTH_LABEL[F.pl])),sub:(ov!==""?tr("{0} m (qo'lda o'lchangan)",fd(pl)):`${fd(perim)} − ${tr("eshiklar")} ${fd(doorsW)}${tileLen&&r.floor!=="kafel"?" − "+tr("kafel")+" "+fd(tileLen):""} = ${fd(pl)} ${m}`)+tail,unit:pp.u,qty,price:priceOf(F.pl),hrs:pl*.1,src:srcLabel(F.pl),kind:"auto"})}
-  const paintA=r.wall==="kafel"?wallNet:Math.max(0,wallNet-tileA);
-  const wRes=r.wall==="kafel"||r.wall==="oboy";
-  if(Wf.pid&&paintA>0)lines.push({name:tr("Devor: {0}",lab(Wf)),sub:tr("{0} m² (eshik va derazalarsiz)",fd(paintA))+(wRes?plusRes(paintA,"m²"):""),unit:"m²",qty:paintA*(1+(wRes?res:0)),price:priceOf(Wf.pid),hrs:paintA*Wf.h,src:srcLabel(Wf.pid),kind:"auto"});
-  if(tileA>0&&r.wall!=="kafel")lines.push({name:tr("Devor: kafel qismi"),sub:`${fd(tileLen)} ${m} × ${fd(num(r.tileH))} ${m} = ${fd(tileA)} ${m2}${plusRes(tileA,"m²")}`,unit:"m²",qty:tileA*(1+res),price:priceOf("kafel_devor"),hrs:tileA*1.1,src:srcLabel("kafel_devor"),kind:"auto"});
-  if(C.pid&&ceilA>0)lines.push({name:tr("Shift: {0}",lab(C)),sub:`${fd(cL)} × ${fd(cW)} = ${fd(ceilA)} ${m2}`,unit:"m²",qty:ceilA,price:priceOf(C.pid),hrs:ceilA*C.h,src:srcLabel(C.pid),kind:"auto"});
-  return{floorA,perim,ceilA,wallNet,pl,plAuto,doorsW,doorA,winA,lines};
-}
-function itemLine(it){const q=num(it.qty);const bits=[it.variant,it.dims,it.watt?it.watt+" "+tr("Vt"):"",it.note].filter(Boolean);
-  return{name:itemName(it),sub:bits.join(" · "),unit:it.unit,qty:q,price:num(it.price),hrs:q*num(it.h),src:it.custom?tr("qo'lda"):tr("katalog"),kind:it.custom?"own":"item",uid:it.uid}}
-function concreteCalc(c){
-  const vol=c.mode==="dims"?num(c.L)*num(c.W)*num(c.T):num(c.V);const m=MIX[c.grade]||MIX.M200;
-  const k=c.cem==="M400"?1.15:1;const cem=m[0]*k,qum=m[1],sheb=m[2],suv=m[3];const per=`${U("kg")}/${U("m³")}`;
-  const lines=[
-    {name:tr("Sement"),sub:`${fmt(cem)} ${per} · PC ${c.cem}`,unit:"kg",qty:cem*vol,price:priceOf("sement"),hrs:0,src:srcLabel("sement"),kind:"auto"},
-    {name:tr("Shag'al (sheben)"),sub:`${fmt(sheb)} ${per}`,unit:"m³",qty:sheb*vol/num(S.settings.rhoSheben||1400),price:priceOf("sheben"),hrs:0,src:srcLabel("sheben"),kind:"auto"},
-    {name:tr("Qum"),sub:`${fmt(qum)} ${per}`,unit:"m³",qty:qum*vol/num(S.settings.rhoQum||1500),price:priceOf("qum"),hrs:0,src:srcLabel("qum"),kind:"auto"},
-    {name:tr("Suv"),sub:`${fmt(suv)} ${U("l")}/${U("m³")}`,unit:"m³",qty:suv*vol/1000,price:priceOf("suv"),hrs:0,src:srcLabel("suv"),kind:"auto"},
-    {name:tr("Qorishma tayyorlash va quyish"),sub:tr("{0} soat/m³",fd(num(S.settings.concreteHours),1)),unit:"m³",qty:vol,price:0,hrs:vol*num(S.settings.concreteHours),src:tr("ish haqi"),kind:"auto"}
-  ];
-  const mat=sum(lines.map(l=>l.qty*l.price));
-  return{vol,cem,qum,sheb,suv,lines,mat,perM3:vol>0?mat/vol:0};
-}
-function lineTotals(l){const mat=l.qty*l.price,lab=l.hrs*rate();return{mat,lab,tot:mat+lab}}
 function buildSmeta(){
   const groups=[];
   S.rooms.forEach(r=>{const c=roomCalc(r);groups.push({title:r.name,sub:`${fd(num(r.L))} × ${fd(num(r.W))} × ${fd(num(r.H))} ${U("m")}`,lines:[...c.lines,...r.items.map(itemLine)]})});
@@ -152,7 +92,12 @@ function renderHeader(){
   $("#o-region").innerHTML=REGIONS.map(r=>`<option value="${esc(r)}"${r===S.obj.region?" selected":""}>${esc(tr(r))}</option>`).join("");
   $("#o-quarter").innerHTML=QUARTERS.map(r=>`<option value="${esc(r)}"${r===S.obj.quarter?" selected":""}>${esc(qLabel(r))}</option>`).join("");
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-k="${k}" aria-selected="${S.ui.tab===k}">${l}</button>`).join("");
+  // telefonda: pastki navigatsiya paneli (yuqoridagi tablar yashiriladi)
+  const bn=$("#bnav");if(bn)bn.innerHTML=TABS.map(([k])=>`<button data-act="tab" data-k="${k}" aria-current="${S.ui.tab===k?"page":"false"}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICON[k]}</svg><span>${BNAV_L[k]}</span></button>`).join("");
 }
+const TAB_ICON={xonalar:'<path d="M3 4h18v16H3zM3 12h8v8M11 4v5"/>',beton:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+  narxlar:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',smeta:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>'};
+const BNAV_L={xonalar:tr("Xonalar"),beton:tr("Beton"),narxlar:tr("Narxlar"),smeta:tr("Smeta")};
 function render(){renderHeader();const t=S.ui.tab;
   $("#app").innerHTML=t==="xonalar"?viewRooms():t==="beton"?viewConcrete():t==="narxlar"?viewPrices():viewSmeta();
   if(t==="xonalar"){renderDerived();renderCatItems()}
@@ -175,12 +120,12 @@ function viewRooms(){
     <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><span class="tag">${esc(rtLabel(r.type))}</span><button class="btn ghost sm" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
     <fieldset><legend class="eyebrow">${tr("O'lchamlar, metr")}</legend>
      <div class="grid3">
-      <label class="fld">${tr("Uzunligi")}<input class="inp numin" id="r-L" data-f="L" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00"></label>
-      <label class="fld">${tr("Eni")}<input class="inp numin" id="r-W" data-f="W" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00"></label>
-      <label class="fld">${tr("Balandligi")}<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00"></label>
+      <label class="fld">${tr("Uzunligi")}${stepper(`<input class="inp numin" id="r-L" data-f="L" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00">`,"r-L",.1)}</label>
+      <label class="fld">${tr("Eni")}${stepper(`<input class="inp numin" id="r-W" data-f="W" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00">`,"r-W",.1)}</label>
+      <label class="fld">${tr("Balandligi")}${stepper(`<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00">`,"r-H",.1)}</label>
      </div></fieldset>
     <fieldset><legend class="eyebrow">${tr("Eshiklar — turi, eni × bo'yi, m (eni plintusdan ayiriladi)")}</legend>
-     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}</select><input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}"><input class="inp numin qn" id="d-${i}-q" data-door="${i}" data-k="q" inputmode="decimal" value="${esc(d.q??"")}" placeholder="1" aria-label="${tr("Soni")}">${esc(U("dona"))}<span class="m2" id="d-${i}-a"></span><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
+     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}</select><input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}">${stepper(`<input class="inp numin qn" id="d-${i}-q" data-door="${i}" data-k="q" inputmode="decimal" value="${esc(d.q??"")}" placeholder="1" aria-label="${tr("Soni")}">`,`d-${i}-q`,1)}${esc(U("dona"))}<span class="m2" id="d-${i}-a"></span><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
      <p class="note opsum" id="doors-sum"></p>
      <div class="openings adddoor">${DOOR_TYPES.map(t=>`<button class="btn sm" data-act="addDoor" data-t="${esc(t)}">+ ${esc(tr(t))}</button>`).join("")}</div></fieldset>
     <fieldset><legend class="eyebrow">${tr("Derazalar — eni × balandligi, m")}</legend>
@@ -237,10 +182,11 @@ function renderDerived(){
   const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);updOpenings(r,c);
   const autoRows=c.lines.map(l=>{const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)} <span class="tag auto">${tr("avto")}</span></div><div class="itemsub">${esc(l.sub)}</div></td><td class="num r c-qty" data-l="${tr("Miqdor")}">${fd(l.qty)} ${esc(U(l.unit))}</td><td class="num r c-price" data-l="${tr("Narx")}">${fmt(l.price)}</td><td class="num r c-sum" data-l="${tr("Jami")}">${fmt(t.tot)}</td><td class="c-del"></td></tr>`}).join("");
   const itemRows=r.items.map(it=>{const l=itemLine(it);const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)}${it.custom?` <span class="tag own">${tr("o'zim qo'shdim")}</span>`:""}</div><div class="itemsub">${esc(l.sub)||"&nbsp;"}</div></td>
-    <td class="num r c-qty" data-l="${tr("Miqdor")}"><input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}"> <span class="note">${esc(U(it.unit))}</span></td>
+    <td class="num r c-qty" data-l="${tr("Miqdor")}">${stepper(`<input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}">`,`iq-${it.uid}`,1)} <span class="note">${esc(U(it.unit))}</span></td>
     <td class="r c-price" data-l="${tr("Narx, so'm")}"><input class="inp numin price" id="ip-${it.uid}" data-it="${it.uid}" data-k="price" inputmode="decimal" value="${esc(it.price)}" aria-label="${tr("Narx")}"></td>
     <td class="num r c-sum" data-l="${tr("Jami")}" id="is-${it.uid}">${fmt(t.tot)}</td><td class="c-del"><button class="btn ghost sm" data-act="delItem" data-uid="${it.uid}" aria-label="${tr("O'chirish")}">×</button></td></tr>`}).join("");
-  box.innerHTML=`<div class="metrics">
+  box.innerHTML=`<div class="panel roomplan" aria-hidden="true">${planSvg(num(r.L),num(r.W))}</div>
+   <div class="metrics">
     <div class="metric"><div class="v">${fd(c.floorA)}<small>${U("m²")}</small></div><div class="k">${tr("Pol maydoni")}</div></div>
     <div class="metric"><div class="v">${fd(c.perim)}<small>${U("m")}</small></div><div class="k">${tr("Perimetr")}</div></div>
     <div class="metric"><div class="v">${fd(c.wallNet)}<small>${U("m²")}</small></div><div class="k">${tr("Devor (sof)")}</div></div>
@@ -476,6 +422,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "smetaView":S.ui.smetaView=b.dataset.k;render();break;
    case "xlSheet":S.ui.xlSheet=+b.dataset.i;render();break;
    case "copyTxt":copy(smetaTxt());break;
+   case "step":stepInput(document.getElementById(b.dataset.for),+b.dataset.d);break;
   }
 });
 document.addEventListener("input",e=>{const t=e.target;const r=curRoom();

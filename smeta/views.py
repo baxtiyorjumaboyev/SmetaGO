@@ -17,7 +17,9 @@ from .models import Obyekt
 def obyekt_list(request):
     """Bosh sahifa: mehmonga — sayt (landing), kirgan foydalanuvchiga — obyektlar ro'yxati."""
     if not request.user.is_authenticated:
-        return render(request, "smeta/landing.html")
+        # jonli kalkulyator uchun faqat narxlar (katalog kerak emas)
+        ref = {"prices": build_reference(current_lang())["prices"]}
+        return render(request, "smeta/landing.html", {"ref": ref})
     return render(request, "smeta/obyekt_list.html", {
         "obyektlar": request.user.obyektlar.all(),
     })

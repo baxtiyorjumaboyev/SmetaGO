@@ -7,6 +7,7 @@
   --line:#d2ddd5; --accent:#15803d; --accent-soft:#dcfce7; --on-accent:#ffffff;
   --steel:#166534; --steel-soft:#e3f1e7; --danger:#b3261e; --good:#15803d;
   --bar:#0c140f; --on-bar:#eef5f0; --bar-accent:#4ade80;
+  --grid-minor:rgba(21,128,61,.055); --grid-major:rgba(21,128,61,.11); --dim:#15803d;
   --shadow:0 1px 2px rgba(12,20,15,.06),0 6px 24px rgba(12,20,15,.06);
   --r:10px;
   --f-display:"Onest","Segoe UI",system-ui,sans-serif;
@@ -16,23 +17,32 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#080b09; --surface:#101512; --surface2:#18201b; --ink:#e5eee8; --muted:#93a39a;
+    --bg:#070d0a; --surface:#101512; --surface2:#18201b; --ink:#e5eee8; --muted:#93a39a;
     --line:#26312a; --accent:#22c55e; --accent-soft:#0f2a1a; --on-accent:#03140a;
     --steel:#4ade80; --steel-soft:#0f2519; --danger:#f28b82; --good:#4ade80;
     --bar:#000000; --on-bar:#e5eee8; --bar-accent:#4ade80;
+    --grid-minor:rgba(74,222,128,.045); --grid-major:rgba(74,222,128,.09); --dim:#4ade80;
     --shadow:0 1px 2px rgba(0,0,0,.4);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#080b09; --surface:#101512; --surface2:#18201b; --ink:#e5eee8; --muted:#93a39a;
+  --bg:#070d0a; --surface:#101512; --surface2:#18201b; --ink:#e5eee8; --muted:#93a39a;
   --line:#26312a; --accent:#22c55e; --accent-soft:#0f2a1a; --on-accent:#03140a;
   --steel:#4ade80; --steel-soft:#0f2519; --danger:#f28b82; --good:#4ade80;
   --bar:#000000; --on-bar:#e5eee8; --bar-accent:#4ade80;
+  --grid-minor:rgba(74,222,128,.045); --grid-major:rgba(74,222,128,.09); --dim:#4ade80;
   --shadow:0 1px 2px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
-html,body{background:var(--bg)}
+html{background:var(--bg)}
+/* chizma (blueprint): millimetrovka — 8 px mayda, 40 px yirik katak */
+body{background:
+  linear-gradient(var(--grid-major) 1px,transparent 1px) 0 0/40px 40px,
+  linear-gradient(90deg,var(--grid-major) 1px,transparent 1px) 0 0/40px 40px,
+  linear-gradient(var(--grid-minor) 1px,transparent 1px) 0 0/8px 8px,
+  linear-gradient(90deg,var(--grid-minor) 1px,transparent 1px) 0 0/8px 8px,
+  var(--bg)}
 body{color:var(--ink);font:15px/1.5 var(--f-body);padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 button,input,select{font:inherit;color:inherit}
@@ -384,5 +394,58 @@ textarea.fallback{width:100%;height:140px;font-family:var(--f-mono);font-size:12
   .appcard{flex-direction:column;align-items:flex-start;padding:18px}
   .appcard img{width:72px;height:72px;border-radius:16px}
   .hc-total b{font-size:17px}
+}
+/* chizma: xona rejasi o'lcham chiziqlari bilan (calc.js planSvg) */
+.plan{display:block;width:100%;height:auto;max-height:220px}
+.roomplan{padding:10px 14px}
+.roomplan .plan{max-height:170px;margin-inline:auto;max-width:380px}
+.plan .pl-room{fill:var(--accent-soft);stroke:var(--dim);stroke-width:2}
+.plan .pl-ext{stroke:var(--dim);stroke-width:1;opacity:.55}
+.plan .pl-dim{stroke:var(--dim);stroke-width:1.2}
+.plan .pl-arrow{fill:var(--dim)}
+.plan .pl-t{font:600 12px var(--f-mono);fill:var(--ink)}
+.plan .pl-a{font:500 13px var(--f-mono);fill:var(--muted)}
+/* +/− tugmalar: kompyuterda yashirin, telefonda katta (qo'lqop bilan ham bosiladi) */
+.stp{display:contents}
+.stp-b{display:none}
+
+/* bosh sahifa: jonli kalkulyator */
+.hc-inputs{display:flex;flex-direction:column;gap:10px;padding:12px 0}
+.hc-plan{padding:4px 0 8px;border-top:1px dashed var(--line)}
+.hc-lines li span{display:flex;flex-direction:column;min-width:0}
+.hc-lines li small{font-size:11.5px;color:var(--muted);font-family:var(--f-mono)}
+.hc-lines li b{white-space:nowrap}
+.hc-lines li:last-child{color:inherit}
+.hc-total span small{display:block;font-size:10.5px;letter-spacing:0;text-transform:none;opacity:.8}
+.hc-cta{margin:0 -18px;padding:12px 18px;background:var(--bar);border-top:1px solid rgba(255,255,255,.08)}
+.hc-cta .btn{width:100%;justify-content:center}
+
+/* pastki navigatsiya (faqat telefonda) */
+.bnav{display:none}
+
+@media (max-width:760px){
+  .inp.numin{font-size:18px;min-height:46px}
+  .stp{display:flex;align-items:stretch;gap:4px;min-width:0}
+  .stp .inp{flex:1;min-width:0;text-align:center}
+  .stp-b{display:grid;place-items:center;flex:none;width:44px;min-height:46px;border:1px solid var(--line);background:var(--surface2);border-radius:8px;font:600 22px/1 var(--f-mono);color:var(--ink);cursor:pointer;touch-action:manipulation;padding:0}
+  .stp-b:active{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+  .opening .stp .inp{width:52px;min-height:40px;font-size:16px}
+  .opening .stp-b{width:36px;min-height:40px;font-size:18px}
+  .grid3:has(.stp){grid-template-columns:minmax(0,1fr)}
+  .rtable .c-qty:has(.stp){grid-column:1 / -1}
+  .rtable .c-qty .stp{grid-column:1 / 2}
+  body:has(.bnav) .totalbar [data-act="tab"]{display:none}
+  /* pastki panel: bo'limlar; jami summa uning ustida */
+  .top .tabs{display:none}
+  .bnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .bnav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 7px;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer}
+  .bnav svg{width:52px;height:28px;padding:2px 14px;box-sizing:border-box;border-radius:99px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .bnav button[aria-current="page"]{color:var(--accent)}
+  .bnav button[aria-current="page"] svg{background:var(--accent-soft)}
+  body:has(.bnav){padding-bottom:calc(128px + env(safe-area-inset-bottom,0px))}
+  body:has(.bnav) .totalbar{bottom:calc(58px + env(safe-area-inset-bottom,0px));padding-bottom:0}
+  body:has(.bnav) .fab{bottom:calc(128px + env(safe-area-inset-bottom,0px))}
+  body:has(.bnav) .toast{bottom:calc(140px + env(safe-area-inset-bottom,0px))}
+  .hc-inputs .grid3:not(.g-stack){grid-template-columns:minmax(0,1fr)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

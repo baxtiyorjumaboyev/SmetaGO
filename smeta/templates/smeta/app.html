@@ -21,6 +21,7 @@
 </header>
 <main class="wrap" id="app"></main>
 <div class="totalbar" id="totalbar"></div>
+<nav class="bnav" id="bnav" aria-label="{% t "Bo'limlar" %}"></nav>
 <div id="modal" hidden></div>
 <div id="toast" class="toast" hidden></div>
 {{ o.state|json_script:"smeta-state" }}
@@ -36,6 +37,7 @@ window.SMETAGO = {
 </script>
 <script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
+<script src="{% static 'smeta/js/calc.js' %}"></script>
 <script src="{% static 'smeta/js/app.js' %}"></script>
 </body>
 </html>

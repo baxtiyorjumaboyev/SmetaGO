@@ -122,6 +122,11 @@ RU = {
     "Android va kompyuter: Chrome yoki Edge'da «O'rnatish». iPhone: Safari → «Ulashish» → «Bosh ekranga qo'shish».":
         "Android и компьютер: «Установить» в Chrome или Edge. iPhone: Safari → «Поделиться» → «На экран «Домой»».",
     "Qanday ishlaydi": "Как это работает",
+    "Xonani o'lchab ko'ring": "Измерьте комнату",
+    "raqamlarni o'zgartiring": "меняйте цифры",
+    "material + ish haqi": "материалы + работа",
+    "Saqlash uchun ro'yxatdan o'ting": "Зарегистрируйтесь, чтобы сохранить",
+    "Bo'limlar": "Разделы",
     "Ro'yxatdan o'ting — bepul, bir daqiqa": "Зарегистрируйтесь — бесплатно, за минуту",
     "Obyekt oching, xonalarni o'lchang va narsalarni tanlang": "Откройте объект, измерьте комнаты и выберите позиции",
     "Tayyor smetani Excel yoki Telegramga yuboring": "Отправьте готовую смету в Excel или Telegram",

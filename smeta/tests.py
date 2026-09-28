@@ -24,8 +24,10 @@ class SmetaTests(TestCase):
         self.assertContains(landing, reverse("register"))
         self.assertContains(landing, 'rel="manifest"')
         self.assertRedirects(anon.get(reverse("obyekt_create")), "/kirish/?next=/obyekt/yangi/")
-        login_page = anon.get(reverse("login"))
-        self.assertContains(login_page, reverse("password_reset"))  # "Parolni unutdingizmi?"
+        # "Parolni unutdingizmi?" — faqat xat yuborish sozlangan bo'lsa
+        self.assertNotContains(anon.get(reverse("login")), reverse("password_reset"))
+        with self.settings(EMAIL_HOST="smtp.example.com"):
+            self.assertContains(anon.get(reverse("login")), reverse("password_reset"))
         form = {"username": "vali", "password1": "Qurilish-2026!", "password2": "Qurilish-2026!"}
         r = anon.post(reverse("register"), form)  # emailsiz — rad etiladi
         self.assertEqual(r.status_code, 200)
