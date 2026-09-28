@@ -216,7 +216,7 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
 
 | Ustuvorlik | Vazifa | Izoh |
 | --- | --- | --- |
-| 1 | **Serverga joylash (HTTPS + domen)** | PWA'ni telefonga o'rnatish uchun shart. Taklif: PythonAnywhere yoki Render. `whitenoise`, `DEBUG=0`, maxfiy kalit, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `collectstatic`. Ishlab chiqarishda SQLite o'rniga PostgreSQL ko'rib chiqilsin. Domen `.uz` — cctld.uz ro'yxatidagi registrator orqali. |
+| 1 | ~~Serverga joylash~~ — **bajarildi (2026-09-28)**, qarang: 9-bo'lim | Qolgani: o'z domeni (`.uz`, cctld.uz registratori orqali) va kerak bo'lsa SQLite o'rniga PostgreSQL. |
 | 2 | **Hamkorni qo'shish** | Foydalanuvchi `ikrombekmurodov7@gmail.com` egasini repoga qo'shmoqchi. Bu pochta bilan GitHub hisobi topilmadi (pochta yashirin). **GitHub login kerak** — foydalanuvchidan so'rang, taxmin qilmang. Keyin: `gh api -X PUT repos/baxtiyorjumaboyev/SmetaGO/collaborators/<login> -f permission=push`. |
 | 3 | PDF yuklab olish | Excel tayyor (5.5). PDF hali yo'q. |
 | 4 | Play Market | Serverga joylangach, PWA'ni TWA (Bubblewrap / PWABuilder) bilan paketlash; `assetlinks.json` kerak. |
@@ -232,7 +232,26 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
 
 ---
 
-## 9. Hisob va kirish ma'lumotlari
+## 9. Server (production)
+
+- **Manzil:** https://smetago.169-58-130-201.nip.io — server `169.58.130.201` (Ubuntu 24.04). **Server umumiy**: unda 30+ boshqa loyiha ishlaydi — faqat SmetaGO'ga tegishli narsalarni o'zgartiring.
+- **Ilova:** `/opt/smetago` (git clone, egasi `smetago` tizim foydalanuvchisi), `.venv`, baza `db.sqlite3`, sozlamalar `.env` (chmod 600: `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`, `DJANGO_BEHIND_PROXY=1`).
+- **Xizmat:** `smetago.service` (systemd) — gunicorn `172.18.0.1:8510`, 2 worker. Log: `journalctl -u smetago -f`.
+- **Proksi:** umumiy Caddy konteyneri `coach-caddy-1`, fayl `/opt/coach/deploy/Caddyfile` (oxirida SmetaGO bloki). Faylni faqat `>>` bilan yoki joyida tahrirlang — u konteynerga bind-mount qilingan, `sed -i` inode'ni almashtirib, bog'lanishni uzadi. Tekshirish va qo'llash: `docker exec coach-caddy-1 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`, keyin `caddy reload`.
+- **Firewall:** `ufw allow from 172.18.0.0/16 to any port 8510` — port faqat Caddy uchun ochiq, internetdan yopiq.
+- **Yangilash** (GitHub'ga push'dan keyin):
+  ```bash
+  cd /opt/smetago && sudo -u smetago git pull --ff-only \
+   && sudo -u smetago .venv/bin/pip install -q -r requirements.txt \
+   && sudo -u smetago bash -c 'set -a; . ./.env; set +a; .venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py collectstatic --noinput' \
+   && systemctl restart smetago
+  ```
+- Admin: `cd /opt/smetago && sudo -u smetago bash -c 'set -a; . ./.env; set +a; .venv/bin/python manage.py createsuperuser'`.
+- Zaxira: `db.sqlite3` ni vaqti-vaqti bilan nusxalang (hali avtomatlashtirilmagan).
+
+---
+
+## 10. Hisob va kirish ma'lumotlari
 
 - GitHub: `baxtiyorjumaboyev`. Repo commit muallifi repo-local `git config` da sozlangan. Yangi muhitda `git config user.name` / `user.email` ni qayta sozlang (foydalanuvchidan so'rang).
 - Parollar, tokenlar va `SECRET_KEY` bu faylda **yo'q va bo'lmasligi kerak** — repo public.
