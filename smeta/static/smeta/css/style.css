@@ -117,6 +117,13 @@ legend{padding:0;margin-bottom:8px}
 .opening{display:flex;align-items:center;gap:4px;background:var(--surface2);border-radius:8px;padding:4px 4px 4px 10px;font-size:13px}
 .opening input{width:62px;padding:5px 6px}
 .opening select{width:auto;padding:5px 6px}
+.opening input.qn{width:44px}
+.opening .m2{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap;padding-left:2px}
+.opsum{margin:6px 0 0}
+.opsum:empty{display:none}
+.fcol{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fdims{display:flex;gap:6px}
+.fdims .fld{flex:1}
 .adddoor{margin-top:8px}
 .opening .x{border:0;background:transparent;cursor:pointer;color:var(--muted);padding:4px 6px;border-radius:6px}
 .opening .x:hover{color:var(--danger)}

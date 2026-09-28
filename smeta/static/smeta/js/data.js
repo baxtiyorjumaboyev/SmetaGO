@@ -15,6 +15,7 @@ const FLOOR={
   laminat:{l:"Laminat",ru:"Ламинат",pid:"laminat",h:.3,pl:"plintus_pvc"},
   kafel:{l:"Kafel",ru:"Плитка",pid:"kafel_pol",h:1,pl:"plintus_kafel"},
   linoleum:{l:"Linoleum",ru:"Линолеум",pid:"linoleum",h:.15,pl:"plintus_pvc"},
+  relin:{l:"Relin",ru:"Релин",pid:"relin",h:.15,pl:"plintus_pvc"},
   parket:{l:"Parket",ru:"Паркет",pid:"parket",h:.6,pl:"plintus_yogoch"},
   yoq:{l:"O'zgarmaydi",ru:"Без изменений",pid:null,h:0,pl:null}
 };
@@ -26,10 +27,13 @@ const WALL={
   yoq:{l:"O'zgarmaydi",ru:"Без изменений",pid:null,h:0}
 };
 const CEIL={
-  shift_boyoq:{l:"Bo'yoq",ru:"Покраска",pid:"shift_boyoq",h:.35},
+  shift_boyoq:{l:"Suv emulsiyali bo'yoq",ru:"Водоэмульсионная краска",pid:"shift_boyoq",h:.35},
+  shift_moyli:{l:"Moyli bo'yoq",ru:"Масляная краска",pid:"shift_moyli",h:.35},
+  shift_akril:{l:"Akril bo'yoq",ru:"Акриловая краска",pid:"shift_akril",h:.35},
   natyajnoy:{l:"Natyajnoy shift",ru:"Натяжной потолок",pid:"natyajnoy",h:.3},
   gipsokarton:{l:"Gipsokarton",ru:"Гипсокартон",pid:"gipsokarton",h:.7},
   armstrong:{l:"Armstrong",ru:"Армстронг",pid:"armstrong",h:.3},
+  plastik:{l:"Plastik shift",ru:"Пластиковый потолок",pid:"plastik_shift",h:.4},
   yoq:{l:"O'zgarmaydi",ru:"Без изменений",pid:null,h:0}
 };
 const PLINTH_LABEL={plintus_pvc:{l:"PVC (plastik)",ru:"ПВХ (пластик)"},plintus_kafel:{l:"Kafel plintus",ru:"Плиточный плинтус"},plintus_yogoch:{l:"Yog'och",ru:"Деревянный"}};
@@ -45,6 +49,7 @@ function defaultPrices(){if(REF&&REF.prices&&REF.prices.length)return JSON.parse
  {id:"laminat",n:"Laminat",u:"m²",g:"Pol",src:[95000,110000,120000],s:"Do'kon / bozor / marketpleys",mode:"avg",manual:0},
  {id:"kafel_pol",n:"Kafel (pol)",u:"m²",g:"Pol",src:[100000,120000,140000],s:"",mode:"avg",manual:0},
  {id:"linoleum",n:"Linoleum",u:"m²",g:"Pol",src:[60000,70000,85000],s:"",mode:"avg",manual:0},
+ {id:"relin",n:"Relin",u:"m²",g:"Pol",src:[45000,55000,65000],s:"",mode:"avg",manual:0},
  {id:"parket",n:"Parket",u:"m²",g:"Pol",src:[220000,250000,300000],s:"",mode:"avg",manual:0},
  {id:"plintus_pvc",n:"Plintus PVC, 2,5 m",u:"dona",g:"Pol",src:[22000,25000,30000],s:"",mode:"avg",manual:0},
  {id:"plintus_yogoch",n:"Plintus yog'och, 2,5 m",u:"dona",g:"Pol",src:[45000,55000,60000],s:"",mode:"avg",manual:0},
@@ -53,9 +58,12 @@ function defaultPrices(){if(REF&&REF.prices&&REF.prices.length)return JSON.parse
  {id:"oboy",n:"Oboy",u:"m²",g:"Devor",src:[35000,45000,60000],s:"",mode:"avg",manual:0},
  {id:"kafel_devor",n:"Kafel (devor)",u:"m²",g:"Devor",src:[100000,120000,150000],s:"",mode:"avg",manual:0},
  {id:"gipsokarton",n:"Gipsokarton (karkas bilan)",u:"m²",g:"Devor",src:[55000,60000,70000],s:"",mode:"avg",manual:0},
- {id:"shift_boyoq",n:"Shift bo'yog'i",u:"m²",g:"Shift",src:[12000,14000,16000],s:"",mode:"avg",manual:0},
+ {id:"shift_boyoq",n:"Suv emulsiyali bo'yoq (shift)",u:"m²",g:"Shift",src:[12000,14000,16000],s:"",mode:"avg",manual:0},
+ {id:"shift_moyli",n:"Moyli bo'yoq (shift)",u:"m²",g:"Shift",src:[15000,18000,22000],s:"",mode:"avg",manual:0},
+ {id:"shift_akril",n:"Akril bo'yoq (shift)",u:"m²",g:"Shift",src:[18000,22000,26000],s:"",mode:"avg",manual:0},
  {id:"natyajnoy",n:"Natyajnoy shift",u:"m²",g:"Shift",src:[80000,90000,110000],s:"",mode:"avg",manual:0},
- {id:"armstrong",n:"Armstrong shift",u:"m²",g:"Shift",src:[60000,70000,80000],s:"",mode:"avg",manual:0}
+ {id:"armstrong",n:"Armstrong shift",u:"m²",g:"Shift",src:[60000,70000,80000],s:"",mode:"avg",manual:0},
+ {id:"plastik_shift",n:"Plastik shift (PVX panel)",u:"m²",g:"Shift",src:[55000,65000,75000],s:"",mode:"avg",manual:0}
 ];}
 
 // catalog: v = variants [label, price, hours?]; dims: ask L×W×H; w: ask power (W)

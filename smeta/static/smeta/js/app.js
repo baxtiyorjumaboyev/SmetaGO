@@ -18,7 +18,10 @@ const itemName=it=>(it.cid&&CAT_INDEX[it.cid]?CAT_INDEX[it.cid].n:it.name);
 
 /* ---------- state ---------- */
 // eshik: t — turi (DOOR_TYPES, bo'sh = tanlanmagan), w — eni, h — bo'yi (m)
-const mkDoor=(t="",w="0,9",h=fd(DOOR_H,1))=>({t,w,h});
+const mkDoor=(t="",w="0,9",h=fd(DOOR_H,1),q="1")=>({t,w,h,q});
+// eshik soni (q): bo'sh bo'lsa 1 ta; eshik/deraza maydoni — eni × bo'yi
+const doorQ=d=>{const s=String(d.q??"").trim();return s===""?1:num(s)};
+const openA=o=>num(o.w)*num(o.h);
 function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
 function mkItem(cid,opt={}){const c=CAT_INDEX[cid];if(!c)return null;const v=c.v&&c.v[opt.vi??0];return{uid:uid(),cid,name:c.n,variant:v?v[0]:"",unit:c.u,qty:opt.qty??1,price:v?v[1]:c.p,h:v&&v[2]!=null?v[2]:c.h,dims:opt.dims||"",watt:opt.watt||"",note:opt.note||"",custom:false}}
 function sample(){const sm=" "+tr("sm");
@@ -92,22 +95,30 @@ const rate=()=>num(S.settings.monthly)/Math.max(1,num(S.settings.hoursMonth));
 
 function roomCalc(r){
   const L=num(r.L),W=num(r.W),H=num(r.H),res=num(S.settings.reserve)/100;
-  const floorA=L*W,perim=2*(L+W),doorsW=sum(r.doors.map(d=>num(d.w)));
-  const doorA=sum(r.doors.map(d=>num(d.w)*num(d.h))),winA=sum(r.windows.map(w=>num(w.w)*num(w.h)));
+  // qoplamaning o'z o'lchami (fL/fW — pol, wL/wW/wH — devor, cL/cW — shift); bo'sh bo'lsa — xonaniki
+  const dim=(v,d)=>String(v??"").trim()!==""?num(v):d;
+  const fL=dim(r.fL,L),fW=dim(r.fW,W),wL=dim(r.wL,L),wW=dim(r.wW,W),wH=dim(r.wH,H),cL=dim(r.cL,L),cW=dim(r.cW,W);
+  const floorA=fL*fW,perim=2*(fL+fW),ceilA=cL*cW;
+  const doorsW=sum(r.doors.map(d=>num(d.w)*doorQ(d)));
+  const doorA=sum(r.doors.map(d=>openA(d)*doorQ(d))),winA=sum(r.windows.map(openA));
   const tileLen=num(r.tileLen),tileA=tileLen*num(r.tileH);
-  const wallNet=Math.max(0,perim*H-doorA-winA);
+  const wallNet=Math.max(0,2*(wL+wW)*wH-doorA-winA);
+  // aniq o'lchov + zaxira: "20,00 m² + 10% = 22,00 m²"
+  const plusRes=(a,u)=>res>0?` + ${S.settings.reserve}% = ${fd(a*(1+res))} ${U(u)}`:"";
   const plAuto=Math.max(0,perim-doorsW-(r.floor==="kafel"?0:tileLen));
   const ov=String(r.plinthOv??"").trim();const pl=ov!==""?num(ov):plAuto;
   const lines=[];const F=FLOOR[r.floor],Wf=WALL[r.wall],C=CEIL[r.ceil];const m=U("m"),m2=U("m²");
-  if(F.pid&&floorA>0)lines.push({name:tr("Pol qoplamasi: {0}",lab(F)),sub:tr("{0} m² + {1}% zaxira",fd(floorA),S.settings.reserve),unit:"m²",qty:floorA*(1+res),price:priceOf(F.pid),hrs:floorA*F.h,src:srcLabel(F.pid),kind:"auto"});
+  if(F.pid&&floorA>0)lines.push({name:tr("Pol qoplamasi: {0}",lab(F)),sub:`${fd(fL)} × ${fd(fW)} = ${fd(floorA)} ${m2}${plusRes(floorA,"m²")}`,unit:"m²",qty:floorA*(1+res),price:priceOf(F.pid),hrs:floorA*F.h,src:srcLabel(F.pid),kind:"auto"});
   if(F.pl&&pl>0){const pp=S.prices.find(p=>p.id===F.pl);const piece=num(S.settings.piece)||2.5;
     const qty=pp.u==="dona"?Math.ceil(pl*(1+res)/piece):pl*(1+res);
-    lines.push({name:tr("Plintus: {0}",lab(PLINTH_LABEL[F.pl])),sub:ov!==""?tr("{0} m (qo'lda o'lchangan)",fd(pl)):`${fd(perim)} − ${tr("eshiklar")} ${fd(doorsW)}${tileLen&&r.floor!=="kafel"?" − "+tr("kafel")+" "+fd(tileLen):""} = ${fd(pl)} ${m}`,unit:pp.u,qty,price:priceOf(F.pl),hrs:pl*.1,src:srcLabel(F.pl),kind:"auto"})}
+    const tail=pp.u==="dona"?`${plusRes(pl,"m")} → ${tr("{0} dona × {1} m",qty,fd(piece,1))}`:plusRes(pl,"m");
+    lines.push({name:tr("Plintus: {0}",lab(PLINTH_LABEL[F.pl])),sub:(ov!==""?tr("{0} m (qo'lda o'lchangan)",fd(pl)):`${fd(perim)} − ${tr("eshiklar")} ${fd(doorsW)}${tileLen&&r.floor!=="kafel"?" − "+tr("kafel")+" "+fd(tileLen):""} = ${fd(pl)} ${m}`)+tail,unit:pp.u,qty,price:priceOf(F.pl),hrs:pl*.1,src:srcLabel(F.pl),kind:"auto"})}
   const paintA=r.wall==="kafel"?wallNet:Math.max(0,wallNet-tileA);
-  if(Wf.pid&&paintA>0)lines.push({name:tr("Devor: {0}",lab(Wf)),sub:tr("{0} m² (eshik va derazalarsiz)",fd(paintA)),unit:"m²",qty:paintA*(1+(r.wall==="kafel"||r.wall==="oboy"?res:0)),price:priceOf(Wf.pid),hrs:paintA*Wf.h,src:srcLabel(Wf.pid),kind:"auto"});
-  if(tileA>0&&r.wall!=="kafel")lines.push({name:tr("Devor: kafel qismi"),sub:`${fd(tileLen)} ${m} × ${fd(num(r.tileH))} ${m}`,unit:"m²",qty:tileA*(1+res),price:priceOf("kafel_devor"),hrs:tileA*1.1,src:srcLabel("kafel_devor"),kind:"auto"});
-  if(C.pid&&floorA>0)lines.push({name:tr("Shift: {0}",lab(C)),sub:`${fd(floorA)} ${m2}`,unit:"m²",qty:floorA,price:priceOf(C.pid),hrs:floorA*C.h,src:srcLabel(C.pid),kind:"auto"});
-  return{floorA,perim,wallNet,pl,plAuto,doorsW,lines};
+  const wRes=r.wall==="kafel"||r.wall==="oboy";
+  if(Wf.pid&&paintA>0)lines.push({name:tr("Devor: {0}",lab(Wf)),sub:tr("{0} m² (eshik va derazalarsiz)",fd(paintA))+(wRes?plusRes(paintA,"m²"):""),unit:"m²",qty:paintA*(1+(wRes?res:0)),price:priceOf(Wf.pid),hrs:paintA*Wf.h,src:srcLabel(Wf.pid),kind:"auto"});
+  if(tileA>0&&r.wall!=="kafel")lines.push({name:tr("Devor: kafel qismi"),sub:`${fd(tileLen)} ${m} × ${fd(num(r.tileH))} ${m} = ${fd(tileA)} ${m2}${plusRes(tileA,"m²")}`,unit:"m²",qty:tileA*(1+res),price:priceOf("kafel_devor"),hrs:tileA*1.1,src:srcLabel("kafel_devor"),kind:"auto"});
+  if(C.pid&&ceilA>0)lines.push({name:tr("Shift: {0}",lab(C)),sub:`${fd(cL)} × ${fd(cW)} = ${fd(ceilA)} ${m2}`,unit:"m²",qty:ceilA,price:priceOf(C.pid),hrs:ceilA*C.h,src:srcLabel(C.pid),kind:"auto"});
+  return{floorA,perim,ceilA,wallNet,pl,plAuto,doorsW,doorA,winA,lines};
 }
 function itemLine(it){const q=num(it.qty);const bits=[it.variant,it.dims,it.watt?it.watt+" "+tr("Vt"):"",it.note].filter(Boolean);
   return{name:itemName(it),sub:bits.join(" · "),unit:it.unit,qty:q,price:num(it.price),hrs:q*num(it.h),src:it.custom?tr("qo'lda"):tr("katalog"),kind:it.custom?"own":"item",uid:it.uid}}
@@ -156,6 +167,8 @@ function viewRooms(){
    <div class="addroom"><select class="inp" id="newType" aria-label="${tr("Xona turi")}">${Object.keys(ROOM_TYPES).map(k=>`<option value="${esc(k)}">${esc(rtLabel(k))}</option>`).join("")}</select><button class="btn pri" data-act="addRoom">${tr("+ Xona qo'shish")}</button></div></aside>`;
   if(!r)return `<div class="layout">${list}<section class="panel pad empty">${tr("Xona qo'shing — o'lchamlarni kiritgach, hisob avtomatik chiqadi.")}</section></div>`;
   const opt=(o,cur)=>Object.entries(o).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${esc(lab(v))}</option>`).join("");
+  // qoplama o'lchami: placeholder — xonaning o'lchami (renderDerived yangilab turadi)
+  const fdim=(f,ph,l)=>`<label class="fld">${tr(l)}<input class="inp numin" id="r-${f}" data-f="${f}" data-ph="${ph}" inputmode="decimal" value="${esc(r[f]??"")}" placeholder="${esc(r[ph])}"></label>`;
   const edit=`<section class="stack">
    ${S.sample?`<div class="hint">${tr("Bu namunaviy obyekt: 3 xona va 2 ta beton ishi bilan to'ldirilgan. O'zingiznikini boshlash uchun")} <button class="btn sm" data-act="reset">${S.ui.confirmReset?tr("Tasdiqlang: hammasi o'chadi"):tr("Yangi obyekt")}</button></div>`:""}
    <div class="panel pad stack">
@@ -167,17 +180,23 @@ function viewRooms(){
       <label class="fld">${tr("Balandligi")}<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00"></label>
      </div></fieldset>
     <fieldset><legend class="eyebrow">${tr("Eshiklar — turi, eni × bo'yi, m (eni plintusdan ayiriladi)")}</legend>
-     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}</select><input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}"><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
+     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}</select><input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}"><input class="inp numin qn" id="d-${i}-q" data-door="${i}" data-k="q" inputmode="decimal" value="${esc(d.q??"")}" placeholder="1" aria-label="${tr("Soni")}">${esc(U("dona"))}<span class="m2" id="d-${i}-a"></span><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
+     <p class="note opsum" id="doors-sum"></p>
      <div class="openings adddoor">${DOOR_TYPES.map(t=>`<button class="btn sm" data-act="addDoor" data-t="${esc(t)}">+ ${esc(tr(t))}</button>`).join("")}</div></fieldset>
     <fieldset><legend class="eyebrow">${tr("Derazalar — eni × balandligi, m")}</legend>
-     <div class="openings">${r.windows.map((w,i)=>`<span class="opening">${i+1}<input class="inp numin" id="w-${i}-w" data-win="${i}" data-k="w" inputmode="decimal" value="${esc(w.w)}" aria-label="${tr("Deraza eni")}">×<input class="inp numin" id="w-${i}-h" data-win="${i}" data-k="h" inputmode="decimal" value="${esc(w.h)}" aria-label="${tr("Deraza balandligi")}"><button class="x" data-act="delWin" data-i="${i}" aria-label="${tr("Derazani olib tashlash")}">×</button></span>`).join("")}
-     <button class="btn sm" data-act="addWin">${tr("+ Deraza")}</button></div></fieldset>
+     <div class="openings">${r.windows.map((w,i)=>`<span class="opening">${i+1}<input class="inp numin" id="w-${i}-w" data-win="${i}" data-k="w" inputmode="decimal" value="${esc(w.w)}" aria-label="${tr("Deraza eni")}">×<input class="inp numin" id="w-${i}-h" data-win="${i}" data-k="h" inputmode="decimal" value="${esc(w.h)}" aria-label="${tr("Deraza balandligi")}"><span class="m2" id="w-${i}-a"></span><button class="x" data-act="delWin" data-i="${i}" aria-label="${tr("Derazani olib tashlash")}">×</button></span>`).join("")}
+     <button class="btn sm" data-act="addWin">${tr("+ Deraza")}</button></div>
+     <p class="note opsum" id="wins-sum"></p></fieldset>
     <fieldset><legend class="eyebrow">${tr("Qoplamalar")}</legend>
      <div class="grid3 g-stack">
-      <label class="fld">${tr("Pol")}<select class="inp" id="r-floor" data-f="floor">${opt(FLOOR,r.floor)}</select></label>
-      <label class="fld">${tr("Devor")}<select class="inp" id="r-wall" data-f="wall">${opt(WALL,r.wall)}</select></label>
-      <label class="fld">${tr("Shift")}<select class="inp" id="r-ceil" data-f="ceil">${opt(CEIL,r.ceil)}</select></label>
+      <div class="fcol"><label class="fld">${tr("Pol")}<select class="inp" id="r-floor" data-f="floor">${opt(FLOOR,r.floor)}</select></label>
+       <div class="fdims">${fdim("fL","L","Uzunligi")}${fdim("fW","W","Eni")}</div></div>
+      <div class="fcol"><label class="fld">${tr("Devor")}<select class="inp" id="r-wall" data-f="wall">${opt(WALL,r.wall)}</select></label>
+       <div class="fdims">${fdim("wL","L","Uzunligi")}${fdim("wW","W","Eni")}${fdim("wH","H","Balandligi")}</div></div>
+      <div class="fcol"><label class="fld">${tr("Shift")}<select class="inp" id="r-ceil" data-f="ceil">${opt(CEIL,r.ceil)}</select></label>
+       <div class="fdims">${fdim("cL","L","Uzunligi")}${fdim("cW","W","Eni")}</div></div>
      </div>
+     <p class="note" style="margin:0">${tr("Qoplama o'lchami, m: bo'sh qoldirilsa — xonaning o'lchami olinadi.")}</p>
      <div class="grid3 g-stack">
       <label class="fld">${tr("Devordagi kafel uzunligi, m")}<input class="inp numin" id="r-tileLen" data-f="tileLen" inputmode="decimal" value="${esc(r.tileLen)}" placeholder="0"></label>
       <label class="fld">${tr("Kafel balandligi, m")}<input class="inp numin" id="r-tileH" data-f="tileH" inputmode="decimal" value="${esc(r.tileH)}" placeholder="0"></label>
@@ -205,8 +224,17 @@ function renderCatItems(){
   else{const g=CATALOG.find(g=>g.g===S.ui.grp);html=g?`<div class="catgrid">${g.items.map(it=>card(it)).join("")}</div>`:sugg()}
   box.innerHTML=html;
 }
+// eshik/deraza yonidagi m² va jami; qoplama o'lchamlari placeholder'i (xona o'lchami)
+function updOpenings(r,c){const m2=U("m²");const set=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t};
+  r.doors.forEach((d,i)=>set(`d-${i}-a`,`= ${fd(openA(d)*doorQ(d))} ${m2}`));
+  r.windows.forEach((w,i)=>set(`w-${i}-a`,`= ${fd(openA(w))} ${m2}`));
+  const dq=sum(r.doors.map(doorQ));
+  set("doors-sum",r.doors.length?tr("Jami: {0} ta eshik, {1} m²",fd(dq,Number.isInteger(dq)?0:2),fd(c.doorA)):"");
+  set("wins-sum",r.windows.length?tr("Jami: {0} ta deraza, {1} m²",r.windows.length,fd(c.winA)):"");
+  document.querySelectorAll("[data-ph]").forEach(el=>{el.placeholder=r[el.dataset.ph]??""});
+}
 function renderDerived(){
-  const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);
+  const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);updOpenings(r,c);
   const autoRows=c.lines.map(l=>{const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)} <span class="tag auto">${tr("avto")}</span></div><div class="itemsub">${esc(l.sub)}</div></td><td class="num r c-qty" data-l="${tr("Miqdor")}">${fd(l.qty)} ${esc(U(l.unit))}</td><td class="num r c-price" data-l="${tr("Narx")}">${fmt(l.price)}</td><td class="num r c-sum" data-l="${tr("Jami")}">${fmt(t.tot)}</td><td class="c-del"></td></tr>`}).join("");
   const itemRows=r.items.map(it=>{const l=itemLine(it);const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)}${it.custom?` <span class="tag own">${tr("o'zim qo'shdim")}</span>`:""}</div><div class="itemsub">${esc(l.sub)||"&nbsp;"}</div></td>
     <td class="num r c-qty" data-l="${tr("Miqdor")}"><input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}"> <span class="note">${esc(U(it.unit))}</span></td>
@@ -310,7 +338,7 @@ function sheetRooms(){const R=[];const N=16;let sumF=0,sumW=0,sumP=0,sumT=0;
   const head=R.length;
   R.push(["№",tr("Xona"),tr("Xona turi"),tr("Uzunligi, m"),tr("Eni, m"),tr("Balandligi, m"),tr("Pol maydoni, m²"),tr("Perimetr, m"),tr("Devor (sof), m²"),tr("Plintus, m"),tr("Eshiklar"),tr("Derazalar"),tr("Pol"),tr("Devor"),tr("Shift"),tr("Jami, so'm")].map(h=>XC(h,null,"head")));
   S.rooms.forEach((r,i)=>{const c=roomCalc(r);const tot=roomTotal(r);sumF+=c.floorA;sumW+=c.wallNet;sumP+=c.pl;sumT+=tot;
-    R.push([XC(i+1,"int"),XC(r.name),XC(rtLabel(r.type)),XC(r2(num(r.L)),"dec2"),XC(r2(num(r.W)),"dec2"),XC(r2(num(r.H)),"dec2"),XC(r2(c.floorA),"dec2"),XC(r2(c.perim),"dec2"),XC(r2(c.wallNet),"dec2"),XC(r2(c.pl),"dec2"),XC(r.doors.length,"int"),XC(r.windows.length,"int"),XC(lab(FLOOR[r.floor])),XC(lab(WALL[r.wall])),XC(lab(CEIL[r.ceil])),XC(Math.round(tot),"money","b")])});
+    R.push([XC(i+1,"int"),XC(r.name),XC(rtLabel(r.type)),XC(r2(num(r.L)),"dec2"),XC(r2(num(r.W)),"dec2"),XC(r2(num(r.H)),"dec2"),XC(r2(c.floorA),"dec2"),XC(r2(c.perim),"dec2"),XC(r2(c.wallNet),"dec2"),XC(r2(c.pl),"dec2"),XC(sum(r.doors.map(doorQ)),"int"),XC(r.windows.length,"int"),XC(lab(FLOOR[r.floor])),XC(lab(WALL[r.wall])),XC(lab(CEIL[r.ceil])),XC(Math.round(tot),"money","b")])});
   R.push(xlRow(N,"grand",{1:[tr("JAMI")],6:[r2(sumF),"dec2"],8:[r2(sumW),"dec2"],9:[r2(sumP),"dec2"],15:[Math.round(sumT),"money"]}));
   return{name:tr("Xonalar"),cols:[5,24,18,11,9,12,14,12,14,11,10,11,14,24,18,16],rows:R,freeze:head+1,table:[head,R.length-1]};
 }
