@@ -38,6 +38,19 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# Serverda statik fayllarni whitenoise beradi (DEBUG=0). Lokal muhitda o'rnatilmagan
+# bo'lsa — o'tkazib yuboriladi, runserver statikani o'zi beradi.
+try:
+    import whitenoise  # noqa: F401
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+except ImportError:
+    pass
+
+# Teskari proksi (Caddy/nginx) orqasida: HTTPS ni X-Forwarded-Proto dan bilamiz.
+if os.environ.get("DJANGO_BEHIND_PROXY") == "1":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = True
+
 ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
