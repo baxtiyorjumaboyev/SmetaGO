@@ -94,6 +94,102 @@ RU = {
     "Obyekt oching, xonalarni o'lchang va narsalarni tanlang": "Откройте объект, измерьте комнаты и выберите позиции",
     "Tayyor smetani Excel yoki Telegramga yuboring": "Отправьте готовую смету в Excel или Telegram",
     "Narxlar namunaviy — o'z manbalaringizdagi narxlarni kiriting.": "Цены примерные — вводите цены из своих источников.",
+    # yangi bosh sahifa (2026-09-29 dizayni)
+    "Sahifa bo'limlari": "Разделы страницы",
+    "Kim uchun": "Для кого",
+    "Smetachi · PTO · Pudratchi · Nazoratchi": "Сметчик · ПТО · Подрядчик · Технадзор",
+    "Obyektni o'lchang —": "Измерьте объект —",
+    "smeta o'zi": "смета",
+    "tayyor bo'ladi": "готова сама",
+    "Xona o'lchamlarini kiriting, materiallarni katalogdan tanlang. SmetaGo hajm, narx va ish haqini hisoblab, tayyor smetani Excel'da beradi.":
+        "Введите размеры комнат и выберите материалы из каталога. SmetaGo рассчитает объёмы, цены и оплату труда и выдаст готовую смету в Excel.",
+    "Namuna smetani ko'rish": "Посмотреть пример сметы",
+    "Telefon, planshet, kompyuter": "Телефон, планшет, компьютер",
+    "Internetsiz ishlaydi": "Работает без интернета",
+    "Karta talab qilinmaydi": "Карта не нужна",
+    "Xonani o'lchab ko'ring": "Измерьте комнату",
+    "Raqamlarni o'zgartiring — natija darhol yangilanadi": "Меняйте цифры — результат обновляется сразу",
+    "Xona turi": "Тип комнаты",
+    "Uzunligi, m": "Длина, м", "Eni, m": "Ширина, м", "Balandligi, m": "Высота, м",
+    "Pol": "Пол", "Devor": "Стены", "Shift": "Потолок",
+    "Hisobda 1 ta eshik (0,90 m) bor — ilovada eshik va derazalarni o'zingiz qo'shasiz.":
+        "В расчёте 1 дверь (0,90 м) — в приложении двери и окна добавляете сами.",
+    "Smetani saqlash va Excel yuklab olish": "Сохранить смету и скачать Excel",
+    "Saqlash uchun bepul ro'yxatdan o'ting · 30 soniya": "Для сохранения — бесплатная регистрация · 30 секунд",
+    "Kalkulyator uchun JavaScript kerak.": "Для калькулятора нужен JavaScript.",
+    "Uch qadam — obyektdan tayyor smetagacha": "Три шага — от объекта до готовой сметы",
+    "O'lchang": "Измерьте", "Tanlang": "Выберите", "Hisoblang": "Посчитайте",
+    "Xonalarni kiriting": "Введите комнаты",
+    "Uzunlik, eni va balandlik. Eshik va derazalarni qo'shing — maydon avtomatik ayiriladi.":
+        "Длина, ширина и высота. Добавьте двери и окна — площадь вычтется автоматически.",
+    "Materialni katalogdan oling": "Возьмите материалы из каталога",
+    "Pol, devor, shift, santexnika — 3 manbali narxlar bazasi bilan. O'z narxingizni ham kiritishingiz mumkin.":
+        "Пол, стены, потолок, сантехника — с базой цен из 3 источников. Можно ввести и свою цену.",
+    "Smetani yuboring": "Отправьте смету",
+    "Zaxira foizi, ish haqi va jami summa tayyor. Buyurtmachiga Excel faylda yuboring.":
+        "Запас, оплата труда и итоговая сумма готовы. Отправьте заказчику файлом Excel.",
+    "Qurilishdagi har bir rol uchun bitta vosita": "Один инструмент для каждой роли в стройке",
+    "Smetachi": "Сметчик", "Pudratchi": "Подрядчик", "Nazoratchi": "Технадзор",
+    "Qo'lda hisob-kitobsiz smeta — soatlar emas, daqiqalarda.": "Смета без ручных расчётов — за минуты, а не часы.",
+    "Hajmlar va formulalar ochiq — har bir raqamni tekshirish oson.": "Объёмы и формулы открыты — каждую цифру легко проверить.",
+    "Buyurtmachiga obyektning o'zida tayyor narx taklif qiling.": "Предложите заказчику готовую цену прямо на объекте.",
+    "Hajmlarni obyektda o'lchab, smetadagi raqamlar bilan solishtiring.": "Измерьте объёмы на объекте и сравните с цифрами сметы.",
+    "Birinchi smetangizni bugun tuzing": "Составьте первую смету сегодня",
+    "Ro'yxatdan o'tish bepul, karta talab qilinmaydi. Obyektlar soni cheklanmagan.":
+        "Регистрация бесплатна, карта не нужна. Количество объектов не ограничено.",
+    # pastki qator, namuna, qoralama
+    "Sayt": "Сайт", "Namuna": "Пример", "Yordam": "Помощь", "Maxfiylik": "Конфиденциальность",
+    "Bosh sahifa": "Главная", "Namuna smeta": "Пример сметы",
+    "Bu namuna: o'zgarishlar faqat shu qurilmada saqlanadi.": "Это пример: изменения сохраняются только на этом устройстве.",
+    "Bepul ro'yxatdan o'tish": "Бесплатная регистрация",
+    "Bosh sahifada o'lchangan xona saqlanmagan:": "Комната, измеренная на главной, не сохранена:",
+    "Yangi obyekt sifatida saqlash": "Сохранить как новый объект",
+    "Kerak emas": "Не нужно",
+    # yordam
+    "SmetaGo bo'yicha ko'p beriladigan savollar.": "Частые вопросы о SmetaGo.",
+    "Qanday boshlayman?": "С чего начать?",
+    "Bepul ro'yxatdan o'ting va «+ Yangi obyekt» ni bosing. Xona qo'shing, uzunlik, eni va balandligini kiriting — pol, plintus, devor va shift o'zi hisoblanadi. Keyin o'ngdagi katalogdan xonadagi narsalarni tanlang.":
+        "Зарегистрируйтесь бесплатно и нажмите «+ Новый объект». Добавьте комнату, введите длину, ширину и высоту — пол, плинтус, стены и потолок посчитаются сами. Затем выберите в каталоге справа то, что есть в комнате.",
+    "Smetani Excel faylda qanday olaman?": "Как получить смету в Excel?",
+    "Pastki qatordagi «Excel» tugmasini yoki «Smeta» bo'limidagi «Excel yuklab olish» ni bosing. Faylda ikki varaq bor: «Smeta» (har bir qator, oraliq va umumiy jami) va «Xonalar» (o'lchamlar, maydonlar, xona summasi). «Excel ko'rinishi» faylni yuklamasdan oldin ilovaning o'zida ko'rsatadi.":
+        "Нажмите «Excel» в нижней строке или «Скачать Excel» в разделе «Смета». В файле два листа: «Смета» (все строки, промежуточные и общий итог) и «Комнаты» (размеры, площади, сумма по комнате). «Вид Excel» показывает файл прямо в приложении ещё до скачивания.",
+    "Narxlar qayerdan olinadi?": "Откуда берутся цены?",
+    "«Narxlar» bo'limida har bir material uchun 3 ta manbadan narx kiritiladi va o'rtacha, eng arzon, eng qimmat yoki qo'lda narx tanlanadi. Standart narxlar namunaviy — o'z manbalaringizdagi narxlarni kiriting. «Markaziy narxlarni yuklash» tugmasi ma'lumotnomadagi eng so'nggi narxlarni oladi.":
+        "В разделе «Цены» для каждого материала вводятся цены из 3 источников и выбирается средняя, самая низкая, самая высокая или своя цена. Стандартные цены примерные — вводите цены из своих источников. Кнопка «Загрузить центральные цены» берёт последние цены из справочника.",
+    "Internetsiz ishlaydimi?": "Работает ли без интернета?",
+    "Ha, avval ochilgan obyektlar internetsiz ham ochiladi va tahrirlanadi. O'zgarishlar qurilmada saqlanadi va aloqa tiklanganda serverga o'zi yuboriladi. Yangi obyekt yaratish va Excel fayl olish uchun internet kerak.":
+        "Да, ранее открытые объекты открываются и редактируются без интернета. Изменения сохраняются на устройстве и сами отправляются на сервер, когда появится связь. Для создания объекта и файла Excel нужен интернет.",
+    "Telefonga ilova sifatida qo'shsa bo'ladimi?": "Можно ли установить как приложение на телефон?",
+    "Ha. Android va kompyuterda Chrome yoki Edge menyusidan «Ilovani o'rnatish» ni tanlang. iPhone'da Safari → «Ulashish» → «Bosh ekranga qo'shish».":
+        "Да. На Android и компьютере выберите «Установить приложение» в меню Chrome или Edge. На iPhone: Safari → «Поделиться» → «На экран «Домой»».",
+    "Ro'yxatdan o'tmasdan sinab ko'rsa bo'ladimi?": "Можно попробовать без регистрации?",
+    "Ha — «Namuna» sahifasida to'liq ilova bor. U yerdagi o'zgarishlar faqat shu brauzerda saqlanadi.":
+        "Да — на странице «Пример» полное приложение. Изменения там сохраняются только в этом браузере.",
+    "Tilni va rejimni qanday almashtiraman?": "Как сменить язык и режим?",
+    "Yuqoridagi UZ / RU tugmalari tilni, oy / quyosh belgisi kunduzgi va tungi rejimni almashtiradi. Tanlov eslab qolinadi.":
+        "Кнопки UZ / RU вверху меняют язык, значок луны / солнца — дневной и ночной режим. Выбор запоминается.",
+    "Ma'lumotlarim qayerda saqlanadi?": "Где хранятся мои данные?",
+    "Obyektlaringiz serverda, hisobingizga bog'langan holda saqlanadi va faqat sizga ko'rinadi.":
+        "Ваши объекты хранятся на сервере, привязаны к вашему аккаунту и видны только вам.",
+    # maxfiylik
+    "Oxirgi yangilanish: 29.09.2026": "Последнее обновление: 29.09.2026",
+    "Qanday ma'lumot saqlanadi": "Какие данные хранятся",
+    "Hisob: login va parol. Parol ochiq holda emas, qaytarib bo'lmaydigan shifrlangan ko'rinishda (xesh) saqlanadi.":
+        "Аккаунт: логин и пароль. Пароль хранится не в открытом виде, а в необратимо зашифрованном виде (хеш).",
+    "Obyektlaringiz: nomi, hudud, xonalar va o'lchamlar, tanlangan elementlar, narxlar va sozlamalar.":
+        "Ваши объекты: название, регион, комнаты и размеры, выбранные позиции, цены и настройки.",
+    "Brauzeringizda nima saqlanadi": "Что хранится в вашем браузере",
+    "Cookie: kirish sessiyasi, xavfsizlik belgisi (CSRF) va tanlangan til.": "Cookie: сессия входа, защитный токен (CSRF) и выбранный язык.",
+    "Brauzer xotirasi: kunduzgi/tungi rejim tanlovi, internetsiz qilingan va hali yuborilmagan o'zgarishlar, bosh sahifadagi kalkulyator qoralamasi va namuna sahifasi holati.":
+        "Память браузера: выбор дневного/ночного режима, изменения, сделанные без интернета и ещё не отправленные, черновик калькулятора с главной и состояние страницы примера.",
+    "Internetsiz ishlash uchun ochilgan sahifalar nusxasi. Hisobdan chiqqaningizda u o'chiriladi.":
+        "Копии открытых страниц для работы без интернета. Удаляются при выходе из аккаунта.",
+    "Kimga beriladi": "Кому передаются",
+    "Ma'lumotlaringiz sotilmaydi va uchinchi shaxslarga berilmaydi. Saytda reklama va kuzatuv (analitika) skriptlari yo'q. Shriftlar Google Fonts xizmatidan yuklanadi — bunda brauzeringiz Google serverlariga murojaat qiladi.":
+        "Ваши данные не продаются и не передаются третьим лицам. На сайте нет рекламы и скриптов отслеживания (аналитики). Шрифты загружаются из сервиса Google Fonts — при этом браузер обращается к серверам Google.",
+    "Ma'lumotni o'chirish": "Удаление данных",
+    "Istalgan obyektni «Obyektlar» sahifasida o'chirishingiz mumkin. Hisobni butunlay o'chirish uchun sayt ma'muriga murojaat qiling.":
+        "Любой объект можно удалить на странице «Объекты». Чтобы полностью удалить аккаунт, обратитесь к администратору сайта.",
     # hududlar (obyektda o'zbekcha saqlanadi)
     "Toshkent sh.": "г. Ташкент", "Toshkent vil.": "Ташкентская обл.", "Andijon": "Андижан",
     "Buxoro": "Бухара", "Farg'ona": "Фергана", "Jizzax": "Джизак", "Xorazm": "Хорезм",

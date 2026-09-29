@@ -64,6 +64,10 @@ Katalog, material narxlari va xona turlari bazada saqlanadi va `/admin/` da tahr
 - Qoplama turlari (`FLOOR/WALL/CEIL`), beton retseptlari (`MIX`), hududlar va choraklar formulalarga bog'liq, shuning uchun `data.js` da qoladi.
 - **Mavjud obyektlarga ta'siri:** xonaga qo'shilgan elementlar narxi o'zgarmaydi (smeta tuzilgan paytdagi narx). Yangi material avtomatik qo'shiladi. Manba narxlarini yangilash uchun foydalanuvchi **Narxlar → "Markaziy narxlarni yuklash"** tugmasini bosadi, bunda uning tanlovi (o'rtacha / eng arzon / qo'lda) saqlanib qoladi.
 
+### Sayt (bosh sahifa)
+
+Mehmon `/` da jonli kalkulyatorni ko'radi: xona turi, o'lchamlar (±), pol/devor/shift — natija darhol hisoblanadi. Formulalar va narxlar ilovaning o'zidan (`js/calc.js` + bazadagi ma'lumotnoma), shuning uchun summa ilovadagi bilan bir xil. "Saqlash" bosilsa xona eslab qolinadi va ro'yxatdan o'tgach yangi obyektga tushadi. Boshqa sahifalar: `/namuna/` (ro'yxatdan o'tmasdan to'liq ilova), `/yordam/`, `/maxfiylik/`.
+
 ### Excel (.xlsx)
 
 Xonalar hisobi chiqqach, pastki qatordagi **⬇ Excel** tugmasi (yoki Smeta bo'limidagi **Excel yuklab olish**) tayyor `.xlsx` faylni yuklab beradi. Faylda ikki varaq bor:

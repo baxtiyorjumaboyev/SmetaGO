@@ -109,3 +109,29 @@ def load_ru(apps):
     for obj in models["RoomType"].objects.filter(name_ru=""):
         obj.name_ru = ru["room_types"].get(obj.name, "")
         obj.save(update_fields=["name_ru"])
+
+
+# --- kesh: ma'lumotnoma har sahifada kerak, lekin kam o'zgaradi ---
+CACHE_TIMEOUT = 300  # soniya; bir nechta server jarayonida ham ko'pi bilan shuncha eskiradi
+
+
+def _cache_key(lang):
+    return f"smeta-ref:{lang}"
+
+
+def cached_reference(lang="uz"):
+    from django.core.cache import cache
+
+    ref = cache.get(_cache_key(lang))
+    if ref is None:
+        ref = build_reference(lang)
+        cache.set(_cache_key(lang), ref, CACHE_TIMEOUT)
+    return ref
+
+
+def invalidate_reference(**kwargs):
+    """Admin'da katalog/narx/xona turi o'zgarsa (signal) — kesh darhol tozalanadi."""
+    from django.conf import settings
+    from django.core.cache import cache
+
+    cache.delete_many([_cache_key(code) for code, _ in settings.LANGUAGES])

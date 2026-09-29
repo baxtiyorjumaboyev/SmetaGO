@@ -24,10 +24,11 @@
   .auth a{color:var(--accent);font-weight:600}
 </style>
 </head>
-<body>
+<body class="site">
 <header class="top">
   <div class="wrap">
     <a class="brand" href="{% url 'obyekt_list' %}" style="color:inherit;text-decoration:none"><div class="mark">S</div><div>SmetaGo<small>{% t "o'lchang · tanlang · hisoblang" %}</small></div></a>
+    {% block nav %}{% endblock %}
     {% include "smeta/_prefs.html" %}
     {% if user.is_authenticated %}
     <div class="userbar">
@@ -35,14 +36,26 @@
       <form method="post" action="{% url 'logout' %}" data-logout>{% csrf_token %}<button class="btn sm">{% t "Chiqish" %}</button></form>
     </div>
     {% elif request.resolver_match.url_name != "login" and request.resolver_match.url_name != "register" %}
-    <div class="userbar deskonly">{# telefonda bosh sahifaning o'zida katta tugmalar bor #}
+    <div class="userbar">{# telefonda "Ro'yxatdan o'tish" bosh sahifaning o'zida katta tugma bo'lib bor #}
       <a class="btn sm" href="{% url 'login' %}">{% t "Kirish" %}</a>
-      <a class="btn sm pri" href="{% url 'register' %}">{% t "Ro'yxatdan o'tish" %}</a>
+      <a class="btn sm pri deskonly" href="{% url 'register' %}">{% t "Ro'yxatdan o'tish" %}</a>
     </div>
     {% endif %}
   </div>
   <div class="ruler" aria-hidden="true"></div>
 </header>
 {% block main %}<main class="wrap page">{% block content %}{% endblock %}</main>{% endblock %}
+{% block footer %}
+<footer class="site-foot">
+  <div class="wrap">
+    <span>© 2026 SmetaGo</span>
+    <nav aria-label="{% t "Sayt" %}">
+      <a href="{% url 'demo' %}">{% t "Namuna" %}</a>
+      <a href="{% url 'help' %}">{% t "Yordam" %}</a>
+      <a href="{% url 'privacy' %}">{% t "Maxfiylik" %}</a>
+    </nav>
+  </div>
+</footer>
+{% endblock %}
 </body>
 </html>

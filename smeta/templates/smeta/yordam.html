@@ -1,0 +1,41 @@
+{% extends "smeta/base.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Yordam" %} · SmetaGo{% endblock %}
+{% block content %}
+<article class="prose faq">
+  <h1>{% t "Yordam" %}</h1>
+  <p>{% t "SmetaGo bo'yicha ko'p beriladigan savollar." %}</p>
+
+  <details open>
+    <summary>{% t "Qanday boshlayman?" %}</summary>
+    <p>{% t "Bepul ro'yxatdan o'ting va «+ Yangi obyekt» ni bosing. Xona qo'shing, uzunlik, eni va balandligini kiriting — pol, plintus, devor va shift o'zi hisoblanadi. Keyin o'ngdagi katalogdan xonadagi narsalarni tanlang." %}</p>
+  </details>
+  <details>
+    <summary>{% t "Smetani Excel faylda qanday olaman?" %}</summary>
+    <p>{% t "Pastki qatordagi «Excel» tugmasini yoki «Smeta» bo'limidagi «Excel yuklab olish» ni bosing. Faylda ikki varaq bor: «Smeta» (har bir qator, oraliq va umumiy jami) va «Xonalar» (o'lchamlar, maydonlar, xona summasi). «Excel ko'rinishi» faylni yuklamasdan oldin ilovaning o'zida ko'rsatadi." %}</p>
+  </details>
+  <details>
+    <summary>{% t "Narxlar qayerdan olinadi?" %}</summary>
+    <p>{% t "«Narxlar» bo'limida har bir material uchun 3 ta manbadan narx kiritiladi va o'rtacha, eng arzon, eng qimmat yoki qo'lda narx tanlanadi. Standart narxlar namunaviy — o'z manbalaringizdagi narxlarni kiriting. «Markaziy narxlarni yuklash» tugmasi ma'lumotnomadagi eng so'nggi narxlarni oladi." %}</p>
+  </details>
+  <details>
+    <summary>{% t "Internetsiz ishlaydimi?" %}</summary>
+    <p>{% t "Ha, avval ochilgan obyektlar internetsiz ham ochiladi va tahrirlanadi. O'zgarishlar qurilmada saqlanadi va aloqa tiklanganda serverga o'zi yuboriladi. Yangi obyekt yaratish va Excel fayl olish uchun internet kerak." %}</p>
+  </details>
+  <details>
+    <summary>{% t "Telefonga ilova sifatida qo'shsa bo'ladimi?" %}</summary>
+    <p>{% t "Ha. Android va kompyuterda Chrome yoki Edge menyusidan «Ilovani o'rnatish» ni tanlang. iPhone'da Safari → «Ulashish» → «Bosh ekranga qo'shish»." %}</p>
+  </details>
+  <details>
+    <summary>{% t "Ro'yxatdan o'tmasdan sinab ko'rsa bo'ladimi?" %}</summary>
+    <p>{% t "Ha — «Namuna» sahifasida to'liq ilova bor. U yerdagi o'zgarishlar faqat shu brauzerda saqlanadi." %}</p>
+  </details>
+  <details>
+    <summary>{% t "Tilni va rejimni qanday almashtiraman?" %}</summary>
+    <p>{% t "Yuqoridagi UZ / RU tugmalari tilni, oy / quyosh belgisi kunduzgi va tungi rejimni almashtiradi. Tanlov eslab qolinadi." %}</p>
+  </details>
+  <details>
+    <summary>{% t "Ma'lumotlarim qayerda saqlanadi?" %}</summary>
+    <p>{% t "Obyektlaringiz serverda, hisobingizga bog'langan holda saqlanadi va faqat sizga ko'rinadi." %} <a href="{% url 'privacy' %}">{% t "Maxfiylik" %}</a></p>
+  </details>
+</article>
+{% endblock %}

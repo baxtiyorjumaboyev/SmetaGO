@@ -1,20 +1,9 @@
 /* SmetaGo — ilova mantig'i: holat (state), hisob-kitob, chizish (render) va hodisalar.
- * i18n.js va data.js dan keyin yuklanadi. Tuzilishi: docs/ARXITEKTURA.md
+ * i18n.js, data.js va calc.js dan keyin yuklanadi. Tuzilishi: docs/ARXITEKTURA.md
  * Barcha ko'rinadigan matnlar tr("o'zbekcha matn") orqali (ruscha tarjima — i18n.js),
  * birliklar U("m²") orqali. Holatda (S) hamma kalitlar o'zbekcha saqlanadi.
  */
-/* ---------- helpers ---------- */
-const $=(s,r=document)=>r.querySelector(s);
-const uid=()=>Math.random().toString(36).slice(2,9);
-const num=v=>{const x=parseFloat(String(v??"").replace(/\s/g,"").replace(",","."));return isFinite(x)?x:0};
-const fmt=n=>Math.round(n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
-const fd=(n,d=2)=>(Math.round((n||0)*10**d)/10**d).toFixed(d).replace(".",",");
-const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const sum=a=>a.reduce((x,y)=>x+y,0);
-const SOM=tr("so'm");
-const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
-// katalog elementi joriy tilda (xonaga qo'shilgan paytdagi nom — zaxira)
-const itemName=it=>(it.cid&&CAT_INDEX[it.cid]?CAT_INDEX[it.cid].n:it.name);
+/* yordamchi funksiyalar va hisob-kitob — calc.js */
 
 /* ---------- state ---------- */
 function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:["0,9"],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
@@ -30,7 +19,7 @@ function sample(){const sm=" "+tr("sm");
   return{
     v:1,sample:true,
     obj:{name:tr("Namuna: 2 xonali kvartira, Chilonzor"),region:"Toshkent sh.",quarter:QUARTERS[0]},
-    settings:{reserve:10,piece:2.5,contingency:5,vat:false,monthly:7030000,hoursMonth:176,rhoSheben:1400,rhoQum:1500,concreteHours:3},
+    settings:{...DEFAULT_SETTINGS},
     prices:defaultPrices(),
     rooms:[m,o,h],
     concrete:[{id:uid(),name:tr("Hovli yo'lagi"),grade:"M200",cem:"M500",mode:"dims",L:"10",W:"1",T:"0,1",V:"",factory:""},{id:uid(),name:tr("Ayvon poydevori"),grade:"M250",cem:"M400",mode:"vol",L:"",W:"",T:"",V:"3,2",factory:"1150000"}],
@@ -41,6 +30,19 @@ function blank(base,name){const nr=mkRoom("Mehmonxona");return{v:1,sample:false,
 /* Django orqali ochilganda (window.SMETAGO bor) holat serverdan keladi va serverga saqlanadi.
  * Aks holda (index.html to'g'ridan-to'g'ri ochilsa) avvalgidek localStorage ishlatiladi. */
 const SERVER=window.SMETAGO||null;
+// namuna (demo) sahifasi: serversiz, holat faqat shu brauzerda; Excel — umumiy endpoint orqali
+const DEMO=window.SMETAGO_DEMO||null;
+const LKEY=DEMO?"smetago-namuna":"smetago-v1";
+const XLSX=SERVER&&SERVER.xlsxUrl?{url:SERVER.xlsxUrl,csrf:SERVER.csrf}:DEMO?{url:DEMO.xlsxUrl,csrf:DEMO.csrf}:null;
+/* Bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js, "smetago-draft") yangi bo'sh obyektga
+ * birinchi xona bo'lib tushadi — ro'yxatdan o'tgach ma'lumot yo'qolmasin. Bir marta ishlatiladi. */
+function applyDraft(st){let d=null;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
+  if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return false;
+  try{localStorage.removeItem("smetago-draft")}catch(e){}
+  const x=d.room,r=st.rooms[0],type=ROOM_TYPES[x.type]?x.type:r.type;
+  Object.assign(r,{type,name:rtLabel(type),L:String(x.L||""),W:String(x.W||""),H:String(x.H||r.H)});
+  ["floor","wall","ceil"].forEach(k=>{if(x[k]&&({floor:FLOOR,wall:WALL,ceil:CEIL})[k][x[k]])r[k]=x[k]});
+  st.ui.draftApplied=true;return true}
 /* Oflayn navbat: serverga yetib bormagan oxirgi holat qurilmada saqlanadi ({ts, state})
  * va aloqa tiklanganda yuboriladi. Serverdagi nusxa undan yangiroq bo'lsa (boshqa qurilmadan
  * o'zgartirilgan) — navbat e'tiborga olinmaydi. */
@@ -53,9 +55,9 @@ if(SERVER){
   const pend=readPending();
   if(pend&&pend.ts>(Date.parse(SERVER.updated)||0))S=pend.state;
   else if(pend){try{localStorage.removeItem(PKEY)}catch(e){}}
-  if(!S){S=sample();if(!(st&&st.namuna))S=blank(S,SERVER.name)}
+  if(!S){S=sample();if(!(st&&st.namuna)){S=blank(S,SERVER.name);applyDraft(S)}}
 }else{
-  try{const raw=localStorage.getItem("smetago-v1");S=raw?JSON.parse(raw):null}catch(e){S=null}
+  try{const raw=localStorage.getItem(LKEY);S=raw?JSON.parse(raw):null}catch(e){S=null}
   if(!S||S.v!==1)S=sample();
 }
 // ma'lumotnomaga keyin qo'shilgan materiallar eski obyektlarda ham paydo bo'lsin
@@ -64,7 +66,7 @@ if(SERVER){
 if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
 let saveT=null,offlineNoted=false;
 function persist(){saveT=null;const body=JSON.stringify(S);
-  if(!SERVER){try{localStorage.setItem("smetago-v1",body)}catch(e){}return}
+  if(!SERVER){try{localStorage.setItem(LKEY,body)}catch(e){}return}
   const ts=Date.now();try{localStorage.setItem(PKEY,JSON.stringify({ts,state:S}))}catch(e){}
   fetch(SERVER.saveUrl,{method:"PUT",credentials:"same-origin",keepalive:body.length<60000,headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body})
    .then(r=>{if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status)})
@@ -78,57 +80,6 @@ addEventListener("online",()=>{if(SERVER&&readPending()){persist();toast(tr("Alo
 // "online" hodisasi kelmasa ham (Wi-Fi bor, internet yo'q edi) navbat vaqti-vaqti bilan qayta yuboriladi
 setInterval(()=>{if(SERVER&&!saveT&&readPending())persist()},30000);
 if(SERVER)save();
-
-/* ---------- calculations ---------- */
-function priceStats(p){const v=p.src.map(num).filter(x=>x>0);if(!v.length)return{min:0,max:0,avg:0};return{min:Math.min(...v),max:Math.max(...v),avg:sum(v)/v.length}}
-function priceOf(id){const p=S.prices.find(x=>x.id===id);if(!p)return 0;if(p.mode==="manual")return num(p.manual);return priceStats(p)[p.mode]||0}
-const MODE_L={avg:tr("o'rtacha"),min:tr("eng arzon"),max:tr("eng qimmat"),manual:tr("qo'lda")};
-function srcLabel(id){const p=S.prices.find(x=>x.id===id);return p?tr("{0} narx",MODE_L[p.mode]):""}
-const rate=()=>num(S.settings.monthly)/Math.max(1,num(S.settings.hoursMonth));
-
-function roomCalc(r){
-  const L=num(r.L),W=num(r.W),H=num(r.H),res=num(S.settings.reserve)/100;
-  const floorA=L*W,perim=2*(L+W),doorsW=sum(r.doors.map(num));
-  const doorA=sum(r.doors.map(d=>num(d)*DOOR_H)),winA=sum(r.windows.map(w=>num(w.w)*num(w.h)));
-  const tileLen=num(r.tileLen),tileA=tileLen*num(r.tileH);
-  const wallNet=Math.max(0,perim*H-doorA-winA);
-  const plAuto=Math.max(0,perim-doorsW-(r.floor==="kafel"?0:tileLen));
-  const ov=String(r.plinthOv??"").trim();const pl=ov!==""?num(ov):plAuto;
-  const lines=[];const F=FLOOR[r.floor],Wf=WALL[r.wall],C=CEIL[r.ceil];const m=U("m"),m2=U("m²");
-  if(F.pid&&floorA>0)lines.push({name:tr("Pol qoplamasi: {0}",lab(F)),sub:tr("{0} m² + {1}% zaxira",fd(floorA),S.settings.reserve),unit:"m²",qty:floorA*(1+res),price:priceOf(F.pid),hrs:floorA*F.h,src:srcLabel(F.pid),kind:"auto"});
-  if(F.pl&&pl>0){const pp=S.prices.find(p=>p.id===F.pl);const piece=num(S.settings.piece)||2.5;
-    const qty=pp.u==="dona"?Math.ceil(pl*(1+res)/piece):pl*(1+res);
-    lines.push({name:tr("Plintus: {0}",lab(PLINTH_LABEL[F.pl])),sub:ov!==""?tr("{0} m (qo'lda o'lchangan)",fd(pl)):`${fd(perim)} − ${tr("eshiklar")} ${fd(doorsW)}${tileLen&&r.floor!=="kafel"?" − "+tr("kafel")+" "+fd(tileLen):""} = ${fd(pl)} ${m}`,unit:pp.u,qty,price:priceOf(F.pl),hrs:pl*.1,src:srcLabel(F.pl),kind:"auto"})}
-  const paintA=r.wall==="kafel"?wallNet:Math.max(0,wallNet-tileA);
-  if(Wf.pid&&paintA>0)lines.push({name:tr("Devor: {0}",lab(Wf)),sub:tr("{0} m² (eshik va derazalarsiz)",fd(paintA)),unit:"m²",qty:paintA*(1+(r.wall==="kafel"||r.wall==="oboy"?res:0)),price:priceOf(Wf.pid),hrs:paintA*Wf.h,src:srcLabel(Wf.pid),kind:"auto"});
-  if(tileA>0&&r.wall!=="kafel")lines.push({name:tr("Devor: kafel qismi"),sub:`${fd(tileLen)} ${m} × ${fd(num(r.tileH))} ${m}`,unit:"m²",qty:tileA*(1+res),price:priceOf("kafel_devor"),hrs:tileA*1.1,src:srcLabel("kafel_devor"),kind:"auto"});
-  if(C.pid&&floorA>0)lines.push({name:tr("Shift: {0}",lab(C)),sub:`${fd(floorA)} ${m2}`,unit:"m²",qty:floorA,price:priceOf(C.pid),hrs:floorA*C.h,src:srcLabel(C.pid),kind:"auto"});
-  return{floorA,perim,wallNet,pl,plAuto,doorsW,lines};
-}
-function itemLine(it){const q=num(it.qty);const bits=[it.variant,it.dims,it.watt?it.watt+" "+tr("Vt"):"",it.note].filter(Boolean);
-  return{name:itemName(it),sub:bits.join(" · "),unit:it.unit,qty:q,price:num(it.price),hrs:q*num(it.h),src:it.custom?tr("qo'lda"):tr("katalog"),kind:it.custom?"own":"item",uid:it.uid}}
-function concreteCalc(c){
-  const vol=c.mode==="dims"?num(c.L)*num(c.W)*num(c.T):num(c.V);const m=MIX[c.grade]||MIX.M200;
-  const k=c.cem==="M400"?1.15:1;const cem=m[0]*k,qum=m[1],sheb=m[2],suv=m[3];const per=`${U("kg")}/${U("m³")}`;
-  const lines=[
-    {name:tr("Sement"),sub:`${fmt(cem)} ${per} · PC ${c.cem}`,unit:"kg",qty:cem*vol,price:priceOf("sement"),hrs:0,src:srcLabel("sement"),kind:"auto"},
-    {name:tr("Shag'al (sheben)"),sub:`${fmt(sheb)} ${per}`,unit:"m³",qty:sheb*vol/num(S.settings.rhoSheben||1400),price:priceOf("sheben"),hrs:0,src:srcLabel("sheben"),kind:"auto"},
-    {name:tr("Qum"),sub:`${fmt(qum)} ${per}`,unit:"m³",qty:qum*vol/num(S.settings.rhoQum||1500),price:priceOf("qum"),hrs:0,src:srcLabel("qum"),kind:"auto"},
-    {name:tr("Suv"),sub:`${fmt(suv)} ${U("l")}/${U("m³")}`,unit:"m³",qty:suv*vol/1000,price:priceOf("suv"),hrs:0,src:srcLabel("suv"),kind:"auto"},
-    {name:tr("Qorishma tayyorlash va quyish"),sub:tr("{0} soat/m³",fd(num(S.settings.concreteHours),1)),unit:"m³",qty:vol,price:0,hrs:vol*num(S.settings.concreteHours),src:tr("ish haqi"),kind:"auto"}
-  ];
-  const mat=sum(lines.map(l=>l.qty*l.price));
-  return{vol,cem,qum,sheb,suv,lines,mat,perM3:vol>0?mat/vol:0};
-}
-function lineTotals(l){const mat=l.qty*l.price,lab=l.hrs*rate();return{mat,lab,tot:mat+lab}}
-function buildSmeta(){
-  const groups=[];
-  S.rooms.forEach(r=>{const c=roomCalc(r);groups.push({title:r.name,sub:`${fd(num(r.L))} × ${fd(num(r.W))} × ${fd(num(r.H))} ${U("m")}`,lines:[...c.lines,...r.items.map(itemLine)]})});
-  S.concrete.forEach(c=>{const k=concreteCalc(c);if(k.vol>0)groups.push({title:tr("Beton: {0}",c.name),sub:`${c.grade}, ${fd(k.vol)} ${U("m³")}`,lines:k.lines})});
-  let mat=0,lab=0;groups.forEach(g=>{g.mat=0;g.lab=0;g.lines.forEach(l=>{const t=lineTotals(l);g.mat+=t.mat;g.lab+=t.lab});mat+=g.mat;lab+=g.lab});
-  const base=mat+lab,cont=base*num(S.settings.contingency)/100,vat=S.settings.vat?(base+cont)*.12:0;
-  return{groups,mat,lab,base,cont,vat,grand:base+cont+vat};
-}
 
 /* ---------- rendering ---------- */
 const TABS=[["xonalar",tr("Xonalar va o'lchov")],["beton",tr("Beton")],["narxlar",tr("Narxlar")],["smeta",tr("Smeta")]];
@@ -329,10 +280,10 @@ function viewSheet(sheets,cur){const sh=sheets[cur]||sheets[0];const ncol=sh.col
    <div class="xl-tabs">${sheets.map((x,i)=>`<button type="button" data-act="xlSheet" data-i="${i}" aria-pressed="${sh===x}">${esc(x.name)}</button>`).join("")}</div></div>`}
 const safeFile=s=>String(s).replace(/[\\/:*?"<>|\u0000-\u001f]+/g," ").replace(/\s+/g," ").trim().slice(0,120)||"Smeta";
 async function downloadXlsx(){
-  if(!SERVER||!SERVER.xlsxUrl){toast(tr("Excel fayl uchun internet kerak"));return}
+  if(!XLSX){toast(tr("Excel fayl uchun internet kerak"));return}
   const btns=document.querySelectorAll('[data-act="xlsx"]');btns.forEach(b=>b.disabled=true);
   try{
-    const r=await fetch(SERVER.xlsxUrl,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body:JSON.stringify({sheets:xlSheets()})});
+    const r=await fetch(XLSX.url,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":XLSX.csrf},body:JSON.stringify({sheets:xlSheets()})});
     if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status);
     const blob=await r.blob();const a=document.createElement("a");a.href=URL.createObjectURL(blob);
     a.download=safeFile(`${tr("Smeta")} - ${S.obj.name} - ${todayStr()}`)+".xlsx";document.body.appendChild(a);a.click();
@@ -462,4 +413,7 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
 });
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
 
+// ?tab=smeta — kerakli bo'limni ochish (masalan, bosh sahifadagi "Namuna smetani ko'rish")
+{const q=new URLSearchParams(location.search).get("tab");if(TABS.some(([k])=>k===q))S.ui.tab=q}
 render();if(S.ui.tab==="beton")renderConcreteDerived();
+if(S.ui.draftApplied){delete S.ui.draftApplied;toast(tr("Bosh sahifada o'lchangan xona qo'shildi"))}

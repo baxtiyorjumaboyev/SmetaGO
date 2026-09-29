@@ -15,6 +15,23 @@
     </div>
   </div>
 
+  {# bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js) — yangi obyektga o'tkazish taklifi #}
+  <div class="hint row" id="draft-bar" hidden style="justify-content:space-between">
+    <span>{% t "Bosh sahifada o'lchangan xona saqlanmagan:" %} <b id="draft-text"></b></span>
+    <span class="row">
+      <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn sm pri">{% t "Yangi obyekt sifatida saqlash" %}</button></form>
+      <button type="button" class="btn sm ghost" id="draft-drop">{% t "Kerak emas" %}</button>
+    </span>
+  </div>
+  <script>
+  (function(){var d;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
+    if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return;
+    var bar=document.getElementById("draft-bar");bar.hidden=false;
+    document.getElementById("draft-text").textContent=[d.room.L,d.room.W,d.room.H].join(" × ")+" m";
+    document.getElementById("draft-drop").onclick=function(){try{localStorage.removeItem("smetago-draft")}catch(e){}bar.hidden=true};
+  })();
+  </script>
+
   {% if obyektlar %}
   <div class="olist">
     {% for o in obyektlar %}

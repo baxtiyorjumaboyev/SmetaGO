@@ -10,14 +10,15 @@ from django.views.decorators.http import require_POST
 
 from .excel import build_workbook
 from .i18n import current_lang, tr
-from .malumotnoma import build_reference
+from .malumotnoma import cached_reference
 from .models import Obyekt
 
 
 def obyekt_list(request):
     """Bosh sahifa: mehmonga — sayt (landing), kirgan foydalanuvchiga — obyektlar ro'yxati."""
     if not request.user.is_authenticated:
-        return render(request, "smeta/landing.html")
+        # kalkulyator uchun ma'lumotnoma (narxlar, qoplamalar, xona turlari)
+        return render(request, "smeta/landing.html", {"ref": cached_reference(current_lang())})
     return render(request, "smeta/obyekt_list.html", {
         "obyektlar": request.user.obyektlar.all(),
     })
@@ -38,7 +39,32 @@ def obyekt_create(request):
 @login_required
 def obyekt_app(request, pk):
     o = get_object_or_404(Obyekt, pk=pk, owner=request.user)
-    return render(request, "smeta/app.html", {"o": o, "ref": build_reference(current_lang())})
+    return render(request, "smeta/app.html", {"o": o, "ref": cached_reference(current_lang())})
+
+
+def demo(request):
+    """Namuna smeta: ro'yxatdan o'tmasdan to'liq ilova. Holat faqat brauzerda saqlanadi (serverga yozilmaydi)."""
+    return render(request, "smeta/app.html", {"o": None, "ref": cached_reference(current_lang())})
+
+
+@require_POST
+def demo_excel(request):
+    """Namuna sahifasi uchun .xlsx: hech narsa saqlanmaydi, faqat yuborilgan varaq formatlanadi (CSRF bilan)."""
+    try:
+        content = build_workbook(json.loads(request.body))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"error": "Varaq ma'lumoti noto'g'ri"}, status=400)
+    resp = HttpResponse(content, content_type=XLSX_TYPE)
+    resp["Content-Disposition"] = content_disposition_header(True, "Smeta.xlsx")
+    return resp
+
+
+def help_page(request):
+    return render(request, "smeta/yordam.html")
+
+
+def privacy_page(request):
+    return render(request, "smeta/maxfiylik.html")
 
 
 @login_required

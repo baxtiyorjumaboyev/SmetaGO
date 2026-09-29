@@ -3,7 +3,7 @@
 Bu fayl loyihani boshqa muhitda (boshqa cloud, boshqa kompyuter, yangi AI sessiyasi) davom ettirish uchun yozilgan. Bu yerda nima qilingani, qanday ishga tushirilishi, arxitektura qoidalari, ishlash tartibi va ochiq vazifalar bor. Foydalanuvchi uchun qo'llanma — `README.md`.
 
 - **Repozitoriya:** https://github.com/baxtiyorjumaboyev/SmetaGO (public, branch `main`)
-- **Holat (2026-09-26):** 19 ta unit test va brauzer (e2e) tekshiruvlari o'tadi.
+- **Holat (2026-09-29):** 22 ta unit test va brauzer (e2e) tekshiruvlari o'tadi.
 - **Stack:** Python 3.10+ (sinovda 3.14), Django 5.2, SQLite, toza HTML/CSS/JS (freymvork va build vositasi yo'q).
 
 ---
@@ -28,7 +28,8 @@ Endi u bir vaqtda:
 | 2 | Ma'lumotnoma bazaga | `6c51e3e` | Katalog (7 guruh, 53 element, 33 tur), 18 material narxi, 8 xona turi `data.js` dan bazaga o'tkazildi, admin panelda tahrirlanadi. "Markaziy narxlarni yuklash" tugmasi. |
 | 3 | Dizayn + tillar | `cabdfb0` | Yashil-qora palitra, kunduzgi/tungi rejim tugmasi, UZ/RU tugmalari. Butun interfeys ruschaga tarjima qilindi, katalog uchun ruscha nomlar bazada. |
 | 4 | Sayt + PWA | `b6d432b` | Manifest, service worker, ikonkalar, "Ilovani o'rnatish" tugmasi, oflayn navbat (internetsiz tahrirlash → aloqa tiklanganda yuborish), mehmonlar uchun landing sahifa. |
-| 5 | Excel (.xlsx) | (keyingi commit) | Foydalanuvchi talabi: **eng muhim funksiya**. "Excel yuklab olish" (pastki qatorda doim + Smeta bo'limida), ikki varaq: "Smeta" va "Xonalar". Ilova ichida "Excel ko'rinishi" (standart) — fayl bilan aynan bir xil. O'ng tepadagi "Ilovani o'rnatish" tugmasi **foydalanuvchi so'rovi bilan olib tashlandi** (landing'dagi o'rnatish bo'limi qoldi). Narxlar pastidagi "Soatlik stavka…" matni **so'rov bilan olib tashlandi**. Eski "Excel uchun nusxa olish" (TSV) o'rniga haqiqiy fayl. |
+| 5 | Excel (.xlsx) | `f189a9a` | Foydalanuvchi talabi: **eng muhim funksiya**. "Excel yuklab olish" (pastki qatorda doim + Smeta bo'limida), ikki varaq: "Smeta" va "Xonalar". Ilova ichida "Excel ko'rinishi" (standart) — fayl bilan aynan bir xil. O'ng tepadagi "Ilovani o'rnatish" tugmasi **foydalanuvchi so'rovi bilan olib tashlandi** (landing'dagi o'rnatish bo'limi qoldi). Narxlar pastidagi "Soatlik stavka…" matni **so'rov bilan olib tashlandi**. Eski "Excel uchun nusxa olish" (TSV) o'rniga haqiqiy fayl. |
+| 6 | Yangi sayt dizayni | (keyingi commit) | Foydalanuvchi bergan Claude Design skrinshotlari bo'yicha: bosh qismda **jonli kalkulyator** (xona turi, ± o'lchamlar, qoplamalar, chizma, qatorlar, jami), "Uch qadam", "Kim uchun", yashil chaqiruv, pastki qator. Dizayndagi haqiqatga to'g'ri kelmaydigan va'dalar **ataylab o'zgartirildi**: PDF → Excel (PDF yo'q), "3 ta obyektgacha bepul" → "cheklanmagan" (limit yo'q), "joriy bozor narxlari" → "3 manbali narxlar bazasi", Telegram havolasi qo'yilmadi (manzil noma'lum). Qo'shildi: `/namuna/` (ro'yxatdan o'tmasdan to'liq ilova + Excel), `/yordam/`, `/maxfiylik/`, kalkulyator qoralamasi → ro'yxatdan o'tgach yangi obyektga, ma'lumotnoma keshi. |
 
 Har bir bosqichda hisob-kitob natijasi asl statik versiya bilan solishtirildi: namunaviy obyekt uchun **materiallar 60 001 184, ish haqi 5 887 945, jami 69 183 585 so'm** — tiyinigacha bir xil. Hisoblash mantig'iga o'zgartirish kiritsangiz, shu raqamlar bilan tekshiring.
 
@@ -96,7 +97,8 @@ SmetaGO/
 │   │   ├── _prefs.html          # Oflayn belgisi, O'rnatish tugmasi, UZ|RU, rejim tugmasi
 │   │   ├── app.html             # smeta ilovasi (xonalar/beton/narxlar/smeta) — JS bilan chiziladi
 │   │   ├── obyekt_list.html     # obyektlar ro'yxati
-│   │   ├── landing.html         # mehmon uchun bosh sahifa (sayt)
+│   │   ├── landing.html         # mehmon uchun bosh sahifa (sayt, jonli kalkulyator)
+│   │   ├── yordam.html, maxfiylik.html  # FAQ va maxfiylik (faktlarga asoslangan)
 │   │   ├── offline.html         # internet yo'q + keshda yo'q sahifa
 │   │   └── sw.js                # service worker shabloni
 │   ├── templates/registration/  # login.html, register.html
@@ -106,7 +108,9 @@ SmetaGO/
 │       ├── js/pwa.js            # SW ro'yxatdan o'tkazish, o'rnatish, oflayn belgisi
 │       ├── js/i18n.js           # LANG, RU lug'ati, tr(), U() birliklar, lab(), qLabel()
 │       ├── js/data.js           # FLOOR/WALL/CEIL, MIX, REGIONS, QUARTERS + zaxira katalog (REF bo'lmasa)
-│       ├── js/app.js            # asosiy mantiq: holat S, hisob, chizish, hodisalar, oflayn navbat
+│       ├── js/calc.js           # hisob yadrosi: helperlar, roomCalc, concreteCalc, buildSmeta (app.js va landing.js uchun umumiy)
+│       ├── js/app.js            # ilova: holat S, chizish, hodisalar, oflayn navbat, Excel, namuna rejimi, qoralama
+│       ├── js/landing.js        # bosh sahifadagi jonli kalkulyator
 │       └── icons/               # icon.svg, maskable.svg, *.png (192, 512, maskable, apple-touch, favicon)
 └── smetago-project/smetago-project/   # asl statik MVP (tegilmaydi); docs/ ichida formulalar va arxitektura
 ```
@@ -119,7 +123,11 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 
 ### 5.1 Ma'lumot oqimi
 1. `GET /obyekt/<id>/` → `app.html`. Ichiga ikkita JSON joylanadi: `#smeta-state` (obyekt holati `S`) va `#smeta-ref` (`build_reference(lang)` — joriy tildagi katalog, narxlar, xona turlari). `window.SMETAGO = {saveUrl, csrf, name, updated}`.
-2. Skriptlar tartibi: `i18n.js` → `data.js` → `app.js`. **Tartibni o'zgartirmang.**
+2. Skriptlar tartibi: `i18n.js` → `data.js` → `calc.js` → `app.js` (bosh sahifada `app.js` o'rniga `landing.js`). **Tartibni o'zgartirmang.**
+   - **Formulalar faqat `calc.js` da.** Bosh sahifa kalkulyatori ham shu funksiyalarni chaqiradi — saytdagi summa ilovadagi bilan aynan bir xil (e2e sinovda tekshiriladi). Formulani boshqa joyga nusxalamang.
+   - **Namuna** (`/namuna/`, `o=None`): `window.SMETAGO` yo'q, `SMETAGO_DEMO` bor → holat `localStorage["smetago-namuna"]`, Excel `POST /api/excel/` (anonim, CSRF bilan, hech narsa saqlanmaydi). `?tab=smeta` bo'limni ochadi.
+   - **Qoralama:** `landing.js` "Saqlash" da `localStorage["smetago-draft"]` ({ts, room}) yozadi → obyektlar ro'yxatida banner → yangi **bo'sh** obyekt ochilganda `applyDraft()` birinchi xonaga qo'yadi va o'chiradi (7 kun amal qiladi).
+   - **Ma'lumotnoma keshi:** `cached_reference(lang)` (5 daqiqa); admin'da saqlash/o'chirish signal bilan darhol tozalaydi. `QuerySet.update()` signal bermaydi — ma'lumotnomani shunday o'zgartirsangiz `invalidate_reference()` ni chaqiring.
 3. `app.js` `S` ni o'zgartiradi. `save()` 700 ms dan keyin `PUT /api/obyekt/<id>/state/` yuboradi (JSON, `v: 1` majburiy, CSRF header bilan). Server `S.obj.name` dan obyekt nomini oladi.
 4. `index.html` ni to'g'ridan-to'g'ri ochish (Djangosiz) hali ishlaydi: `SERVER` yo'q bo'lsa, `localStorage` (`smetago-v1`) ishlatiladi.
 
@@ -188,7 +196,7 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 
 ## 7. Testlar
 
-### Unit testlar — `python manage.py test smeta` (19 ta)
+### Unit testlar — `python manage.py test smeta` (22 ta)
 Tekshiradi:
 - ro'yxatdan o'tish va kirish; mehmonga landing, kirganga ro'yxat;
 - obyekt yaratish, saqlash, nusxa olish, o'chirish; noto'g'ri holat rad etilishi; begona obyektga kirib bo'lmasligi (404); CSRF;
