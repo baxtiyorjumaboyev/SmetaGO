@@ -44,7 +44,9 @@
   </div>
   <div class="ruler" aria-hidden="true"></div>
 </header>
-{% block main %}<main class="wrap page">{% block content %}{% endblock %}</main>{% endblock %}
+{% block main %}<main class="wrap page">
+{% if messages %}<div class="msgs">{% for m in messages %}<p class="hint msg-{{ m.tags }}">{{ m }}</p>{% endfor %}</div>{% endif %}
+{% block content %}{% endblock %}</main>{% endblock %}
 {% block footer %}
 <footer class="site-foot">
   <div class="wrap">

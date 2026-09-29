@@ -3,6 +3,7 @@
 {% block content %}
 <form method="post" class="panel pad stack auth">{% csrf_token %}
   <h1>{% t "Kirish" %}</h1>
+  {% if tg_bot %}{% include "smeta/_telegram.html" %}<p class="or"><span>{% t "yoki login va parol bilan" %}</span></p>{% endif %}
   {% if form.non_field_errors %}<ul class="errorlist"><li>{% t "Login yoki parol noto'g'ri." %}</li></ul>{% endif %}
   <div><label for="id_username">{% t "Login" %}</label>{{ form.username }}</div>
   <div><label for="id_password">{% t "Parol" %}</label>{{ form.password }}</div>

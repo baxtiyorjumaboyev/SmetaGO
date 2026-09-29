@@ -116,6 +116,11 @@ else:
 DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "SmetaGo <noreply@smetago.local>")
 PASSWORD_RESET_TIMEOUT = 60 * 60 * 24  # tiklash havolasi 24 soat amal qiladi
 
+# Telegram orqali kirish (Login Widget). Serverda .env: DJANGO_TELEGRAM_BOT_TOKEN, DJANGO_TELEGRAM_BOT_NAME
+# (botning @ siz nomi). BotFather'da /setdomain — sayt domeni. Berilmasa, tugma ko'rinmaydi.
+TELEGRAM_BOT_TOKEN = os.environ.get("DJANGO_TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_BOT_NAME = os.environ.get("DJANGO_TELEGRAM_BOT_NAME", "").lstrip("@")
+
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "obyekt_list"
 LOGOUT_REDIRECT_URL = "obyekt_list"  # mehmon uchun bu bosh sahifa (sayt)

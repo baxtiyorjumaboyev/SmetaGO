@@ -312,3 +312,70 @@ class SmetaTests(TestCase):
         c.force_login(self.user)
         r = c.put(reverse("obyekt_state", args=[o.pk]), json.dumps(STATE), content_type="application/json")
         self.assertEqual(r.status_code, 403)
+
+TG_TOKEN = "123456:TEST-token"
+
+
+def tg_signed(**data):
+    """Telegram Login Widget kabi imzolangan ma'lumot (sinov uchun)."""
+    import hashlib
+    import hmac
+    import time
+
+    data = {"auth_date": str(int(time.time())), **{k: str(v) for k, v in data.items()}}
+    check = "\n".join(f"{k}={data[k]}" for k in sorted(data))
+    data["hash"] = hmac.new(hashlib.sha256(TG_TOKEN.encode()).digest(), check.encode(), hashlib.sha256).hexdigest()
+    return data
+
+
+class TelegramLoginTests(TestCase):
+    def test_hidden_without_token(self):
+        self.assertNotContains(Client().get(reverse("login")), "telegram-widget.js")
+        self.assertEqual(Client().get(reverse("telegram_auth")).status_code, 404)
+
+    def test_login_creates_account_then_reuses_it(self):
+        from .models import TelegramAccount
+
+        with self.settings(TELEGRAM_BOT_TOKEN=TG_TOKEN, TELEGRAM_BOT_NAME="smetago_bot"):
+            page = Client().get(reverse("login"))
+            self.assertContains(page, 'data-telegram-login="smetago_bot"')
+            self.assertContains(page, "/kirish/telegram/")
+            c = Client()
+            r = c.get(reverse("telegram_auth"), tg_signed(id=777, first_name="Ali", username="ali_uz"))
+            self.assertRedirects(r, "/")
+            acct = TelegramAccount.objects.get(tg_id=777)
+            self.assertEqual(acct.user.username, "ali_uz")
+            self.assertFalse(acct.user.has_usable_password())
+            self.assertEqual(c.get("/").status_code, 200)
+            self.assertContains(c.get("/"), 'id="kpis"')  # kirgan — dashboard
+            # ikkinchi marta — o'sha hisob, yangisi ochilmaydi
+            Client().get(reverse("telegram_auth"), tg_signed(id=777, first_name="Ali", username="ali_uz"))
+            self.assertEqual(User.objects.filter(telegram__tg_id=777).count(), 1)
+            self.assertEqual(User.objects.count(), 1)
+
+    def test_forged_or_expired_rejected(self):
+        with self.settings(TELEGRAM_BOT_TOKEN=TG_TOKEN, TELEGRAM_BOT_NAME="smetago_bot"):
+            d = tg_signed(id=5, first_name="X")
+            d["id"] = "6"  # boshqa odam nomidan
+            self.assertEqual(Client().get(reverse("telegram_auth"), d).status_code, 403)
+            old = tg_signed(id=5, first_name="X", auth_date=1)
+            self.assertEqual(Client().get(reverse("telegram_auth"), old).status_code, 403)
+            self.assertEqual(Client().get(reverse("telegram_auth"), {"id": "5"}).status_code, 403)
+            self.assertEqual(User.objects.count(), 0)
+
+    def test_link_to_existing_account(self):
+        from .models import TelegramAccount
+
+        u = User.objects.create_user("vali", password="SmetaGo-2026!")
+        c = Client()
+        c.force_login(u)
+        with self.settings(TELEGRAM_BOT_TOKEN=TG_TOKEN, TELEGRAM_BOT_NAME="smetago_bot"):
+            self.assertContains(c.get("/"), "telegram-widget.js")  # "Telegram'ni ulash"
+            r = c.get(reverse("telegram_auth"), tg_signed(id=42, first_name="Vali"))
+            self.assertRedirects(r, "/")
+            self.assertEqual(TelegramAccount.objects.get(tg_id=42).user, u)
+            self.assertNotContains(c.get("/"), "telegram-widget.js")  # ulangan — tugma yo'q
+            # endi Telegram bilan kirish — o'sha hisob
+            anon = Client()
+            anon.get(reverse("telegram_auth"), tg_signed(id=42, first_name="Vali"))
+            self.assertEqual(int(anon.session["_auth_user_id"]), u.pk)

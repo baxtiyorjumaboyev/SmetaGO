@@ -5,6 +5,7 @@
   <div class="dash-head">
     <div><h1>{% t "Asosiy" %}</h1><p class="ometa">{% t "{0} ta obyekt" obyektlar|length %} · {% now "d.m.Y" %}</p></div>
     <div class="row">
+      {% if tg_bot and not user.telegram %}<div class="tg-link" title="{% t "Telegram'ni ulasangiz, keyingi safar parolsiz kirasiz" %}"><span class="ometa">{% t "Telegram'ni ulash:" %}</span>{% include "smeta/_telegram.html" %}</div>{% endif %}
       <div class="seg dash-seg" id="dash-metric" role="group" aria-label="{% t "Ko'rsatkich" %}">
         <button type="button" data-m="grand" aria-pressed="true">{% t "Jami" %}</button>
         <button type="button" data-m="mat" aria-pressed="false">{% t "Material" %}</button>

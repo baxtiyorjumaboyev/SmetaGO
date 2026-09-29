@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
-from . import views
+from . import telegram, views
 
 # Parolni tiklash: email -> bir martalik havola -> yangi parol (Django'ning o'z mexanizmi)
 R = "registration/"
@@ -20,6 +20,7 @@ urlpatterns = [
     path("api/excel/", views.demo_excel, name="demo_excel"),
     path("kirish/", auth_views.LoginView.as_view(), name="login"),
     path("chiqish/", auth_views.LogoutView.as_view(), name="logout"),
+    path("kirish/telegram/", telegram.telegram_auth, name="telegram_auth"),
     path("royxatdan-otish/", views.register, name="register"),
     path("parol-tiklash/", auth_views.PasswordResetView.as_view(
         template_name=R + "parol_tiklash.html",

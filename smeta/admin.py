@@ -1,10 +1,17 @@
 from django.contrib import admin
 
-from .models import CatalogGroup, CatalogItem, CatalogVariant, Material, Obyekt, RoomType
+from .models import CatalogGroup, CatalogItem, CatalogVariant, Material, Obyekt, RoomType, TelegramAccount
 
 admin.site.site_header = "SmetaGo boshqaruvi"
 admin.site.site_title = "SmetaGo"
 admin.site.index_title = "Ma'lumotnoma va obyektlar"
+
+
+@admin.register(TelegramAccount)
+class TelegramAccountAdmin(admin.ModelAdmin):
+    list_display = ("user", "tg_id", "username", "first_name", "created", "last_login")
+    search_fields = ("user__username", "username", "first_name", "tg_id")
+    readonly_fields = ("tg_id", "created", "last_login")
 
 
 @admin.register(Obyekt)

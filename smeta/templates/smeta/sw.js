@@ -31,7 +31,7 @@ self.addEventListener("message", (e) => {
   if (e.data && e.data.type === "clear-pages") e.waitUntil(caches.delete(PAGE_CACHE));
 });
 
-const NETWORK_ONLY = ["/api/", "/admin/", "/i18n/", "/sw.js", "/parol-tiklash/"];
+const NETWORK_ONLY = ["/api/", "/admin/", "/i18n/", "/sw.js", "/parol-tiklash/", "/kirish/telegram/"];
 
 self.addEventListener("fetch", (e) => {
   const req = e.request;

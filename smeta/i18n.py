@@ -58,6 +58,16 @@ RU = {
     "Parolni takrorlang": "Повторите пароль",
     "Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin.": "Не менее 8 символов, не только цифры.",
     "Hisobingiz bormi?": "Уже есть аккаунт?",
+    # Telegram orqali kirish
+    "yoki login va parol bilan": "или по логину и паролю",
+    "Telegram bilan — bir bosishda, parolsiz.": "Через Telegram — в одно нажатие, без пароля.",
+    "Telegram'ni ulasangiz, keyingi safar parolsiz kirasiz": "Подключите Telegram — в следующий раз войдёте без пароля",
+    "Telegram'ni ulash:": "Подключить Telegram:",
+    "Telegram ma'lumoti tasdiqlanmadi. Qaytadan urinib ko'ring.": "Данные Telegram не подтверждены. Попробуйте ещё раз.",
+    "Bu Telegram boshqa hisobga ulangan.": "Этот Telegram уже привязан к другому аккаунту.",
+    "Hisobingizga boshqa Telegram ulangan.": "К вашему аккаунту уже привязан другой Telegram.",
+    "Telegram hisobingizga ulandi.": "Telegram подключён к вашему аккаунту.",
+    "Hisob o'chirilgan.": "Аккаунт отключён.",
     "Email": "Email",
     "Parolni unutsangiz, tiklash havolasi shu manzilga yuboriladi.":
         "Если забудете пароль, ссылка для восстановления придёт на этот адрес.",

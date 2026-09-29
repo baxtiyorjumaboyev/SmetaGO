@@ -161,3 +161,21 @@ class Obyekt(models.Model):
     def region(self):
         obj = self.state.get("obj") if isinstance(self.state, dict) else None
         return obj.get("region", "") if isinstance(obj, dict) else ""
+
+class TelegramAccount(models.Model):
+    """Telegram orqali kirish: Telegram foydalanuvchisi (id) SmetaGo hisobiga bog'lanadi."""
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                related_name="telegram", verbose_name="Foydalanuvchi")
+    tg_id = models.BigIntegerField("Telegram ID", unique=True)
+    username = models.CharField("Telegram username", max_length=64, blank=True)
+    first_name = models.CharField("Ismi", max_length=128, blank=True)
+    created = models.DateTimeField("Ulangan", auto_now_add=True)
+    last_login = models.DateTimeField("Oxirgi kirish", auto_now=True)
+
+    class Meta:
+        verbose_name = "Telegram hisobi"
+        verbose_name_plural = "Telegram hisoblari"
+
+    def __str__(self):
+        return f"@{self.username}" if self.username else str(self.tg_id)

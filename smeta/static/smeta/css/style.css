@@ -598,3 +598,13 @@ body.in .top{background:linear-gradient(100deg,var(--hdr1),var(--hdr2));color:#f
   .donut-wrap{flex-direction:column;align-items:stretch}
   .donut{margin-inline:auto}
 }
+
+/* Telegram orqali kirish; sahifa xabarlari */
+.tg-login{display:flex;justify-content:center;min-height:40px}
+.tg-link{display:flex;align-items:center;gap:8px}
+.tg-link .tg-login{min-height:0}
+.or{display:flex;align-items:center;gap:10px;margin:0;color:var(--muted);font-size:12.5px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.msgs{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.msgs p{margin:0}
+.msg-error{background:color-mix(in srgb,var(--danger) 14%,var(--surface));color:var(--ink)}
