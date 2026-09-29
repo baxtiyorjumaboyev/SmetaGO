@@ -681,6 +681,20 @@
    "manual": 0
   },
   {
+   "id": "relin",
+   "n": "Relin",
+   "u": "m²",
+   "g": "Pol",
+   "src": [
+    45000,
+    55000,
+    65000
+   ],
+   "s": "",
+   "mode": "avg",
+   "manual": 0
+  },
+  {
    "id": "parket",
    "n": "Parket",
    "u": "m²",
@@ -794,13 +808,41 @@
   },
   {
    "id": "shift_boyoq",
-   "n": "Shift bo'yog'i",
+   "n": "Suv emulsiyali bo'yoq (shift)",
    "u": "m²",
    "g": "Shift",
    "src": [
     12000,
     14000,
     16000
+   ],
+   "s": "",
+   "mode": "avg",
+   "manual": 0
+  },
+  {
+   "id": "shift_moyli",
+   "n": "Moyli bo'yoq (shift)",
+   "u": "m²",
+   "g": "Shift",
+   "src": [
+    15000,
+    18000,
+    22000
+   ],
+   "s": "",
+   "mode": "avg",
+   "manual": 0
+  },
+  {
+   "id": "shift_akril",
+   "n": "Akril bo'yoq (shift)",
+   "u": "m²",
+   "g": "Shift",
+   "src": [
+    18000,
+    22000,
+    26000
    ],
    "s": "",
    "mode": "avg",
@@ -829,6 +871,20 @@
     60000,
     70000,
     80000
+   ],
+   "s": "",
+   "mode": "avg",
+   "manual": 0
+  },
+  {
+   "id": "plastik_shift",
+   "n": "Plastik shift (PVX panel)",
+   "u": "m²",
+   "g": "Shift",
+   "src": [
+    55000,
+    65000,
+    75000
    ],
    "s": "",
    "mode": "avg",

@@ -88,6 +88,32 @@ def load_seed(apps):
         room.suggestions.set([by_key[k] for k in rt["s"] if k in by_key])
 
 
+def sync_materials(apps):
+    """Seed'ga keyin qo'shilgan materiallarni mavjud bazaga qo'shadi va tartibni seed bo'yicha
+    tiklaydi. Admin'da o'zgartirilgan nom va narxlarga tegmaydi."""
+    Material = apps.get_model("smeta", "Material")
+    data = json.loads(SEED_FILE.read_text(encoding="utf-8"))
+    ru = json.loads((SEED_FILE.parent / "ru.json").read_text(encoding="utf-8"))
+    # shift_boyoq endi "suv emulsiyali" — nomi eski standartda qolgan bo'lsagina yangilanadi
+    renamed = {"shift_boyoq": (("Shift bo'yog'i", "Suv emulsiyali bo'yoq (shift)"),
+                               ("Краска для потолка", ru["materials"]["shift_boyoq"]))}
+    for pi, p in enumerate(data["prices"]):
+        m = Material.objects.filter(key=p["id"]).first()
+        if m is None:
+            Material.objects.create(key=p["id"], name=p["n"], name_ru=ru["materials"].get(p["id"], ""),
+                                    unit=p["u"], group=p["g"], src1=p["src"][0], src2=p["src"][1],
+                                    src3=p["src"][2], sources=p["s"], order=pi)
+            continue
+        if p["id"] in renamed:
+            (old, new), (old_ru, new_ru) = renamed[p["id"]]
+            if m.name == old:
+                m.name = new
+            if m.name_ru == old_ru:
+                m.name_ru = new_ru
+        m.order = pi
+        m.save(update_fields=["name", "name_ru", "order"])
+
+
 def load_ru(apps):
     """Ruscha nomlarni seed/ru.json dan to'ldiradi (faqat bo'sh maydonlarga)."""
     ru = json.loads((SEED_FILE.parent / "ru.json").read_text(encoding="utf-8"))

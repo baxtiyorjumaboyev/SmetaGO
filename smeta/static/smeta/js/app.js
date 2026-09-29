@@ -1,19 +1,25 @@
 /* SmetaGo — ilova mantig'i: holat (state), hisob-kitob, chizish (render) va hodisalar.
- * i18n.js, data.js va calc.js dan keyin yuklanadi. Tuzilishi: docs/ARXITEKTURA.md
+ * i18n.js, data.js va calc.js (hisob-kitob) dan keyin yuklanadi. Tuzilishi: docs/ARXITEKTURA.md
  * Barcha ko'rinadigan matnlar tr("o'zbekcha matn") orqali (ruscha tarjima — i18n.js),
  * birliklar U("m²") orqali. Holatda (S) hamma kalitlar o'zbekcha saqlanadi.
  */
-/* yordamchi funksiyalar va hisob-kitob — calc.js */
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const SOM=tr("so'm");
+const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
+// katalog elementi joriy tilda (xonaga qo'shilgan paytdagi nom — zaxira)
+const itemName=it=>(it.cid&&CAT_INDEX[it.cid]?CAT_INDEX[it.cid].n:it.name);
 
 /* ---------- state ---------- */
-function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:["0,9"],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
+function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
 function mkItem(cid,opt={}){const c=CAT_INDEX[cid];if(!c)return null;const v=c.v&&c.v[opt.vi??0];return{uid:uid(),cid,name:c.n,variant:v?v[0]:"",unit:c.u,qty:opt.qty??1,price:v?v[1]:c.p,h:v&&v[2]!=null?v[2]:c.h,dims:opt.dims||"",watt:opt.watt||"",note:opt.note||"",custom:false}}
 function sample(){const sm=" "+tr("sm");
-  const m=mkRoom("Mehmonxona",null,"5","4","2,8");m.doors=["0,9","0,9","0,9"];m.windows=[{w:"1,5",h:"1,5"}];
+  const m=mkRoom("Mehmonxona",null,"5","4","2,8");m.doors=[mkDoor("MDF yog'och"),mkDoor("MDF yog'och"),mkDoor("Vitrajli eshik")];m.windows=[{w:"1,5",h:"1,5"}];
   m.items=[mkItem("svetilnik",{vi:1,qty:4,watt:"12"}),mkItem("lyustra"),mkItem("vyklyuchatel",{vi:1}),mkItem("rozetka",{vi:1,qty:3}),mkItem("divan",{dims:"220×90×85"+sm}),mkItem("kreslo",{qty:2}),mkItem("konditsioner",{vi:1}),mkItem("radiator",{qty:10}),mkItem("vent_panjara")].filter(Boolean);
-  const o=mkRoom("Oshxona",null,"3,5","3","2,8");o.doors=["0,8"];o.windows=[{w:"1,2",h:"1,4"}];o.tileLen="3";o.tileH="0,6";
+  const o=mkRoom("Oshxona",null,"3,5","3","2,8");o.doors=[mkDoor("MDF yog'och","0,8")];o.windows=[{w:"1,2",h:"1,4"}];o.tileLen="3";o.tileH="0,6";
   o.items=[mkItem("gaz_plita"),mkItem("vytyazhka",{vi:0,dims:"60×50×40"+sm}),mkItem("osh_rakovina"),mkItem("smesitel"),mkItem("garnitur",{qty:3}),mkItem("rozetka",{qty:4}),mkItem("vyklyuchatel"),mkItem("svetilnik",{qty:2,watt:"18"}),mkItem("vent_shaxta",{qty:2.8})].filter(Boolean);
-  const h=mkRoom("Hammom",null,"2","1,7","2,7");h.doors=["0,7"];
+  const h=mkRoom("Hammom",null,"2","1,7","2,7");h.doors=[mkDoor("Akfa PVX","0,7")];
   h.items=[mkItem("unitaz"),mkItem("rakovina"),mkItem("vanna",{dims:"170×70"+sm}),mkItem("smesitel",{qty:2}),mkItem("isitgich"),mkItem("ventilyator",{watt:"25"}),mkItem("svetilnik",{vi:2,qty:3,watt:"7"})].filter(Boolean);
   const own={uid:uid(),cid:null,name:tr("Oyna (hammom uchun)"),variant:"",unit:"dona",qty:1,price:450000,h:.5,dims:"60×80"+sm,watt:"",note:"",custom:true};h.items.push(own);
   return{
@@ -62,6 +68,8 @@ if(SERVER){
 }
 // ma'lumotnomaga keyin qo'shilgan materiallar eski obyektlarda ham paydo bo'lsin
 {const have=new Set(S.prices.map(p=>p.id));defaultPrices().forEach(p=>{if(!have.has(p.id))S.prices.push(p)})}
+// eski obyektlarda eshik faqat eni edi ("0,9") — turi va bo'yi bilan obyektga aylantiriladi
+S.rooms.forEach(r=>{r.doors=(r.doors||[]).map(d=>d&&typeof d==="object"?d:mkDoor("",String(d??"")))});
 // katalog guruhi nomi tilga bog'liq: til almashganda eski guruh topilmasa — "Tavsiya"
 if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
 let saveT=null,offlineNoted=false;
@@ -81,6 +89,15 @@ addEventListener("online",()=>{if(SERVER&&readPending()){persist();toast(tr("Alo
 setInterval(()=>{if(SERVER&&!saveT&&readPending())persist()},30000);
 if(SERVER)save();
 
+function buildSmeta(){
+  const groups=[];
+  S.rooms.forEach(r=>{const c=roomCalc(r);groups.push({title:r.name,sub:`${fd(num(r.L))} × ${fd(num(r.W))} × ${fd(num(r.H))} ${U("m")}`,lines:[...c.lines,...r.items.map(itemLine)]})});
+  S.concrete.forEach(c=>{const k=concreteCalc(c);if(k.vol>0)groups.push({title:tr("Beton: {0}",c.name),sub:`${c.grade}, ${fd(k.vol)} ${U("m³")}`,lines:k.lines})});
+  let mat=0,lab=0;groups.forEach(g=>{g.mat=0;g.lab=0;g.lines.forEach(l=>{const t=lineTotals(l);g.mat+=t.mat;g.lab+=t.lab});mat+=g.mat;lab+=g.lab});
+  const base=mat+lab,cont=base*num(S.settings.contingency)/100,vat=S.settings.vat?(base+cont)*.12:0;
+  return{groups,mat,lab,base,cont,vat,grand:base+cont+vat};
+}
+
 /* ---------- rendering ---------- */
 const TABS=[["xonalar",tr("Xonalar va o'lchov")],["beton",tr("Beton")],["narxlar",tr("Narxlar")],["smeta",tr("Smeta")]];
 function renderHeader(){
@@ -88,7 +105,12 @@ function renderHeader(){
   $("#o-region").innerHTML=REGIONS.map(r=>`<option value="${esc(r)}"${r===S.obj.region?" selected":""}>${esc(tr(r))}</option>`).join("");
   $("#o-quarter").innerHTML=QUARTERS.map(r=>`<option value="${esc(r)}"${r===S.obj.quarter?" selected":""}>${esc(qLabel(r))}</option>`).join("");
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-k="${k}" aria-selected="${S.ui.tab===k}">${l}</button>`).join("");
+  // telefonda: pastki navigatsiya paneli (yuqoridagi tablar yashiriladi)
+  const bn=$("#bnav");if(bn)bn.innerHTML=TABS.map(([k])=>`<button data-act="tab" data-k="${k}" aria-current="${S.ui.tab===k?"page":"false"}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICON[k]}</svg><span>${BNAV_L[k]}</span></button>`).join("");
 }
+const TAB_ICON={xonalar:'<path d="M3 4h18v16H3zM3 12h8v8M11 4v5"/>',beton:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+  narxlar:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',smeta:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>'};
+const BNAV_L={xonalar:tr("Xonalar"),beton:tr("Beton"),narxlar:tr("Narxlar"),smeta:tr("Smeta")};
 function render(){renderHeader();const t=S.ui.tab;
   $("#app").innerHTML=t==="xonalar"?viewRooms():t==="beton"?viewConcrete():t==="narxlar"?viewPrices():viewSmeta();
   if(t==="xonalar"){renderDerived();renderCatItems()}
@@ -103,28 +125,36 @@ function viewRooms(){
    <div class="addroom"><select class="inp" id="newType" aria-label="${tr("Xona turi")}">${Object.keys(ROOM_TYPES).map(k=>`<option value="${esc(k)}">${esc(rtLabel(k))}</option>`).join("")}</select><button class="btn pri" data-act="addRoom">${tr("+ Xona qo'shish")}</button></div></aside>`;
   if(!r)return `<div class="layout">${list}<section class="panel pad empty">${tr("Xona qo'shing — o'lchamlarni kiritgach, hisob avtomatik chiqadi.")}</section></div>`;
   const opt=(o,cur)=>Object.entries(o).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${esc(lab(v))}</option>`).join("");
+  // qoplama o'lchami: placeholder — xonaning o'lchami (renderDerived yangilab turadi)
+  const fdim=(f,ph,l)=>`<label class="fld">${tr(l)}<input class="inp numin" id="r-${f}" data-f="${f}" data-ph="${ph}" inputmode="decimal" value="${esc(r[f]??"")}" placeholder="${esc(r[ph])}"></label>`;
   const edit=`<section class="stack">
    ${S.sample?`<div class="hint">${tr("Bu namunaviy obyekt: 3 xona va 2 ta beton ishi bilan to'ldirilgan. O'zingiznikini boshlash uchun")} <button class="btn sm" data-act="reset">${S.ui.confirmReset?tr("Tasdiqlang: hammasi o'chadi"):tr("Yangi obyekt")}</button></div>`:""}
    <div class="panel pad stack">
     <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><span class="tag">${esc(rtLabel(r.type))}</span><button class="btn ghost sm" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
     <fieldset><legend class="eyebrow">${tr("O'lchamlar, metr")}</legend>
      <div class="grid3">
-      <label class="fld">${tr("Uzunligi")}<input class="inp numin" id="r-L" data-f="L" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00"></label>
-      <label class="fld">${tr("Eni")}<input class="inp numin" id="r-W" data-f="W" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00"></label>
-      <label class="fld">${tr("Balandligi")}<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00"></label>
+      <label class="fld">${tr("Uzunligi")}${stepper(`<input class="inp numin" id="r-L" data-f="L" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00">`,"r-L",.1)}</label>
+      <label class="fld">${tr("Eni")}${stepper(`<input class="inp numin" id="r-W" data-f="W" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00">`,"r-W",.1)}</label>
+      <label class="fld">${tr("Balandligi")}${stepper(`<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00">`,"r-H",.1)}</label>
      </div></fieldset>
-    <fieldset><legend class="eyebrow">${tr("Eshiklar — eni, m (plintusdan ayiriladi)")}</legend>
-     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<input class="inp numin" id="d-${i}" data-door="${i}" inputmode="decimal" value="${esc(d)}" aria-label="${tr("{0}-eshik eni",i+1)}"><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}
-     <button class="btn sm" data-act="addDoor">${tr("+ Eshik")}</button></div></fieldset>
+    <fieldset><legend class="eyebrow">${tr("Eshiklar — turi, eni × bo'yi, m (eni plintusdan ayiriladi)")}</legend>
+     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}</select><input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}">${stepper(`<input class="inp numin qn" id="d-${i}-q" data-door="${i}" data-k="q" inputmode="decimal" value="${esc(d.q??"")}" placeholder="1" aria-label="${tr("Soni")}">`,`d-${i}-q`,1)}${esc(U("dona"))}<span class="m2" id="d-${i}-a"></span><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
+     <p class="note opsum" id="doors-sum"></p>
+     <div class="openings adddoor">${DOOR_TYPES.map(t=>`<button class="btn sm" data-act="addDoor" data-t="${esc(t)}">+ ${esc(tr(t))}</button>`).join("")}</div></fieldset>
     <fieldset><legend class="eyebrow">${tr("Derazalar — eni × balandligi, m")}</legend>
-     <div class="openings">${r.windows.map((w,i)=>`<span class="opening">${i+1}<input class="inp numin" id="w-${i}-w" data-win="${i}" data-k="w" inputmode="decimal" value="${esc(w.w)}" aria-label="${tr("Deraza eni")}">×<input class="inp numin" id="w-${i}-h" data-win="${i}" data-k="h" inputmode="decimal" value="${esc(w.h)}" aria-label="${tr("Deraza balandligi")}"><button class="x" data-act="delWin" data-i="${i}" aria-label="${tr("Derazani olib tashlash")}">×</button></span>`).join("")}
-     <button class="btn sm" data-act="addWin">${tr("+ Deraza")}</button></div></fieldset>
+     <div class="openings">${r.windows.map((w,i)=>`<span class="opening">${i+1}<input class="inp numin" id="w-${i}-w" data-win="${i}" data-k="w" inputmode="decimal" value="${esc(w.w)}" aria-label="${tr("Deraza eni")}">×<input class="inp numin" id="w-${i}-h" data-win="${i}" data-k="h" inputmode="decimal" value="${esc(w.h)}" aria-label="${tr("Deraza balandligi")}"><span class="m2" id="w-${i}-a"></span><button class="x" data-act="delWin" data-i="${i}" aria-label="${tr("Derazani olib tashlash")}">×</button></span>`).join("")}
+     <button class="btn sm" data-act="addWin">${tr("+ Deraza")}</button></div>
+     <p class="note opsum" id="wins-sum"></p></fieldset>
     <fieldset><legend class="eyebrow">${tr("Qoplamalar")}</legend>
      <div class="grid3 g-stack">
-      <label class="fld">${tr("Pol")}<select class="inp" id="r-floor" data-f="floor">${opt(FLOOR,r.floor)}</select></label>
-      <label class="fld">${tr("Devor")}<select class="inp" id="r-wall" data-f="wall">${opt(WALL,r.wall)}</select></label>
-      <label class="fld">${tr("Shift")}<select class="inp" id="r-ceil" data-f="ceil">${opt(CEIL,r.ceil)}</select></label>
+      <div class="fcol"><label class="fld">${tr("Pol")}<select class="inp" id="r-floor" data-f="floor">${opt(FLOOR,r.floor)}</select></label>
+       <div class="fdims">${fdim("fL","L","Uzunligi")}${fdim("fW","W","Eni")}</div></div>
+      <div class="fcol"><label class="fld">${tr("Devor")}<select class="inp" id="r-wall" data-f="wall">${opt(WALL,r.wall)}</select></label>
+       <div class="fdims">${fdim("wL","L","Uzunligi")}${fdim("wW","W","Eni")}${fdim("wH","H","Balandligi")}</div></div>
+      <div class="fcol"><label class="fld">${tr("Shift")}<select class="inp" id="r-ceil" data-f="ceil">${opt(CEIL,r.ceil)}</select></label>
+       <div class="fdims">${fdim("cL","L","Uzunligi")}${fdim("cW","W","Eni")}</div></div>
      </div>
+     <p class="note" style="margin:0">${tr("Qoplama o'lchami, m: bo'sh qoldirilsa — xonaning o'lchami olinadi.")}</p>
      <div class="grid3 g-stack">
       <label class="fld">${tr("Devordagi kafel uzunligi, m")}<input class="inp numin" id="r-tileLen" data-f="tileLen" inputmode="decimal" value="${esc(r.tileLen)}" placeholder="0"></label>
       <label class="fld">${tr("Kafel balandligi, m")}<input class="inp numin" id="r-tileH" data-f="tileH" inputmode="decimal" value="${esc(r.tileH)}" placeholder="0"></label>
@@ -152,14 +182,24 @@ function renderCatItems(){
   else{const g=CATALOG.find(g=>g.g===S.ui.grp);html=g?`<div class="catgrid">${g.items.map(it=>card(it)).join("")}</div>`:sugg()}
   box.innerHTML=html;
 }
+// eshik/deraza yonidagi m² va jami; qoplama o'lchamlari placeholder'i (xona o'lchami)
+function updOpenings(r,c){const m2=U("m²");const set=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t};
+  r.doors.forEach((d,i)=>set(`d-${i}-a`,`= ${fd(openA(d)*doorQ(d))} ${m2}`));
+  r.windows.forEach((w,i)=>set(`w-${i}-a`,`= ${fd(openA(w))} ${m2}`));
+  const dq=sum(r.doors.map(doorQ));
+  set("doors-sum",r.doors.length?tr("Jami: {0} ta eshik, {1} m²",fd(dq,Number.isInteger(dq)?0:2),fd(c.doorA)):"");
+  set("wins-sum",r.windows.length?tr("Jami: {0} ta deraza, {1} m²",r.windows.length,fd(c.winA)):"");
+  document.querySelectorAll("[data-ph]").forEach(el=>{el.placeholder=r[el.dataset.ph]??""});
+}
 function renderDerived(){
-  const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);
+  const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);updOpenings(r,c);
   const autoRows=c.lines.map(l=>{const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)} <span class="tag auto">${tr("avto")}</span></div><div class="itemsub">${esc(l.sub)}</div></td><td class="num r c-qty" data-l="${tr("Miqdor")}">${fd(l.qty)} ${esc(U(l.unit))}</td><td class="num r c-price" data-l="${tr("Narx")}">${fmt(l.price)}</td><td class="num r c-sum" data-l="${tr("Jami")}">${fmt(t.tot)}</td><td class="c-del"></td></tr>`}).join("");
   const itemRows=r.items.map(it=>{const l=itemLine(it);const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)}${it.custom?` <span class="tag own">${tr("o'zim qo'shdim")}</span>`:""}</div><div class="itemsub">${esc(l.sub)||"&nbsp;"}</div></td>
-    <td class="num r c-qty" data-l="${tr("Miqdor")}"><input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}"> <span class="note">${esc(U(it.unit))}</span></td>
+    <td class="num r c-qty" data-l="${tr("Miqdor")}">${stepper(`<input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}">`,`iq-${it.uid}`,1)} <span class="note">${esc(U(it.unit))}</span></td>
     <td class="r c-price" data-l="${tr("Narx, so'm")}"><input class="inp numin price" id="ip-${it.uid}" data-it="${it.uid}" data-k="price" inputmode="decimal" value="${esc(it.price)}" aria-label="${tr("Narx")}"></td>
     <td class="num r c-sum" data-l="${tr("Jami")}" id="is-${it.uid}">${fmt(t.tot)}</td><td class="c-del"><button class="btn ghost sm" data-act="delItem" data-uid="${it.uid}" aria-label="${tr("O'chirish")}">×</button></td></tr>`}).join("");
-  box.innerHTML=`<div class="metrics">
+  box.innerHTML=`<div class="panel roomplan" aria-hidden="true">${planSvg(num(r.L),num(r.W))}</div>
+   <div class="metrics">
     <div class="metric"><div class="v">${fd(c.floorA)}<small>${U("m²")}</small></div><div class="k">${tr("Pol maydoni")}</div></div>
     <div class="metric"><div class="v">${fd(c.perim)}<small>${U("m")}</small></div><div class="k">${tr("Perimetr")}</div></div>
     <div class="metric"><div class="v">${fd(c.wallNet)}<small>${U("m²")}</small></div><div class="k">${tr("Devor (sof)")}</div></div>
@@ -257,7 +297,7 @@ function sheetRooms(){const R=[];const N=16;let sumF=0,sumW=0,sumP=0,sumT=0;
   const head=R.length;
   R.push(["№",tr("Xona"),tr("Xona turi"),tr("Uzunligi, m"),tr("Eni, m"),tr("Balandligi, m"),tr("Pol maydoni, m²"),tr("Perimetr, m"),tr("Devor (sof), m²"),tr("Plintus, m"),tr("Eshiklar"),tr("Derazalar"),tr("Pol"),tr("Devor"),tr("Shift"),tr("Jami, so'm")].map(h=>XC(h,null,"head")));
   S.rooms.forEach((r,i)=>{const c=roomCalc(r);const tot=roomTotal(r);sumF+=c.floorA;sumW+=c.wallNet;sumP+=c.pl;sumT+=tot;
-    R.push([XC(i+1,"int"),XC(r.name),XC(rtLabel(r.type)),XC(r2(num(r.L)),"dec2"),XC(r2(num(r.W)),"dec2"),XC(r2(num(r.H)),"dec2"),XC(r2(c.floorA),"dec2"),XC(r2(c.perim),"dec2"),XC(r2(c.wallNet),"dec2"),XC(r2(c.pl),"dec2"),XC(r.doors.length,"int"),XC(r.windows.length,"int"),XC(lab(FLOOR[r.floor])),XC(lab(WALL[r.wall])),XC(lab(CEIL[r.ceil])),XC(Math.round(tot),"money","b")])});
+    R.push([XC(i+1,"int"),XC(r.name),XC(rtLabel(r.type)),XC(r2(num(r.L)),"dec2"),XC(r2(num(r.W)),"dec2"),XC(r2(num(r.H)),"dec2"),XC(r2(c.floorA),"dec2"),XC(r2(c.perim),"dec2"),XC(r2(c.wallNet),"dec2"),XC(r2(c.pl),"dec2"),XC(sum(r.doors.map(doorQ)),"int"),XC(r.windows.length,"int"),XC(lab(FLOOR[r.floor])),XC(lab(WALL[r.wall])),XC(lab(CEIL[r.ceil])),XC(Math.round(tot),"money","b")])});
   R.push(xlRow(N,"grand",{1:[tr("JAMI")],6:[r2(sumF),"dec2"],8:[r2(sumW),"dec2"],9:[r2(sumP),"dec2"],15:[Math.round(sumT),"money"]}));
   return{name:tr("Xonalar"),cols:[5,24,18,11,9,12,14,12,14,11,10,11,14,24,18,16],rows:R,freeze:head+1,table:[head,R.length-1]};
 }
@@ -377,7 +417,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "syncPrices":if(!S.ui.confirmSync){S.ui.confirmSync=true;render();break}
     defaultPrices().forEach(np=>{const p=S.prices.find(x=>x.id===np.id);if(p)Object.assign(p,{n:np.n,u:np.u,g:np.g,src:np.src,s:np.s});else S.prices.push(np)});
     S.ui.confirmSync=false;render();toast(tr("Manba narxlari yangilandi"));break;
-   case "addDoor":r.doors.push("0,9");render();$("#d-"+(r.doors.length-1))?.select();break;
+   case "addDoor":r.doors.push(mkDoor(b.dataset.t));render();$("#d-"+(r.doors.length-1)+"-w")?.select();break;
    case "delDoor":r.doors.splice(+b.dataset.i,1);render();break;
    case "addWin":r.windows.push({w:"1,2",h:"1,4"});render();$("#w-"+(r.windows.length-1)+"-w")?.select();break;
    case "delWin":r.windows.splice(+b.dataset.i,1);render();break;
@@ -395,6 +435,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "smetaView":S.ui.smetaView=b.dataset.k;render();break;
    case "xlSheet":S.ui.xlSheet=+b.dataset.i;render();break;
    case "copyTxt":copy(smetaTxt());break;
+   case "step":stepInput(document.getElementById(b.dataset.for),+b.dataset.d);break;
   }
 });
 document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
@@ -403,7 +444,7 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
   if(t.closest("#modal")){if(t.id==="m-variant"){const c=CAT_INDEX[M.cid];$("#m-price").value=c.v[+t.value][1]}updModalSum();return}
   if(t.dataset.f&&r){r[t.dataset.f]=t.value;S.sample=false;if(t.dataset.f==="name"){const b=document.querySelector(`.roombtn[data-id="${r.id}"] b`);if(b)b.textContent=t.value}
     renderDerived();renderTotal();save();return}
-  if(t.dataset.door!=null){r.doors[+t.dataset.door]=t.value;renderDerived();renderTotal();save();return}
+  if(t.dataset.door!=null){r.doors[+t.dataset.door][t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
   if(t.dataset.win!=null){r.windows[+t.dataset.win][t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
   if(t.dataset.it){const it=r.items.find(i=>i.uid===t.dataset.it);if(it){it[t.dataset.k]=t.value;const el=$("#is-"+it.uid);if(el)el.textContent=fmt(lineTotals(itemLine(it)).tot)}renderTotal();save();return}
   if(t.dataset.c){const c=S.concrete.find(x=>x.id===t.dataset.c);c[t.dataset.k]=t.value;if(t.dataset.rerender){render();}renderConcreteDerived();renderTotal();save();return}

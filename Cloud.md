@@ -108,9 +108,9 @@ SmetaGO/
 │       ├── js/pwa.js            # SW ro'yxatdan o'tkazish, o'rnatish, oflayn belgisi
 │       ├── js/i18n.js           # LANG, RU lug'ati, tr(), U() birliklar, lab(), qLabel()
 │       ├── js/data.js           # FLOOR/WALL/CEIL, MIX, REGIONS, QUARTERS + zaxira katalog (REF bo'lmasa)
-│       ├── js/calc.js           # hisob yadrosi: helperlar, roomCalc, concreteCalc, buildSmeta (app.js va landing.js uchun umumiy)
+│       ├── js/calc.js           # hisob yadrosi (roomCalc, lineTotals…), planSvg (o'lcham chiziqli reja), stepInput (+/−) — ilova va bosh sahifa uchun umumiy
 │       ├── js/app.js            # ilova: holat S, chizish, hodisalar, oflayn navbat, Excel, namuna rejimi, qoralama
-│       ├── js/landing.js        # bosh sahifadagi jonli kalkulyator
+│       ├── js/landing.js        # bosh sahifadagi jonli kalkulyator (xona turi tugmalari, ±, qoplamalar, reja, qatorlar, jami)
 │       └── icons/               # icon.svg, maskable.svg, *.png (192, 512, maskable, apple-touch, favicon)
 └── smetago-project/smetago-project/   # asl statik MVP (tegilmaydi); docs/ ichida formulalar va arxitektura
 ```
@@ -123,7 +123,8 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 
 ### 5.1 Ma'lumot oqimi
 1. `GET /obyekt/<id>/` → `app.html`. Ichiga ikkita JSON joylanadi: `#smeta-state` (obyekt holati `S`) va `#smeta-ref` (`build_reference(lang)` — joriy tildagi katalog, narxlar, xona turlari). `window.SMETAGO = {saveUrl, csrf, name, updated}`.
-2. Skriptlar tartibi: `i18n.js` → `data.js` → `calc.js` → `app.js` (bosh sahifada `app.js` o'rniga `landing.js`). **Tartibni o'zgartirmang.**
+2. Skriptlar tartibi: `i18n.js` → `data.js` → `calc.js` → `app.js` (bosh sahifada `app.js` o'rniga `landing.js`). **Tartibni o'zgartirmang.** Hisob mantig'i faqat `calc.js` da — bosh sahifa va ilova bir xil raqam chiqaradi.
+   Dizayn — "chizma" (blueprint): millimetrovka fon (`--grid-minor/major`), JetBrains Mono raqamlar, `--dim` rangli o'lcham chiziqlari. Telefonda: pastki panel (`#bnav`), +/− (`stepper()`), 18 px inputlar.
    - **Formulalar faqat `calc.js` da.** Bosh sahifa kalkulyatori ham shu funksiyalarni chaqiradi — saytdagi summa ilovadagi bilan aynan bir xil (e2e sinovda tekshiriladi). Formulani boshqa joyga nusxalamang.
    - **Namuna** (`/namuna/`, `o=None`): `window.SMETAGO` yo'q, `SMETAGO_DEMO` bor → holat `localStorage["smetago-namuna"]`, Excel `POST /api/excel/` (anonim, CSRF bilan, hech narsa saqlanmaydi). `?tab=smeta` bo'limni ochadi.
    - **Qoralama:** `landing.js` "Saqlash" da `localStorage["smetago-draft"]` ({ts, room}) yozadi → obyektlar ro'yxatida banner → yangi **bo'sh** obyekt ochilganda `applyDraft()` birinchi xonaga qo'yadi va o'chiradi (7 kun amal qiladi).
@@ -133,6 +134,9 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 
 ### 5.2 Invariantlar
 - **Holatda kalitlar har doim o'zbekcha**: xona turi (`room.type = "Mehmonxona"`), birlik (`"dona"`, `"m²"`), material guruhi (`"Pol"`), hudud (`"Toshkent sh."`), chorak (`"2026-yil III chorak"`). Tarjima faqat ko'rsatishda: `tr()`, `U()`, `rtLabel()`, `qLabel()`. Shu sabab tilni istalgan payt almashtirish obyektni buzmaydi. Hisoblash mantiqi ham shu kalitlarga tayanadi (masalan, `pp.u==="dona"`).
+- **Eshik** — `{t, w, h, q}`: turi (`DOOR_TYPES` dagi o'zbekcha nom, bo'sh = tanlanmagan), eni, bo'yi va soni (bo'sh = 1). `eni × soni` plintusdan, `eni × bo'yi × soni` devordan ayiriladi. Eshik/deraza yonida m² ko'rsatiladi (`updOpenings`).
+- **Qoplama o'lchami** — xonada ixtiyoriy `fL/fW` (pol), `wL/wW/wH` (devor), `cL/cW` (shift). Bo'sh bo'lsa xonaning `L/W/H` olinadi (`roomCalc` → `dim()`). Plintus pol perimetridan hisoblanadi. Smeta qatorida aniq o'lchov va zaxira alohida yoziladi: `20,00 m² + 10% = 22,00 m²`.
+- **Shift `shift_boyoq`** kaliti endi "Suv emulsiyali bo'yoq" (kalit eski obyektlar uchun saqlangan). Yangi materiallar (`relin`, `shift_moyli`, `shift_akril`, `plastik_shift`) mavjud bazalarga `0007` migratsiyasi (`sync_materials`) orqali qo'shiladi; seed'ga material qo'shsangiz, xuddi shunday migratsiya yozing. Eski obyektlarda eshik faqat eni edi (`"0,9"`) — yuklanganda `mkDoor("", eni)` ga aylantiriladi (bo'yi `DOOR_H`), shuning uchun `v` o'zgarmadi. Eshik turi hozircha narxga ta'sir qilmaydi.
 - **Katalog elementi `key` va material `key`** yaratilgandan keyin o'zgarmaydi: ular saqlangan obyektlarda (`item.cid`) va `data.js` dagi `FLOOR/WALL/CEIL` (`pid`, `pl`) da ishlatiladi. Admin'da faqat o'qiladi.
 - **Xonaga qo'shilgan element** o'z nusxasini saqlaydi (nom, narx, soat). Ma'lumotnoma o'zgarsa, eski smetalar o'zgarmaydi. Katalog elementi nomi ko'rsatishda joriy tildan olinadi (`itemName()`); variant (turi) qo'shilgan paytdagi tilda qoladi.
 - **Holat versiyasi `v: 1`.** Tuzilma o'zgarsa — `v: 2` va `app.js` da migratsiya kodi (qarang: `docs/ARXITEKTURA.md` 5-bo'lim). Server `v != 1` ni rad etadi (`views.obyekt_state`) — birga yangilang.
@@ -223,7 +227,7 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
 
 | Ustuvorlik | Vazifa | Izoh |
 | --- | --- | --- |
-| 1 | **Serverga joylash (HTTPS + domen)** | PWA'ni telefonga o'rnatish uchun shart. Taklif: PythonAnywhere yoki Render. `whitenoise`, `DEBUG=0`, maxfiy kalit, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `collectstatic`. Ishlab chiqarishda SQLite o'rniga PostgreSQL ko'rib chiqilsin. Domen `.uz` — cctld.uz ro'yxatidagi registrator orqali. |
+| 1 | ~~Serverga joylash~~ — **bajarildi (2026-09-28)**, qarang: 9-bo'lim | Qolgani: o'z domeni (`.uz`, cctld.uz registratori orqali) va kerak bo'lsa SQLite o'rniga PostgreSQL. |
 | 2 | **Hamkorni qo'shish** | Foydalanuvchi `ikrombekmurodov7@gmail.com` egasini repoga qo'shmoqchi. Bu pochta bilan GitHub hisobi topilmadi (pochta yashirin). **GitHub login kerak** — foydalanuvchidan so'rang, taxmin qilmang. Keyin: `gh api -X PUT repos/baxtiyorjumaboyev/SmetaGO/collaborators/<login> -f permission=push`. |
 | 3 | PDF yuklab olish | Excel tayyor (5.5). PDF hali yo'q. |
 | 4 | Play Market | Serverga joylangach, PWA'ni TWA (Bubblewrap / PWABuilder) bilan paketlash; `assetlinks.json` kerak. |
@@ -239,7 +243,26 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
 
 ---
 
-## 9. Hisob va kirish ma'lumotlari
+## 9. Server (production)
+
+- **Manzil:** https://smetago.169-58-130-201.nip.io — server `169.58.130.201` (Ubuntu 24.04). **Server umumiy**: unda 30+ boshqa loyiha ishlaydi — faqat SmetaGO'ga tegishli narsalarni o'zgartiring.
+- **Ilova:** `/opt/smetago` (git clone, egasi `smetago` tizim foydalanuvchisi), `.venv`, baza `db.sqlite3`, sozlamalar `.env` (chmod 600: `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`, `DJANGO_BEHIND_PROXY=1`).
+- **Xizmat:** `smetago.service` (systemd) — gunicorn `172.18.0.1:8510`, 2 worker. Log: `journalctl -u smetago -f`.
+- **Proksi:** umumiy Caddy konteyneri `coach-caddy-1`, fayl `/opt/coach/deploy/Caddyfile` (oxirida SmetaGO bloki). Faylni faqat `>>` bilan yoki joyida tahrirlang — u konteynerga bind-mount qilingan, `sed -i` inode'ni almashtirib, bog'lanishni uzadi. Tekshirish va qo'llash: `docker exec coach-caddy-1 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`, keyin `caddy reload`.
+- **Firewall:** `ufw allow from 172.18.0.0/16 to any port 8510` — port faqat Caddy uchun ochiq, internetdan yopiq.
+- **Yangilash** (GitHub'ga push'dan keyin):
+  ```bash
+  cd /opt/smetago && sudo -u smetago git pull --ff-only \
+   && sudo -u smetago .venv/bin/pip install -q -r requirements.txt \
+   && sudo -u smetago bash -c 'set -a; . ./.env; set +a; .venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py collectstatic --noinput' \
+   && systemctl restart smetago
+  ```
+- Admin: `cd /opt/smetago && sudo -u smetago bash -c 'set -a; . ./.env; set +a; .venv/bin/python manage.py createsuperuser'`.
+- Zaxira: `db.sqlite3` ni vaqti-vaqti bilan nusxalang (hali avtomatlashtirilmagan).
+
+---
+
+## 10. Hisob va kirish ma'lumotlari
 
 - GitHub: `baxtiyorjumaboyev`. Repo commit muallifi repo-local `git config` da sozlangan. Yangi muhitda `git config user.name` / `user.email` ni qayta sozlang (foydalanuvchidan so'rang).
 - Parollar, tokenlar va `SECRET_KEY` bu faylda **yo'q va bo'lmasligi kerak** — repo public.

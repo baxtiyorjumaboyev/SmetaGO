@@ -7,12 +7,14 @@ key_validator = RegexValidator(r"^[a-z0-9_]+$", "Faqat kichik lotin harflari, ra
 # Kalitlar js/data.js dagi FLOOR / WALL / CEIL bilan bir xil bo'lishi shart:
 # qoplama formulalari frontendda, bu yerda faqat xona turi uchun standart tanlov.
 FLOOR_CHOICES = [("laminat", "Laminat"), ("kafel", "Kafel"), ("linoleum", "Linoleum"),
-                 ("parket", "Parket"), ("yoq", "O'zgarmaydi")]
+                 ("relin", "Relin"), ("parket", "Parket"), ("yoq", "O'zgarmaydi")]
 WALL_CHOICES = [("boyoq", "Bo'yoq (shpaklyovka bilan)"), ("oboy", "Oboy"),
                 ("kafel", "Kafel (to'liq balandlik)"), ("gipsokarton", "Gipsokarton"),
                 ("yoq", "O'zgarmaydi")]
-CEIL_CHOICES = [("shift_boyoq", "Bo'yoq"), ("natyajnoy", "Natyajnoy shift"),
-                ("gipsokarton", "Gipsokarton"), ("armstrong", "Armstrong"), ("yoq", "O'zgarmaydi")]
+CEIL_CHOICES = [("shift_boyoq", "Suv emulsiyali bo'yoq"), ("shift_moyli", "Moyli bo'yoq"),
+                ("shift_akril", "Akril bo'yoq"), ("natyajnoy", "Natyajnoy shift"),
+                ("gipsokarton", "Gipsokarton"), ("armstrong", "Armstrong"),
+                ("plastik", "Plastik shift"), ("yoq", "O'zgarmaydi")]
 UNIT_CHOICES = [(u, u) for u in ("dona", "m", "m²", "m³", "kg", "seksiya", "komplekt")]
 
 

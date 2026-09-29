@@ -43,11 +43,13 @@
  },
  "materials": {
   "sement": "Цемент", "sheben": "Щебень", "qum": "Песок", "suv": "Вода",
-  "laminat": "Ламинат", "kafel_pol": "Плитка (пол)", "linoleum": "Линолеум", "parket": "Паркет",
+  "laminat": "Ламинат", "kafel_pol": "Плитка (пол)", "linoleum": "Линолеум", "relin": "Релин", "parket": "Паркет",
   "plintus_pvc": "Плинтус ПВХ, 2,5 м", "plintus_yogoch": "Плинтус деревянный, 2,5 м", "plintus_kafel": "Плиточный плинтус",
   "boyoq_devor": "Краска для стен + шпаклёвка", "oboy": "Обои", "kafel_devor": "Плитка (стены)",
-  "gipsokarton": "Гипсокартон (с каркасом)", "shift_boyoq": "Краска для потолка",
-  "natyajnoy": "Натяжной потолок", "armstrong": "Потолок Армстронг"
+  "gipsokarton": "Гипсокартон (с каркасом)", "shift_boyoq": "Водоэмульсионная краска (потолок)",
+  "shift_moyli": "Масляная краска (потолок)", "shift_akril": "Акриловая краска (потолок)",
+  "natyajnoy": "Натяжной потолок", "armstrong": "Потолок Армстронг",
+  "plastik_shift": "Пластиковый потолок (ПВХ панели)"
  },
  "sources": {
   "Quvasoy · Jizzax · Ohangaron": "Кувасай · Джизак · Ахангаран",

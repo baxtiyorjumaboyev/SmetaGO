@@ -1,7 +1,10 @@
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import path, reverse_lazy
 
 from . import views
+
+# Parolni tiklash: email -> bir martalik havola -> yangi parol (Django'ning o'z mexanizmi)
+R = "registration/"
 
 urlpatterns = [
     path("", views.obyekt_list, name="obyekt_list"),
@@ -18,4 +21,16 @@ urlpatterns = [
     path("kirish/", auth_views.LoginView.as_view(), name="login"),
     path("chiqish/", auth_views.LogoutView.as_view(), name="logout"),
     path("royxatdan-otish/", views.register, name="register"),
+    path("parol-tiklash/", auth_views.PasswordResetView.as_view(
+        template_name=R + "parol_tiklash.html",
+        email_template_name=R + "parol_tiklash_email.txt",
+        subject_template_name=R + "parol_tiklash_mavzu.txt",
+        success_url=reverse_lazy("password_reset_done")), name="password_reset"),
+    path("parol-tiklash/yuborildi/", auth_views.PasswordResetDoneView.as_view(
+        template_name=R + "parol_tiklash_yuborildi.html"), name="password_reset_done"),
+    path("parol-tiklash/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(
+        template_name=R + "parol_tiklash_yangi.html",
+        success_url=reverse_lazy("password_reset_complete")), name="password_reset_confirm"),
+    path("parol-tiklash/tayyor/", auth_views.PasswordResetCompleteView.as_view(
+        template_name=R + "parol_tiklash_tayyor.html"), name="password_reset_complete"),
 ]

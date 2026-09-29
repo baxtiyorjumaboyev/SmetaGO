@@ -38,6 +38,19 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# Serverda statik fayllarni whitenoise beradi (DEBUG=0). Lokal muhitda o'rnatilmagan
+# bo'lsa — o'tkazib yuboriladi, runserver statikani o'zi beradi.
+try:
+    import whitenoise  # noqa: F401
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+except ImportError:
+    pass
+
+# Teskari proksi (Caddy/nginx) orqasida: HTTPS ni X-Forwarded-Proto dan bilamiz.
+if os.environ.get("DJANGO_BEHIND_PROXY") == "1":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = True
+
 ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
@@ -50,6 +63,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.template.context_processors.i18n",
                 "smeta.pwa.pwa_context",
+                "smeta.context.site",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -84,6 +98,23 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Email (parolni tiklash havolasi). Serverda .env orqali: DJANGO_EMAIL_HOST, DJANGO_EMAIL_PORT,
+# DJANGO_EMAIL_HOST_USER, DJANGO_EMAIL_HOST_PASSWORD, DJANGO_EMAIL_USE_SSL / _TLS, DJANGO_DEFAULT_FROM_EMAIL.
+# EMAIL_HOST berilmasa — xat yuborilmaydi, terminalga (konsolga) chiqariladi.
+EMAIL_HOST = os.environ.get("DJANGO_EMAIL_HOST", "")
+if EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_PORT = int(os.environ.get("DJANGO_EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.environ.get("DJANGO_EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_SSL = os.environ.get("DJANGO_EMAIL_USE_SSL") == "1"
+    EMAIL_USE_TLS = not EMAIL_USE_SSL and os.environ.get("DJANGO_EMAIL_USE_TLS", "1") == "1"
+    EMAIL_TIMEOUT = 20
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_DEFAULT_FROM_EMAIL", "SmetaGo <noreply@smetago.local>")
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24  # tiklash havolasi 24 soat amal qiladi
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "obyekt_list"

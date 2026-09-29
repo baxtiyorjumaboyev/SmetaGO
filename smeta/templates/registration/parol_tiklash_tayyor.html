@@ -1,0 +1,9 @@
+{% extends "smeta/base.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Parol o'zgartirildi" %} · SmetaGo{% endblock %}
+{% block content %}
+<div class="panel pad stack auth">
+  <h1>{% t "Parol o'zgartirildi" %}</h1>
+  <p>{% t "Endi yangi parol bilan kirishingiz mumkin." %}</p>
+  <a class="btn pri" href="{% url 'login' %}">{% t "Kirish" %}</a>
+</div>
+{% endblock %}

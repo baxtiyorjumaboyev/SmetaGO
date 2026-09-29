@@ -2,13 +2,13 @@ import json
 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.utils.http import content_disposition_header
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .excel import build_workbook
+from .forms import RegisterForm
 from .i18n import current_lang, tr
 from .malumotnoma import cached_reference
 from .models import Obyekt
@@ -126,7 +126,7 @@ def obyekt_excel(request, pk):
 def register(request):
     if request.user.is_authenticated:
         return redirect("obyekt_list")
-    form = UserCreationForm(request.POST or None)
+    form = RegisterForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.save()
         login(request, user)

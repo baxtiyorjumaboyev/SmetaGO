@@ -28,7 +28,7 @@ const RU={
  // narx tanlovi
  "o'rtacha":"средняя","eng arzon":"самая низкая","eng qimmat":"самая высокая","{0} narx":"цена: {0}",
  // hisob qatorlari
- "Pol qoplamasi: {0}":"Покрытие пола: {0}","{0} m² + {1}% zaxira":"{0} м² + {1}% запас",
+ "Pol qoplamasi: {0}":"Покрытие пола: {0}","{0} dona × {1} m":"{0} шт. × {1} м",
  "Plintus: {0}":"Плинтус: {0}","{0} m (qo'lda o'lchangan)":"{0} м (измерено вручную)",
  "eshiklar":"двери","kafel":"плитка","Devor: {0}":"Стены: {0}",
  "{0} m² (eshik va derazalarsiz)":"{0} м² (без дверей и окон)","Devor: kafel qismi":"Стены: участок плитки",
@@ -45,8 +45,12 @@ const RU={
  "Tasdiqlang: hammasi o'chadi":"Подтвердите: всё будет удалено",
  "Xona nomi":"Название комнаты","O'chirishni tasdiqlang":"Подтвердите удаление","Xonani o'chirish":"Удалить комнату",
  "O'lchamlar, metr":"Размеры, метры","Uzunligi":"Длина","Eni":"Ширина","Balandligi":"Высота",
- "Eshiklar — eni, m (plintusdan ayiriladi)":"Двери — ширина, м (вычитается из плинтуса)",
- "{0}-eshik eni":"Ширина двери {0}","Eshikni olib tashlash":"Убрать дверь","+ Eshik":"+ Дверь",
+ "Eshiklar — turi, eni × bo'yi, m (eni plintusdan ayiriladi)":"Двери — тип, ширина × высота, м (ширина вычитается из плинтуса)",
+ "Soni":"Количество","Jami: {0} ta eshik, {1} m²":"Итого: дверей {0}, {1} м²","Jami: {0} ta deraza, {1} m²":"Итого: окон {0}, {1} м²",
+ "Qoplama o'lchami, m: bo'sh qoldirilsa — xonaning o'lchami olinadi.":"Размеры отделки, м: если пусто — берутся размеры комнаты.",
+ "Eshik turi":"Тип двери","Turi?":"Тип?","Eshik eni":"Ширина двери","Eshik bo'yi":"Высота двери","Eshikni olib tashlash":"Убрать дверь",
+ "Akfa alyumin":"Akfa алюминий","Akfa PVX":"Akfa ПВХ","MDF yog'och":"МДФ (дерево)","Temir eshik":"Металлическая дверь",
+ "Yog'och eshik":"Деревянная дверь","Vitrajli eshik":"Витражная дверь",
  "Derazalar — eni × balandligi, m":"Окна — ширина × высота, м","Deraza eni":"Ширина окна",
  "Deraza balandligi":"Высота окна","Derazani olib tashlash":"Убрать окно","+ Deraza":"+ Окно",
  "Qoplamalar":"Отделка","Devordagi kafel uzunligi, m":"Длина плитки на стене, м",

@@ -1,7 +1,7 @@
 /* SmetaGo service worker (smeta/pwa.py beradi, /sw.js). Versiya: {{ version }}
  * - statik fayllar: avval kesh (versiya almashsa kesh yangilanadi)
  * - sahifalar: avval tarmoq, internet yo'q bo'lsa — oxirgi ochilgan nusxa, u ham yo'q bo'lsa — /offline/
- * - API, admin, til almashtirish: faqat tarmoq (keshlanmaydi)
+ * - API, admin, til almashtirish, parolni tiklash: faqat tarmoq (keshlanmaydi)
  * - Google Fonts: keshdan beriladi, fonda yangilanadi
  */
 const VERSION = "{{ version }}";
@@ -31,7 +31,7 @@ self.addEventListener("message", (e) => {
   if (e.data && e.data.type === "clear-pages") e.waitUntil(caches.delete(PAGE_CACHE));
 });
 
-const NETWORK_ONLY = ["/api/", "/admin/", "/i18n/", "/sw.js"];
+const NETWORK_ONLY = ["/api/", "/admin/", "/i18n/", "/sw.js", "/parol-tiklash/"];
 
 self.addEventListener("fetch", (e) => {
   const req = e.request;
