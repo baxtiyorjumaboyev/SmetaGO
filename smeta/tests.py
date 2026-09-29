@@ -2,6 +2,7 @@ import json
 
 from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -13,6 +14,7 @@ STATE = {"v": 1, "obj": {"name": "Chilonzor kvartira", "region": "Toshkent sh."}
 
 class SmetaTests(TestCase):
     def setUp(self):
+        cache.clear()  # ma'lumotnoma keshi testlar orasida o'tib ketmasin
         self.user = User.objects.create_user("ali", password="SmetaGo-2026!")
         self.c = Client()
         self.c.force_login(self.user)
@@ -131,10 +133,16 @@ class SmetaTests(TestCase):
             self.assertEqual(sorted(got["s"]), sorted(rt["s"]))
 
     def test_admin_changes_reach_app_page(self):
-        CatalogItem.objects.filter(key="divan").update(price=5100000)
-        CatalogItem.objects.filter(key="seyf").update(active=False)
-        Material.objects.filter(key="laminat").update(src1=99000)
         o = Obyekt.objects.create(owner=self.user)
+        self.c.get(reverse("obyekt_app", args=[o.pk]))  # ma'lumotnoma keshga tushadi
+        # admin kabi save() orqali o'zgartirish — kesh signal bilan tozalanishi kerak
+        for key, field, value in (("divan", "price", 5100000), ("seyf", "active", False)):
+            item = CatalogItem.objects.get(key=key)
+            setattr(item, field, value)
+            item.save()
+        lam = Material.objects.get(key="laminat")
+        lam.src1 = 99000
+        lam.save()
         page = self.c.get(reverse("obyekt_app", args=[o.pk])).content.decode()
         ref = json.loads(page.split('id="smeta-ref" type="application/json">')[1].split("</script>")[0])
         items = {it["id"]: it for g in ref["catalog"] for it in g["items"]}
@@ -267,6 +275,36 @@ class SmetaTests(TestCase):
         other = Obyekt.objects.create(owner=User.objects.create_user("begona2", password="x"))
         r = self.c.post(reverse("obyekt_excel", args=[other.pk]), json.dumps(self.XLSX_SHEETS), content_type="application/json")
         self.assertEqual(r.status_code, 404)
+
+    def test_landing_has_live_calculator(self):
+        r = Client().get("/")
+        html = r.content.decode()
+        for needle in ('id="calc"', 'id="smeta-ref"', "smeta/js/calc.js", "smeta/js/landing.js",
+                       'href="#qanday"', 'id="kim"', reverse("demo"), reverse("help"), reverse("privacy")):
+            self.assertIn(needle, html)
+        self.assertNotIn("smeta/js/app.js", html)  # og'ir ilova kodi bosh sahifada yuklanmaydi
+        self.assertNotIn("PDF", html)  # PDF funksiyasi yo'q — va'da qilinmaydi
+
+    def test_demo_page_and_public_excel(self):
+        anon = Client()
+        html = anon.get(reverse("demo")).content.decode()
+        self.assertIn("SMETAGO_DEMO", html)
+        self.assertNotIn('id="smeta-state"', html)  # namuna serverga yozilmaydi
+        self.assertIn("smeta/js/calc.js", html)
+        r = anon.post(reverse("demo_excel"), json.dumps(self.XLSX_SHEETS), content_type="application/json")
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.content.startswith(b"PK"))  # xlsx = zip
+        self.assertEqual(anon.post(reverse("demo_excel"), "{bad", content_type="application/json").status_code, 400)
+        self.assertEqual(anon.get(reverse("demo_excel")).status_code, 405)
+        strict = Client(enforce_csrf_checks=True)
+        self.assertEqual(strict.post(reverse("demo_excel"), json.dumps(self.XLSX_SHEETS), content_type="application/json").status_code, 403)
+
+    def test_help_and_privacy_pages(self):
+        for name, uz, ru in (("help", "Qanday boshlayman?", "С чего начать?"), ("privacy", "Qanday ma'lumot saqlanadi", "Какие данные хранятся")):
+            c = Client()
+            self.assertContains(c.get(reverse(name)), uz)
+            c.cookies["django_language"] = "ru"
+            self.assertContains(c.get(reverse(name)), ru)
 
     def test_csrf_required_for_save(self):
         o = Obyekt.objects.create(owner=self.user)

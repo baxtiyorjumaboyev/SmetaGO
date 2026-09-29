@@ -2,12 +2,16 @@
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
 {% include "smeta/_head.html" %}
-<title>{{ o.name }} · SmetaGo</title>
+<title>{% if o %}{{ o.name }}{% else %}{% t "Namuna smeta" %}{% endif %} · SmetaGo</title>
 </head>
-<body>
+<body{% if o %} class="in"{% endif %}>
 <header class="top">
   <div class="wrap">
+    {% if o %}
     <a class="btn sm" href="{% url 'obyekt_list' %}" title="{% t 'Barcha obyektlar' %}">←<span class="deskonly"> {% t "Obyektlar" %}</span></a>
+    {% else %}
+    <a class="btn sm" href="{% url 'obyekt_list' %}" title="{% t 'Bosh sahifa' %}">←<span class="deskonly"> {% t "Bosh sahifa" %}</span></a>
+    {% endif %}
     <div class="brand"><div class="mark">S</div><div>SmetaGo<small>{% t "o'lchang · tanlang · hisoblang" %}</small></div></div>
     <div class="objmeta">
       <input class="inp" id="o-name" data-o="name" aria-label="{% t 'Obyekt nomi' %}" placeholder="{% t 'Obyekt nomi' %}">
@@ -17,6 +21,12 @@
     {% include "smeta/_prefs.html" %}
   </div>
   <div class="ruler" aria-hidden="true"></div>
+  {% if not o %}
+  <div class="demobar"><div class="wrap">
+    <span>{% t "Bu namuna: o'zgarishlar faqat shu qurilmada saqlanadi." %}</span>
+    <a class="btn sm pri" href="{% url 'register' %}">{% t "Bepul ro'yxatdan o'tish" %}</a>
+  </div></div>
+  {% endif %}
   <nav class="wrap tabs" id="tabs" role="tablist"></nav>
 </header>
 <main class="wrap" id="app"></main>
@@ -24,8 +34,9 @@
 <nav class="bnav" id="bnav" aria-label="{% t "Bo'limlar" %}"></nav>
 <div id="modal" hidden></div>
 <div id="toast" class="toast" hidden></div>
-{{ o.state|json_script:"smeta-state" }}
 {{ ref|json_script:"smeta-ref" }}
+{% if o %}
+{{ o.state|json_script:"smeta-state" }}
 <script>
 window.SMETAGO = {
   saveUrl: "{% url 'obyekt_state' o.pk %}",
@@ -35,6 +46,10 @@ window.SMETAGO = {
   updated: "{{ o.updated|date:'c' }}"
 };
 </script>
+{% else %}
+{# Namuna (demo): holat faqat brauzerda (localStorage), Excel umumiy endpoint orqali #}
+<script>window.SMETAGO_DEMO = {xlsxUrl: "{% url 'demo_excel' %}", csrf: "{{ csrf_token }}"};</script>
+{% endif %}
 <script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
 <script src="{% static 'smeta/js/calc.js' %}"></script>

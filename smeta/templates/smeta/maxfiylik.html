@@ -1,0 +1,27 @@
+{% extends "smeta/base.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Maxfiylik" %} · SmetaGo{% endblock %}
+{% block content %}
+<article class="prose">
+  <h1>{% t "Maxfiylik" %}</h1>
+  <p>{% t "Oxirgi yangilanish: 29.09.2026" %}</p>
+
+  <h2>{% t "Qanday ma'lumot saqlanadi" %}</h2>
+  <ul>
+    <li>{% t "Hisob: login va parol. Parol ochiq holda emas, qaytarib bo'lmaydigan shifrlangan ko'rinishda (xesh) saqlanadi." %}</li>
+    <li>{% t "Obyektlaringiz: nomi, hudud, xonalar va o'lchamlar, tanlangan elementlar, narxlar va sozlamalar." %}</li>
+  </ul>
+
+  <h2>{% t "Brauzeringizda nima saqlanadi" %}</h2>
+  <ul>
+    <li>{% t "Cookie: kirish sessiyasi, xavfsizlik belgisi (CSRF) va tanlangan til." %}</li>
+    <li>{% t "Brauzer xotirasi: kunduzgi/tungi rejim tanlovi, internetsiz qilingan va hali yuborilmagan o'zgarishlar, bosh sahifadagi kalkulyator qoralamasi va namuna sahifasi holati." %}</li>
+    <li>{% t "Internetsiz ishlash uchun ochilgan sahifalar nusxasi. Hisobdan chiqqaningizda u o'chiriladi." %}</li>
+  </ul>
+
+  <h2>{% t "Kimga beriladi" %}</h2>
+  <p>{% t "Ma'lumotlaringiz sotilmaydi va uchinchi shaxslarga berilmaydi. Saytda reklama va kuzatuv (analitika) skriptlari yo'q. Shriftlar Google Fonts xizmatidan yuklanadi — bunda brauzeringiz Google serverlariga murojaat qiladi." %}</p>
+
+  <h2>{% t "Ma'lumotni o'chirish" %}</h2>
+  <p>{% t "Istalgan obyektni «Obyektlar» sahifasida o'chirishingiz mumkin. Hisobni butunlay o'chirish uchun sayt ma'muriga murojaat qiling." %}</p>
+</article>
+{% endblock %}

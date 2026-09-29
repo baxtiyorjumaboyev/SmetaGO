@@ -16,6 +16,7 @@ const RU={
  "Serverga saqlanmadi, qayta urinib ko'ring":"Не сохранено на сервере, попробуйте ещё раз",
  "Internet yo'q — o'zgarishlar qurilmada saqlandi":"Нет интернета — изменения сохранены на устройстве",
  "Aloqa tiklandi — o'zgarishlar yuborilmoqda":"Связь восстановлена — изменения отправляются",
+ "Bosh sahifada o'lchangan xona qo'shildi":"Комната с главной страницы добавлена",
  // namunaviy obyekt
  "Oyna (hammom uchun)":"Зеркало (для ванной)",
  "Namuna: 2 xonali kvartira, Chilonzor":"Пример: 2-комнатная квартира, Чиланзар",

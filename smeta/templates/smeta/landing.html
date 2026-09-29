@@ -1,103 +1,119 @@
-{% load static smeta_i18n %}<!doctype html>
-<html lang="{{ LANGUAGE_CODE }}">
-<head>
-{% include "smeta/_head.html" %}
-<title>SmetaGo — {% t "smeta kalkulyatori" %}</title>
-</head>
-{# Bosh sahifa (mehmonlar uchun): doim to'q "chizma" uslubida, ilova rejimidan qat'i nazar #}
-<body class="lp">
-<header class="lp-top">
-  <div class="lp-wrap lp-bar">
-    <a class="lp-brand" href="{% url 'obyekt_list' %}"><span class="mark">S</span><span>SmetaGo<small>{% t "o'lchang · tanlang · hisoblang" %}</small></span></a>
-    <nav class="lp-nav deskonly"><a href="#qanday">{% t "Qanday ishlaydi" %}</a><a href="#kim">{% t "Kim uchun" %}</a></nav>
-    <div class="lp-acts">
-      <form class="seg" method="post" action="{% url 'set_language' %}" aria-label="{% t 'Til' %}">{% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button name="language" value="uz" lang="uz" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}false{% else %}true{% endif %}">UZ</button>
-        <button name="language" value="ru" lang="ru" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}true{% else %}false{% endif %}">RU</button>
-      </form>
-      <a class="btn lp-ghost" href="{% url 'login' %}">{% t "Kirish" %}</a>
-      <a class="btn pri deskonly" href="{% url 'register' %}">{% t "Ro'yxatdan o'tish" %}</a>
-    </div>
-  </div>
-  <div class="lp-rule" aria-hidden="true"></div>
-</header>
+{% extends "smeta/base.html" %}{% load static smeta_i18n %}
+{% block title %}SmetaGo — {% t "smeta kalkulyatori" %}{% endblock %}
+{% block nav %}
+<nav class="sitenav deskonly" aria-label="{% t "Sahifa bo'limlari" %}">
+  <a href="#qanday">{% t "Qanday ishlaydi" %}</a>
+  <a href="#kim">{% t "Kim uchun" %}</a>
+</nav>
+{% endblock %}
+{% block main %}
+<main class="landing">
+  {# 1. Bosh qism: matn + jonli kalkulyator #}
+  <section class="hero-wrap">
+    <div class="wrap hero">
+      <div class="hero-text">
+        <p class="pill"><span class="dot" aria-hidden="true"></span>{% t "Smetachi · PTO · Pudratchi · Nazoratchi" %}</p>
+        <h1>{% t "Obyektni o'lchang —" %} <em>{% t "smeta o'zi" %}</em> {% t "tayyor bo'ladi" %}</h1>
+        <p class="lead">{% t "Xona o'lchamlarini kiriting, materiallarni katalogdan tanlang. SmetaGo hajm, narx va ish haqini hisoblab, tayyor smetani Excel'da beradi." %}</p>
+        <div class="hero-cta">
+          <a class="btn pri lg" href="{% url 'register' %}">{% t "Bepul boshlash" %} <span aria-hidden="true">→</span></a>
+          <a class="btn lg" href="{% url 'demo' %}?tab=smeta">{% t "Namuna smetani ko'rish" %}</a>
+        </div>
+        <ul class="checks">
+          <li>{% t "Telefon, planshet, kompyuter" %}</li>
+          <li>{% t "Internetsiz ishlaydi" %}</li>
+          <li>{% t "Karta talab qilinmaydi" %}</li>
+        </ul>
+      </div>
 
-<main>
-  <section class="lp-wrap lp-hero">
-    <div class="lp-hero-text">
-      <p class="lp-pill"><i></i>{% t "Smetachi · PTO · Pudratchi · Nazoratchi" %}</p>
-      <h1>{% t "Obyektni o'lchang —" %} <em>{% t "smeta o'zi" %}</em> {% t "tayyor bo'ladi" %}</h1>
-      <p class="lp-lead">{% t "Xona o'lchamlarini kiriting, materiallarni katalogdan tanlang. SmetaGo hajm, narx va ish haqini hisoblab, tayyor smetani Excel'da beradi." %}</p>
-      <div class="lp-cta">
-        <a class="btn pri lg" href="{% url 'register' %}">{% t "Bepul boshlash" %} →</a>
-        <a class="btn lg lp-ghost" href="#hisob">{% t "Hisoblab ko'rish" %}</a>
-      </div>
-      <ul class="lp-ticks">
-        <li>{% t "Telefon, planshet, kompyuter" %}</li>
-        <li>{% t "Internetsiz ishlaydi" %}</li>
-        <li>{% t "Karta talab qilinmaydi" %}</li>
-      </ul>
-    </div>
-
-    {# jonli kalkulyator: landing.js (hisob — calc.js, ilova bilan bir xil) #}
-    <div class="lp-calc" id="hisob">
-      <div class="lc-head">
-        <div><b>{% t "Xonani o'lchab ko'ring" %}</b><span>{% t "Raqamlarni o'zgartiring — natija darhol yangilanadi" %}</span></div>
-        <span class="lc-live">LIVE</span>
-      </div>
-      <div class="lc-body" id="hero-calc">
-        <div class="lc-chips" id="hc-types" role="group" aria-label="{% t 'Xona turi' %}"></div>
-        <div class="lc-inputs" id="hc-inputs"></div>
-        <div class="lc-plan" id="hc-plan" aria-hidden="true"></div>
-        <ul class="lc-lines" id="hc-lines"></ul>
-      </div>
-      <div class="lc-total">
-        <div class="lc-sum"><span>{% t "Xona bo'yicha jami" %}<small id="hc-split"></small></span><b><span id="hc-total">—</span> <small>{% t "so'm" %}</small></b></div>
-        <a class="btn pri lc-save" href="{% url 'register' %}">{% t "Smetani saqlash va Excel yuklab olish" %}</a>
-        <p>{% t "Saqlash uchun bepul ro'yxatdan o'ting · 30 soniya" %}</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="lp-sec" id="qanday">
-    <div class="lp-wrap">
-      <p class="lp-eyebrow">{% t "Qanday ishlaydi" %}</p>
-      <h2>{% t "Uch qadam — obyektdan tayyor smetagacha" %}</h2>
-      <div class="lp-steps">
-        <article><p class="lp-eyebrow">01 / {% t "O'lchang" %}</p><h3>{% t "Xonalarni kiriting" %}</h3><p>{% t "Uzunlik, eni va balandlik. Eshik va derazalarni qo'shing — maydon avtomatik ayiriladi." %}</p></article>
-        <article><p class="lp-eyebrow">02 / {% t "Tanlang" %}</p><h3>{% t "Materialni katalogdan oling" %}</h3><p>{% t "Pol, devor, shift, santexnika — joriy bozor narxlari bilan. O'z narxingizni ham kiritishingiz mumkin." %}</p></article>
-        <article><p class="lp-eyebrow">03 / {% t "Hisoblang" %}</p><h3>{% t "Smetani yuboring" %}</h3><p>{% t "Zaxira foizi, ish haqi va jami summa tayyor. Buyurtmachiga Excel'da yuboring." %}</p></article>
+      <div class="calc" id="calc" data-register="{% url 'register' %}">
+        <div class="calc-head">
+          <div>
+            <h2>{% t "Xonani o'lchab ko'ring" %}</h2>
+            <p>{% t "Raqamlarni o'zgartiring — natija darhol yangilanadi" %}</p>
+          </div>
+          <span class="live">LIVE</span>
+        </div>
+        <div class="calc-body">
+          <div class="calc-types" id="calc-types" role="group" aria-label="{% t 'Xona turi' %}"></div>
+          <div class="calc-grid">
+            <label class="fld">{% t "Uzunligi, m" %}<span class="stepper"><button type="button" data-step="L" data-d="-1" aria-label="−">−</button><input id="calc-L" data-dim="L" inputmode="decimal" value="5" aria-label="{% t 'Uzunligi, m' %}"><button type="button" data-step="L" data-d="1" aria-label="+">+</button></span></label>
+            <label class="fld">{% t "Eni, m" %}<span class="stepper"><button type="button" data-step="W" data-d="-1" aria-label="−">−</button><input id="calc-W" data-dim="W" inputmode="decimal" value="4" aria-label="{% t 'Eni, m' %}"><button type="button" data-step="W" data-d="1" aria-label="+">+</button></span></label>
+            <label class="fld">{% t "Balandligi, m" %}<span class="stepper"><button type="button" data-step="H" data-d="-1" aria-label="−">−</button><input id="calc-H" data-dim="H" inputmode="decimal" value="2,8" aria-label="{% t 'Balandligi, m' %}"><button type="button" data-step="H" data-d="1" aria-label="+">+</button></span></label>
+          </div>
+          <div class="calc-grid">
+            <label class="fld">{% t "Pol" %}<select class="inp" id="calc-floor" data-cover="floor"></select></label>
+            <label class="fld">{% t "Devor" %}<select class="inp" id="calc-wall" data-cover="wall"></select></label>
+            <label class="fld">{% t "Shift" %}<select class="inp" id="calc-ceil" data-cover="ceil"></select></label>
+          </div>
+          <div class="calc-plan" id="calc-plan" aria-hidden="true"></div>
+          <p class="note calc-assume">{% t "Hisobda 1 ta eshik (0,90 m) bor — ilovada eshik va derazalarni o'zingiz qo'shasiz." %}</p>
+          <ul class="calc-lines" id="calc-lines"></ul>
+        </div>
+        <div class="calc-foot">
+          <div class="calc-total">
+            <div><span class="eyebrow">{% t "Xona bo'yicha jami" %}</span><small id="calc-split"></small></div>
+            <b id="calc-sum"></b>
+          </div>
+          <a class="btn pri block" href="{% url 'register' %}" id="calc-save">{% t "Smetani saqlash va Excel yuklab olish" %}</a>
+          <p class="note">{% t "Saqlash uchun bepul ro'yxatdan o'ting · 30 soniya" %}</p>
+        </div>
+        <noscript><p class="note" style="padding:16px">{% t "Kalkulyator uchun JavaScript kerak." %}</p></noscript>
       </div>
     </div>
   </section>
 
-  <section class="lp-sec" id="kim">
-    <div class="lp-wrap lp-split">
-      <div><p class="lp-eyebrow">{% t "Kim uchun" %}</p><h2>{% t "Qurilishdagi har bir rol uchun bitta vosita" %}</h2></div>
-      <dl class="lp-roles">
-        <div><dt>{% t "Smetachi" %}</dt><dd>{% t "Qo'lda hisob-kitobsiz, xatosiz smeta — soatlar emas, daqiqalarda." %}</dd></div>
-        <div><dt>PTO</dt><dd>{% t "Hajmlar va formulalar ochiq — har bir raqamni tekshirish oson." %}</dd></div>
-        <div><dt>{% t "Pudratchi" %}</dt><dd>{% t "Buyurtmachiga obyektning o'zida tayyor narx taklif qiling." %}</dd></div>
-        <div><dt>{% t "Nazoratchi" %}</dt><dd>{% t "Smetadagi hajm va narxlarni bir qarashda tekshiring." %}</dd></div>
-      </dl>
+  {# 2. Qanday ishlaydi #}
+  <section class="wrap block" id="qanday">
+    <p class="kicker">{% t "Qanday ishlaydi" %}</p>
+    <h2 class="sec-title">{% t "Uch qadam — obyektdan tayyor smetagacha" %}</h2>
+    <div class="steps3">
+      <article class="step">
+        <p class="kicker">01 / {% t "O'lchang" %}</p>
+        <h3>{% t "Xonalarni kiriting" %}</h3>
+        <p>{% t "Uzunlik, eni va balandlik. Eshik va derazalarni qo'shing — maydon avtomatik ayiriladi." %}</p>
+      </article>
+      <article class="step">
+        <p class="kicker">02 / {% t "Tanlang" %}</p>
+        <h3>{% t "Materialni katalogdan oling" %}</h3>
+        <p>{% t "Pol, devor, shift, santexnika — 3 manbali narxlar bazasi bilan. O'z narxingizni ham kiritishingiz mumkin." %}</p>
+      </article>
+      <article class="step">
+        <p class="kicker">03 / {% t "Hisoblang" %}</p>
+        <h3>{% t "Smetani yuboring" %}</h3>
+        <p>{% t "Zaxira foizi, ish haqi va jami summa tayyor. Buyurtmachiga Excel faylda yuboring." %}</p>
+      </article>
     </div>
   </section>
 
-  <section class="lp-wrap">
-    <div class="lp-band">
-      <div><h2>{% t "Birinchi smetangizni bugun tuzing" %}</h2><p>{% t "Bepul — cheklovsiz hisob-kitob va Excel eksport." %}</p></div>
-      <a class="btn lg lp-dark" href="{% url 'register' %}">{% t "Bepul boshlash" %} →</a>
+  {# 3. Kim uchun #}
+  <section class="wrap block who" id="kim">
+    <div>
+      <p class="kicker">{% t "Kim uchun" %}</p>
+      <h2 class="sec-title">{% t "Qurilishdagi har bir rol uchun bitta vosita" %}</h2>
+    </div>
+    <dl class="roles">
+      <div><dt>{% t "Smetachi" %}</dt><dd>{% t "Qo'lda hisob-kitobsiz smeta — soatlar emas, daqiqalarda." %}</dd></div>
+      <div><dt>PTO</dt><dd>{% t "Hajmlar va formulalar ochiq — har bir raqamni tekshirish oson." %}</dd></div>
+      <div><dt>{% t "Pudratchi" %}</dt><dd>{% t "Buyurtmachiga obyektning o'zida tayyor narx taklif qiling." %}</dd></div>
+      <div><dt>{% t "Nazoratchi" %}</dt><dd>{% t "Hajmlarni obyektda o'lchab, smetadagi raqamlar bilan solishtiring." %}</dd></div>
+    </dl>
+  </section>
+
+  {# 4. Chaqiruv #}
+  <section class="wrap">
+    <div class="ctaband">
+      <div>
+        <h2>{% t "Birinchi smetangizni bugun tuzing" %}</h2>
+        <p>{% t "Ro'yxatdan o'tish bepul, karta talab qilinmaydi. Obyektlar soni cheklanmagan." %}</p>
+      </div>
+      <a class="btn lg dark" href="{% url 'register' %}">{% t "Bepul boshlash" %} <span aria-hidden="true">→</span></a>
     </div>
   </section>
 </main>
-
-<footer class="lp-foot"><div class="lp-wrap"><span>© 2026 SmetaGo</span><span>{% t "Narxlar namunaviy — o'z manbalaringizdagi narxlarni kiriting." %}</span></div></footer>
-
 {{ ref|json_script:"smeta-ref" }}
-<script src="{% static 'smeta/js/i18n.js' %}"></script>
-<script src="{% static 'smeta/js/data.js' %}"></script>
-<script src="{% static 'smeta/js/calc.js' %}"></script>
-<script src="{% static 'smeta/js/landing.js' %}"></script>
-</body>
-</html>
+<script src="{% static 'smeta/js/i18n.js' %}" defer></script>
+<script src="{% static 'smeta/js/data.js' %}" defer></script>
+<script src="{% static 'smeta/js/calc.js' %}" defer></script>
+<script src="{% static 'smeta/js/landing.js' %}" defer></script>
+{% endblock %}

@@ -34,6 +34,19 @@ function blank(base,name){const nr=mkRoom("Mehmonxona");return{v:1,sample:false,
 /* Django orqali ochilganda (window.SMETAGO bor) holat serverdan keladi va serverga saqlanadi.
  * Aks holda (index.html to'g'ridan-to'g'ri ochilsa) avvalgidek localStorage ishlatiladi. */
 const SERVER=window.SMETAGO||null;
+// namuna (demo) sahifasi: serversiz, holat faqat shu brauzerda; Excel — umumiy endpoint orqali
+const DEMO=window.SMETAGO_DEMO||null;
+const LKEY=DEMO?"smetago-namuna":"smetago-v1";
+const XLSX=SERVER&&SERVER.xlsxUrl?{url:SERVER.xlsxUrl,csrf:SERVER.csrf}:DEMO?{url:DEMO.xlsxUrl,csrf:DEMO.csrf}:null;
+/* Bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js, "smetago-draft") yangi bo'sh obyektga
+ * birinchi xona bo'lib tushadi — ro'yxatdan o'tgach ma'lumot yo'qolmasin. Bir marta ishlatiladi. */
+function applyDraft(st){let d=null;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
+  if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return false;
+  try{localStorage.removeItem("smetago-draft")}catch(e){}
+  const x=d.room,r=st.rooms[0],type=ROOM_TYPES[x.type]?x.type:r.type;
+  Object.assign(r,{type,name:rtLabel(type),L:String(x.L||""),W:String(x.W||""),H:String(x.H||r.H)});
+  ["floor","wall","ceil"].forEach(k=>{if(x[k]&&({floor:FLOOR,wall:WALL,ceil:CEIL})[k][x[k]])r[k]=x[k]});
+  st.ui.draftApplied=true;return true}
 /* Oflayn navbat: serverga yetib bormagan oxirgi holat qurilmada saqlanadi ({ts, state})
  * va aloqa tiklanganda yuboriladi. Serverdagi nusxa undan yangiroq bo'lsa (boshqa qurilmadan
  * o'zgartirilgan) — navbat e'tiborga olinmaydi. */
@@ -46,9 +59,9 @@ if(SERVER){
   const pend=readPending();
   if(pend&&pend.ts>(Date.parse(SERVER.updated)||0))S=pend.state;
   else if(pend){try{localStorage.removeItem(PKEY)}catch(e){}}
-  if(!S){S=sample();if(!(st&&st.namuna))S=blank(S,SERVER.name)}
+  if(!S){S=sample();if(!(st&&st.namuna)){S=blank(S,SERVER.name);applyDraft(S)}}
 }else{
-  try{const raw=localStorage.getItem("smetago-v1");S=raw?JSON.parse(raw):null}catch(e){S=null}
+  try{const raw=localStorage.getItem(LKEY);S=raw?JSON.parse(raw):null}catch(e){S=null}
   if(!S||S.v!==1)S=sample();
 }
 normState(S);
@@ -56,7 +69,7 @@ normState(S);
 if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
 let saveT=null,offlineNoted=false;
 function persist(){saveT=null;const body=JSON.stringify(S);
-  if(!SERVER){try{localStorage.setItem("smetago-v1",body)}catch(e){}return}
+  if(!SERVER){try{localStorage.setItem(LKEY,body)}catch(e){}return}
   const ts=Date.now();try{localStorage.setItem(PKEY,JSON.stringify({ts,state:S}))}catch(e){}
   fetch(SERVER.saveUrl,{method:"PUT",credentials:"same-origin",keepalive:body.length<60000,headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body})
    .then(r=>{if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status)})
@@ -294,10 +307,10 @@ function viewSheet(sheets,cur){const sh=sheets[cur]||sheets[0];const ncol=sh.col
    <div class="xl-tabs">${sheets.map((x,i)=>`<button type="button" data-act="xlSheet" data-i="${i}" aria-pressed="${sh===x}">${esc(x.name)}</button>`).join("")}</div></div>`}
 const safeFile=s=>String(s).replace(/[\\/:*?"<>|\u0000-\u001f]+/g," ").replace(/\s+/g," ").trim().slice(0,120)||"Smeta";
 async function downloadXlsx(){
-  if(!SERVER||!SERVER.xlsxUrl){toast(tr("Excel fayl uchun internet kerak"));return}
+  if(!XLSX){toast(tr("Excel fayl uchun internet kerak"));return}
   const btns=document.querySelectorAll('[data-act="xlsx"]');btns.forEach(b=>b.disabled=true);
   try{
-    const r=await fetch(SERVER.xlsxUrl,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body:JSON.stringify({sheets:xlSheets()})});
+    const r=await fetch(XLSX.url,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":XLSX.csrf},body:JSON.stringify({sheets:xlSheets()})});
     if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status);
     const blob=await r.blob();const a=document.createElement("a");a.href=URL.createObjectURL(blob);
     a.download=safeFile(`${tr("Smeta")} - ${S.obj.name} - ${todayStr()}`)+".xlsx";document.body.appendChild(a);a.click();
@@ -428,4 +441,7 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
 });
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
 
+// ?tab=smeta — kerakli bo'limni ochish (masalan, bosh sahifadagi "Namuna smetani ko'rish")
+{const q=new URLSearchParams(location.search).get("tab");if(TABS.some(([k])=>k===q))S.ui.tab=q}
 render();if(S.ui.tab==="beton")renderConcreteDerived();
+if(S.ui.draftApplied){delete S.ui.draftApplied;toast(tr("Bosh sahifada o'lchangan xona qo'shildi"))}
