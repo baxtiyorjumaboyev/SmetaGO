@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.utils.http import content_disposition_header
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .excel import build_workbook
@@ -20,8 +21,15 @@ def obyekt_list(request):
         # jonli kalkulyator uchun faqat narxlar (katalog kerak emas)
         ref = {"prices": build_reference(current_lang())["prices"]}
         return render(request, "smeta/landing.html", {"ref": ref})
+    obyektlar = list(request.user.obyektlar.all())
+    # dashboard summalari brauzerda calc.js bilan hisoblanadi (ilova bilan bir xil)
+    dash = [{"id": o.pk, "name": o.name, "url": reverse("obyekt_app", args=[o.pk]),
+             "created": o.created.isoformat(),
+             "updated": o.updated.isoformat(), "state": o.state} for o in obyektlar]
     return render(request, "smeta/obyekt_list.html", {
-        "obyektlar": request.user.obyektlar.all(),
+        "obyektlar": obyektlar,
+        "dash": dash,
+        "ref": {"prices": build_reference(current_lang())["prices"]},
     })
 
 

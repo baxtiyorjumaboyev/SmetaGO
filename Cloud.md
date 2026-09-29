@@ -122,7 +122,8 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 ### 5.1 Ma'lumot oqimi
 1. `GET /obyekt/<id>/` → `app.html`. Ichiga ikkita JSON joylanadi: `#smeta-state` (obyekt holati `S`) va `#smeta-ref` (`build_reference(lang)` — joriy tildagi katalog, narxlar, xona turlari). `window.SMETAGO = {saveUrl, csrf, name, updated}`.
 2. Skriptlar tartibi: `i18n.js` → `data.js` → `calc.js` → `app.js` (bosh sahifada `app.js` o'rniga `landing.js`). **Tartibni o'zgartirmang.** Hisob mantig'i faqat `calc.js` da — bosh sahifa va ilova bir xil raqam chiqaradi.
-   Dizayn — "chizma" (blueprint): millimetrovka fon (`--grid-minor/major`), JetBrains Mono raqamlar, `--dim` rangli o'lcham chiziqlari. Telefonda: pastki panel (`#bnav`), +/− (`stepper()`), 18 px inputlar.
+   Dizayn: **bosh sahifa** (`landing.html`, `body.lp`) — doim to'q "chizma" uslubi (o'z tokenlari `.lp` da, millimetrovka faqat `.lp-hero` da), LIVE kalkulyator (`landing.js`). **Ichki sahifalar** — dashboard uslubi: yashil gradient yuqori panel (`--hdr1/--hdr2`), oq kartalar, toza fon. **"Asosiy"** (`obyekt_list.html` + `dashboard.js`): KPI, obyektlar grafigi, xarajatlar tarkibi, bo'limlar donut (`line.cat`: pol/devor/shift/element/beton), eng katta obyektlar — summalar `buildSmeta()` bilan (ilova bilan bir xil). JetBrains Mono raqamlar, `--dim` rangli o'lcham chiziqlari. Telefonda: pastki panel (`#bnav`), +/− (`stepper()`), 18 px inputlar.
+   `calc.js` da: `normState()` (eski obyektlarni joriy tuzilishga keltirish), `buildSmeta()`, `roomCalc()`, `planSvg()` va h.k. — hisobni boshqa joyda takrorlamang.
 3. `app.js` `S` ni o'zgartiradi. `save()` 700 ms dan keyin `PUT /api/obyekt/<id>/state/` yuboradi (JSON, `v: 1` majburiy, CSRF header bilan). Server `S.obj.name` dan obyekt nomini oladi.
 4. `index.html` ni to'g'ridan-to'g'ri ochish (Djangosiz) hali ishlaydi: `SERVER` yo'q bo'lsa, `localStorage` (`smetago-v1`) ishlatiladi.
 

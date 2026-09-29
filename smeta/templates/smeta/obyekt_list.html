@@ -1,10 +1,38 @@
-{% extends "smeta/base.html" %}{% load smeta_i18n %}
-{% block title %}{% t "Obyektlar" %} · SmetaGo{% endblock %}
+{% extends "smeta/base.html" %}{% load static smeta_i18n %}
+{% block title %}{% t "Asosiy" %} · SmetaGo{% endblock %}
 {% block content %}
-<div class="stack">
-  <div class="row">
-    <h1>{% t "Obyektlar" %}</h1>
-    <div class="row" style="margin-left:auto">
+<div class="dash">
+  <div class="dash-head">
+    <div><h1>{% t "Asosiy" %}</h1><p class="ometa">{% t "{0} ta obyekt" obyektlar|length %} · {% now "d.m.Y" %}</p></div>
+    <div class="row">
+      <div class="seg dash-seg" id="dash-metric" role="group" aria-label="{% t "Ko'rsatkich" %}">
+        <button type="button" data-m="grand" aria-pressed="true">{% t "Jami" %}</button>
+        <button type="button" data-m="mat" aria-pressed="false">{% t "Material" %}</button>
+        <button type="button" data-m="lab" aria-pressed="false">{% t "Ish haqi" %}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-top">
+    <section class="dash-chart">
+      <div class="dc-head">
+        <div><span class="dc-k" id="dc-label">{% t "Smeta summasi" %}</span><b class="dc-v" id="dc-total">—</b></div>
+        <span class="dc-badge" id="dc-count"></span>
+      </div>
+      <div class="dc-svg" id="dc-svg"></div>
+    </section>
+    <div class="kpis" id="kpis"></div>
+  </div>
+
+  <div class="dash-row">
+    <section class="panel dcard"><h3>{% t "Xarajatlar tarkibi" %}</h3><p class="ometa">{% t "Barcha obyektlar" %}</p><div id="d-split"></div></section>
+    <section class="panel dcard"><h3>{% t "Bo'limlar bo'yicha" %}</h3><p class="ometa">{% t "Pol, devor, shift, elementlar, beton" %}</p><div id="d-donut" class="donut-wrap"></div></section>
+    <section class="panel dcard"><h3>{% t "Eng katta obyektlar" %}</h3><p class="ometa">{% t "Jami smeta bo'yicha" %}</p><ol id="d-top" class="toplist"></ol></section>
+  </div>
+
+  <div class="dash-head" style="margin-top:8px">
+    <h2>{% t "Obyektlar" %}</h2>
+    <div class="row">
       <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}
         <input type="hidden" name="namuna" value="1">
         <button class="btn">{% t "Namunaviy obyekt" %}</button>
@@ -20,6 +48,7 @@
     {% for o in obyektlar %}
     <article class="panel pad ocard">
       <a class="oname" href="{% url 'obyekt_app' o.pk %}">{{ o.name }}</a>
+      <b class="osum mono" data-sum="{{ o.pk }}">—</b>
       <div class="ometa">
         {% if o.region %}{% t o.region %} · {% endif %}{% t "{0} xona" o.rooms_count %}<br>
         {% t "O'zgartirilgan" %}: {{ o.updated|date:"d.m.Y H:i" }}
@@ -38,4 +67,10 @@
   </section>
   {% endif %}
 </div>
+{{ dash|json_script:"dash-data" }}
+{{ ref|json_script:"smeta-ref" }}
+<script src="{% static 'smeta/js/i18n.js' %}"></script>
+<script src="{% static 'smeta/js/data.js' %}"></script>
+<script src="{% static 'smeta/js/calc.js' %}"></script>
+<script src="{% static 'smeta/js/dashboard.js' %}"></script>
 {% endblock %}

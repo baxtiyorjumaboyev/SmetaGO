@@ -5,6 +5,11 @@
  */
 const LANG=/^ru/i.test(document.documentElement.lang||"")?"ru":"uz";
 const RU={
+ // dashboard (Asosiy)
+ "Elementlar":"Позиции","mlrd":"млрд","mln":"млн","ming":"тыс.","Jami smeta":"Итого по сметам","Obyektlar":"Объекты",
+ "O'rtacha smeta":"Средняя смета","Smeta summasi":"Сумма смет","{0} ta obyekt":"Объектов: {0}",
+ "Obyekt qo'shing — grafik shu yerda chiqadi.":"Добавьте объект — здесь появится график.","{0} ta bo'lim":"Разделов: {0}",
+ "Hali hisoblangan obyekt yo'q.":"Пока нет рассчитанных объектов.","hali ochilmagan":"ещё не открыт",
  // umumiy
  "so'm":"сум","sm":"см","Vt":"Вт","avto":"авто","qo'lda":"вручную","katalog":"каталог","ish haqi":"оплата труда",
  "Sessiya tugagan — qayta kiring":"Сессия истекла — войдите снова",

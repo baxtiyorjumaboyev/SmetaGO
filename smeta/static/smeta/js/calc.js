@@ -60,20 +60,20 @@ function roomCalc(r){
   const plAuto=Math.max(0,perim-doorsW-(r.floor==="kafel"?0:tileLen));
   const ov=String(r.plinthOv??"").trim();const pl=ov!==""?num(ov):plAuto;
   const lines=[];const F=FLOOR[r.floor],Wf=WALL[r.wall],C=CEIL[r.ceil];const m=U("m"),m2=U("m²");
-  if(F.pid&&floorA>0)lines.push({name:tr("Pol qoplamasi: {0}",lab(F)),sub:`${fd(fL)} × ${fd(fW)} = ${fd(floorA)} ${m2}${plusRes(floorA,"m²")}`,unit:"m²",qty:floorA*(1+res),price:priceOf(F.pid),hrs:floorA*F.h,src:srcLabel(F.pid),kind:"auto"});
+  if(F.pid&&floorA>0)lines.push({name:tr("Pol qoplamasi: {0}",lab(F)),sub:`${fd(fL)} × ${fd(fW)} = ${fd(floorA)} ${m2}${plusRes(floorA,"m²")}`,unit:"m²",qty:floorA*(1+res),price:priceOf(F.pid),hrs:floorA*F.h,src:srcLabel(F.pid),kind:"auto",cat:"pol"});
   if(F.pl&&pl>0){const pp=S.prices.find(p=>p.id===F.pl);const piece=num(S.settings.piece)||2.5;
     const qty=pp.u==="dona"?Math.ceil(pl*(1+res)/piece):pl*(1+res);
     const tail=pp.u==="dona"?`${plusRes(pl,"m")} → ${tr("{0} dona × {1} m",qty,fd(piece,1))}`:plusRes(pl,"m");
-    lines.push({name:tr("Plintus: {0}",lab(PLINTH_LABEL[F.pl])),sub:(ov!==""?tr("{0} m (qo'lda o'lchangan)",fd(pl)):`${fd(perim)} − ${tr("eshiklar")} ${fd(doorsW)}${tileLen&&r.floor!=="kafel"?" − "+tr("kafel")+" "+fd(tileLen):""} = ${fd(pl)} ${m}`)+tail,unit:pp.u,qty,price:priceOf(F.pl),hrs:pl*.1,src:srcLabel(F.pl),kind:"auto"})}
+    lines.push({name:tr("Plintus: {0}",lab(PLINTH_LABEL[F.pl])),sub:(ov!==""?tr("{0} m (qo'lda o'lchangan)",fd(pl)):`${fd(perim)} − ${tr("eshiklar")} ${fd(doorsW)}${tileLen&&r.floor!=="kafel"?" − "+tr("kafel")+" "+fd(tileLen):""} = ${fd(pl)} ${m}`)+tail,unit:pp.u,qty,price:priceOf(F.pl),hrs:pl*.1,src:srcLabel(F.pl),kind:"auto",cat:"pol"})}
   const paintA=r.wall==="kafel"?wallNet:Math.max(0,wallNet-tileA);
   const wRes=r.wall==="kafel"||r.wall==="oboy";
-  if(Wf.pid&&paintA>0)lines.push({name:tr("Devor: {0}",lab(Wf)),sub:tr("{0} m² (eshik va derazalarsiz)",fd(paintA))+(wRes?plusRes(paintA,"m²"):""),unit:"m²",qty:paintA*(1+(wRes?res:0)),price:priceOf(Wf.pid),hrs:paintA*Wf.h,src:srcLabel(Wf.pid),kind:"auto"});
-  if(tileA>0&&r.wall!=="kafel")lines.push({name:tr("Devor: kafel qismi"),sub:`${fd(tileLen)} ${m} × ${fd(num(r.tileH))} ${m} = ${fd(tileA)} ${m2}${plusRes(tileA,"m²")}`,unit:"m²",qty:tileA*(1+res),price:priceOf("kafel_devor"),hrs:tileA*1.1,src:srcLabel("kafel_devor"),kind:"auto"});
-  if(C.pid&&ceilA>0)lines.push({name:tr("Shift: {0}",lab(C)),sub:`${fd(cL)} × ${fd(cW)} = ${fd(ceilA)} ${m2}`,unit:"m²",qty:ceilA,price:priceOf(C.pid),hrs:ceilA*C.h,src:srcLabel(C.pid),kind:"auto"});
+  if(Wf.pid&&paintA>0)lines.push({name:tr("Devor: {0}",lab(Wf)),sub:tr("{0} m² (eshik va derazalarsiz)",fd(paintA))+(wRes?plusRes(paintA,"m²"):""),unit:"m²",qty:paintA*(1+(wRes?res:0)),price:priceOf(Wf.pid),hrs:paintA*Wf.h,src:srcLabel(Wf.pid),kind:"auto",cat:"devor"});
+  if(tileA>0&&r.wall!=="kafel")lines.push({name:tr("Devor: kafel qismi"),sub:`${fd(tileLen)} ${m} × ${fd(num(r.tileH))} ${m} = ${fd(tileA)} ${m2}${plusRes(tileA,"m²")}`,unit:"m²",qty:tileA*(1+res),price:priceOf("kafel_devor"),hrs:tileA*1.1,src:srcLabel("kafel_devor"),kind:"auto",cat:"devor"});
+  if(C.pid&&ceilA>0)lines.push({name:tr("Shift: {0}",lab(C)),sub:`${fd(cL)} × ${fd(cW)} = ${fd(ceilA)} ${m2}`,unit:"m²",qty:ceilA,price:priceOf(C.pid),hrs:ceilA*C.h,src:srcLabel(C.pid),kind:"auto",cat:"shift"});
   return{floorA,perim,ceilA,wallNet,pl,plAuto,doorsW,doorA,winA,lines};
 }
 function itemLine(it){const q=num(it.qty);const bits=[it.variant,it.dims,it.watt?it.watt+" "+tr("Vt"):"",it.note].filter(Boolean);
-  return{name:itemName(it),sub:bits.join(" · "),unit:it.unit,qty:q,price:num(it.price),hrs:q*num(it.h),src:it.custom?tr("qo'lda"):tr("katalog"),kind:it.custom?"own":"item",uid:it.uid}}
+  return{name:itemName(it),sub:bits.join(" · "),unit:it.unit,qty:q,price:num(it.price),hrs:q*num(it.h),src:it.custom?tr("qo'lda"):tr("katalog"),kind:it.custom?"own":"item",cat:"element",uid:it.uid}}
 function concreteCalc(c){
   const vol=c.mode==="dims"?num(c.L)*num(c.W)*num(c.T):num(c.V);const m=MIX[c.grade]||MIX.M200;
   const k=c.cem==="M400"?1.15:1;const cem=m[0]*k,qum=m[1],sheb=m[2],suv=m[3];const per=`${U("kg")}/${U("m³")}`;
@@ -88,3 +88,24 @@ function concreteCalc(c){
   return{vol,cem,qum,sheb,suv,lines,mat,perM3:vol>0?mat/vol:0};
 }
 function lineTotals(l){const mat=l.qty*l.price,lab=l.hrs*rate();return{mat,lab,tot:mat+lab}}
+
+// katalog elementi joriy tilda (xonaga qo'shilgan paytdagi nom — zaxira)
+const itemName=it=>(it.cid&&CAT_INDEX[it.cid]?CAT_INDEX[it.cid].n:it.name);
+function buildSmeta(){
+  const groups=[];
+  S.rooms.forEach(r=>{const c=roomCalc(r);groups.push({title:r.name,sub:`${fd(num(r.L))} × ${fd(num(r.W))} × ${fd(num(r.H))} ${U("m")}`,lines:[...c.lines,...r.items.map(itemLine)]})});
+  S.concrete.forEach(c=>{const k=concreteCalc(c);if(k.vol>0)groups.push({title:tr("Beton: {0}",c.name),sub:`${c.grade}, ${fd(k.vol)} ${U("m³")}`,lines:k.lines.map(l=>({...l,cat:"beton"}))})});
+  let mat=0,lab=0;groups.forEach(g=>{g.mat=0;g.lab=0;g.lines.forEach(l=>{const t=lineTotals(l);g.mat+=t.mat;g.lab+=t.lab});mat+=g.mat;lab+=g.lab});
+  const base=mat+lab,cont=base*num(S.settings.contingency)/100,vat=S.settings.vat?(base+cont)*.12:0;
+  return{groups,mat,lab,base,cont,vat,grand:base+cont+vat};
+}
+
+/* ---------- eski obyektlarni joriy tuzilishga keltirish (ilova va dashboard) ---------- */
+function normState(st){
+  // ma'lumotnomaga keyin qo'shilgan materiallar eski obyektlarda ham paydo bo'lsin
+  st.prices=st.prices||[];st.concrete=st.concrete||[];st.rooms=st.rooms||[];st.settings=st.settings||{...DEFAULT_SETTINGS};
+  const have=new Set(st.prices.map(p=>p.id));defaultPrices().forEach(p=>{if(!have.has(p.id))st.prices.push(p)});
+  // eski obyektlarda eshik faqat eni edi ("0,9") — turi va bo'yi bilan obyektga aylantiriladi
+  st.rooms.forEach(r=>{r.doors=(r.doors||[]).map(d=>d&&typeof d==="object"?d:mkDoor("",String(d??"")));r.windows=r.windows||[];r.items=r.items||[]});
+  return st;
+}

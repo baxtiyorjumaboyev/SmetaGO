@@ -8,8 +8,6 @@ const $=(s,r=document)=>r.querySelector(s);
 const uid=()=>Math.random().toString(36).slice(2,9);
 const SOM=tr("so'm");
 const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
-// katalog elementi joriy tilda (xonaga qo'shilgan paytdagi nom — zaxira)
-const itemName=it=>(it.cid&&CAT_INDEX[it.cid]?CAT_INDEX[it.cid].n:it.name);
 
 /* ---------- state ---------- */
 function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
@@ -53,10 +51,7 @@ if(SERVER){
   try{const raw=localStorage.getItem("smetago-v1");S=raw?JSON.parse(raw):null}catch(e){S=null}
   if(!S||S.v!==1)S=sample();
 }
-// ma'lumotnomaga keyin qo'shilgan materiallar eski obyektlarda ham paydo bo'lsin
-{const have=new Set(S.prices.map(p=>p.id));defaultPrices().forEach(p=>{if(!have.has(p.id))S.prices.push(p)})}
-// eski obyektlarda eshik faqat eni edi ("0,9") — turi va bo'yi bilan obyektga aylantiriladi
-S.rooms.forEach(r=>{r.doors=(r.doors||[]).map(d=>d&&typeof d==="object"?d:mkDoor("",String(d??"")))});
+normState(S);
 // katalog guruhi nomi tilga bog'liq: til almashganda eski guruh topilmasa — "Tavsiya"
 if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
 let saveT=null,offlineNoted=false;
@@ -76,14 +71,6 @@ addEventListener("online",()=>{if(SERVER&&readPending()){persist();toast(tr("Alo
 setInterval(()=>{if(SERVER&&!saveT&&readPending())persist()},30000);
 if(SERVER)save();
 
-function buildSmeta(){
-  const groups=[];
-  S.rooms.forEach(r=>{const c=roomCalc(r);groups.push({title:r.name,sub:`${fd(num(r.L))} × ${fd(num(r.W))} × ${fd(num(r.H))} ${U("m")}`,lines:[...c.lines,...r.items.map(itemLine)]})});
-  S.concrete.forEach(c=>{const k=concreteCalc(c);if(k.vol>0)groups.push({title:tr("Beton: {0}",c.name),sub:`${c.grade}, ${fd(k.vol)} ${U("m³")}`,lines:k.lines})});
-  let mat=0,lab=0;groups.forEach(g=>{g.mat=0;g.lab=0;g.lines.forEach(l=>{const t=lineTotals(l);g.mat+=t.mat;g.lab+=t.lab});mat+=g.mat;lab+=g.lab});
-  const base=mat+lab,cont=base*num(S.settings.contingency)/100,vat=S.settings.vat?(base+cont)*.12:0;
-  return{groups,mat,lab,base,cont,vat,grand:base+cont+vat};
-}
 
 /* ---------- rendering ---------- */
 const TABS=[["xonalar",tr("Xonalar va o'lchov")],["beton",tr("Beton")],["narxlar",tr("Narxlar")],["smeta",tr("Smeta")]];

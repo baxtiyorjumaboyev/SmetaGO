@@ -28,6 +28,8 @@ PRECACHE_STATIC = [
     "smeta/js/data.js",
     "smeta/js/calc.js",
     "smeta/js/app.js",
+    "smeta/js/dashboard.js",
+    "smeta/js/landing.js",
     "smeta/icons/icon-192.png",
     "smeta/icons/icon.svg",
 ]

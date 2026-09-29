@@ -31,7 +31,7 @@
     {% include "smeta/_prefs.html" %}
     {% if user.is_authenticated %}
     <div class="userbar">
-      <span>{{ user.username }}</span>
+      <span class="who"><span class="avatar" aria-hidden="true">{{ user.username|slice:":2"|upper }}</span><span class="deskonly"><b>{{ user.username }}</b><small>{% if user.is_superuser %}{% t "Admin" %}{% else %}{% t "Foydalanuvchi" %}{% endif %}</small></span></span>
       <form method="post" action="{% url 'logout' %}" data-logout>{% csrf_token %}<button class="btn sm">{% t "Chiqish" %}</button></form>
     </div>
     {% elif request.resolver_match.url_name != "login" and request.resolver_match.url_name != "register" %}
