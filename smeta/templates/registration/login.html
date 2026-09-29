@@ -1,15 +1,19 @@
-{% extends "smeta/base.html" %}{% load smeta_i18n %}
-{% block title %}{% t "Kirish" %} · SmetaGo{% endblock %}
-{% block content %}
-<form method="post" class="panel pad stack auth">{% csrf_token %}
-  <h1>{% t "Kirish" %}</h1>
-  {% if tg_bot %}{% include "smeta/_telegram.html" %}<p class="or"><span>{% t "yoki login va parol bilan" %}</span></p>{% endif %}
-  {% if form.non_field_errors %}<ul class="errorlist"><li>{% t "Login yoki parol noto'g'ri." %}</li></ul>{% endif %}
-  <div><label for="id_username">{% t "Login" %}</label>{{ form.username }}</div>
-  <div><label for="id_password">{% t "Parol" %}</label>{{ form.password }}</div>
+{% extends "registration/_auth.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Kirish" %}{% endblock %}
+{% block form %}
+<h1>{% t "Kirish" %}</h1>
+<p class="au-sub">{% t "Hisobingizga kiring va smetalar ustida ishlashni davom ettiring." %}</p>
+{% if form.non_field_errors %}<p class="au-msg bad">{% t "Login yoki parol noto'g'ri." %}</p>{% endif %}
+<form method="post" class="au-form auth">{% csrf_token %}
+  {% t "Login" as l %}{% t "Loginingizni kiriting" as ph %}
+  {% include "registration/_field.html" with id="id_username" name="username" label=l placeholder=ph icon="user" value=form.username.value autocomplete="username" autofocus=1 %}
+  {% t "Parol" as l %}
+  {% include "registration/_field.html" with id="id_password" name="password" type="password" label=l placeholder="••••••••" icon="lock" autocomplete="current-password" %}
   <input type="hidden" name="next" value="{{ next }}">
-  <button class="btn pri">{% t "Kirish" %}</button>
-  {% if email_ready %}<p class="ometa"><a href="{% url 'password_reset' %}">{% t "Parolni unutdingizmi?" %}</a></p>{% endif %}
-  <p class="ometa">{% t "Hisobingiz yo'qmi?" %} <a href="{% url 'register' %}">{% t "Ro'yxatdan o'ting" %}</a></p>
+  <button class="au-btn">{% t "Kirish" %} <span aria-hidden="true">→</span></button>
+  {% if email_ready %}<p class="au-alt"><a href="{% url 'password_reset' %}">{% t "Parolni unutdingizmi?" %}</a></p>{% endif %}
 </form>
+{% if tg_bot %}<p class="or"><span>{% t "yoki" %}</span></p>{% include "smeta/_telegram.html" %}{% endif %}
+<hr class="au-hr">
+<p class="au-alt">{% t "Hisobingiz yo'qmi?" %} <a href="{% url 'register' %}">{% t "Ro'yxatdan o'ting" %}</a></p>
 {% endblock %}

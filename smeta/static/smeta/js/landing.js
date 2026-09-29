@@ -22,11 +22,16 @@
     $$("calc-types").innerHTML=TYPES.map(k=>`<button type="button" class="chip" data-type="${esc(k)}" aria-pressed="${k===room.type}">${esc(rtLabel(k))}</button>`).join("")}
   function renderSelects(){$$("calc-floor").innerHTML=opts(FLOOR,room.floor);$$("calc-wall").innerHTML=opts(WALL,room.wall);$$("calc-ceil").innerHTML=opts(CEIL,room.ceil)}
 
+  let r3=null;
   function update(){
     const c=roomCalc(room);let mat=0,labr=0;
     $$("calc-lines").innerHTML=c.lines.map(l=>{const t=lineTotals(l);mat+=t.mat;labr+=t.lab;
       return `<li><div><b>${esc(l.name)}</b><small>${esc(l.sub)}</small></div><div class="r"><b>${fd(l.qty)} ${esc(U(l.unit))}</b><small>${fmt(t.tot)} ${SOM}</small></div></li>`}).join("");
-    $$("calc-plan").innerHTML=planSvg(num(room.L),num(room.W));  // ilovadagi chizma bilan bir xil (calc.js)
+    // jonli 3D xona (room3d.js) — o'lcham, eshik va deraza o'zgarsa silliq yangilanadi; bo'lmasa 2D reja
+    if(!r3&&window.Room3D){const cv=document.createElement("canvas");cv.className="r3d";cv.setAttribute("role","img");
+      cv.setAttribute("aria-label",tr("Xonaning 3D ko'rinishi"));$$("calc-plan").replaceChildren(cv);r3=Room3D(cv,{})}
+    if(r3)r3.set({L:num(room.L),W:num(room.W),H:num(room.H),doors:room.doors.map(d=>({w:num(d.w),h:num(d.h)})),windows:room.windows.map(o=>({w:num(o.w),h:num(o.h)}))});
+    else $$("calc-plan").innerHTML=planSvg(num(room.L),num(room.W));
     $$("calc-sum").innerHTML=`${fmt(mat+labr)} <span>${SOM}</span>`;
     $$("calc-split").textContent=`${tr("Material")} ${fmt(mat)} · ${tr("Ish haqi")} ${fmt(labr)}`;
   }

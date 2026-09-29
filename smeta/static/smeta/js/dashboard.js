@@ -3,7 +3,7 @@
  */
 let S;
 const DASH=(()=>{try{return JSON.parse(document.getElementById("dash-data").textContent)}catch(e){return []}})();
-const CATS=[["pol",tr("Pol"),"#16a34a"],["devor",tr("Devor"),"#2563eb"],["shift",tr("Shift"),"#f59e0b"],["element",tr("Elementlar"),"#8b5cf6"],["beton",tr("Beton"),"#64748b"]];
+const CATS=[["pol",tr("Pol"),"#65a30d"],["devor",tr("Devor"),"#2563eb"],["shift",tr("Shift"),"#f59e0b"],["element",tr("Elementlar"),"#8b5cf6"],["beton",tr("Beton"),"#64748b"]];
 const SOMs=tr("so'm");
 // qisqa son: 1,2 mlrd / 69,2 mln / 450 ming
 const short=n=>n>=1e9?fd(n/1e9,1)+" "+tr("mlrd"):n>=1e6?fd(n/1e6,1)+" "+tr("mln"):n>=1e3?fmt(n/1e3)+" "+tr("ming"):fmt(n);
@@ -25,7 +25,7 @@ function spark(vals,color){if(vals.length<2)vals=[0,...vals,0];const mx=Math.max
 function kpis(){
   const byDate=[...rows].sort((a,b)=>a.created<b.created?-1:1);
   const ok=rows.filter(r=>r.ok);
-  const K=[[tr("Jami smeta"),short(tot("grand"))+" "+SOMs,"#22c55e",byDate.map(r=>r.grand)],
+  const K=[[tr("Jami smeta"),short(tot("grand"))+" "+SOMs,"#b5e86a",byDate.map(r=>r.grand)],
     [tr("Obyektlar"),fmt(rows.length),"#2563eb",byDate.map((r,i)=>i+1)],
     [tr("Xonalar"),fmt(tot("rooms")),"#f59e0b",byDate.map(r=>r.rooms)],
     [tr("O'rtacha smeta"),short(ok.length?tot("grand")/ok.length:0)+" "+SOMs,"#8b5cf6",byDate.map(r=>r.grand)]];

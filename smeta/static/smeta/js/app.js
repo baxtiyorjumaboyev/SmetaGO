@@ -98,9 +98,14 @@ function renderHeader(){
 const TAB_ICON={xonalar:'<path d="M3 4h18v16H3zM3 12h8v8M11 4v5"/>',beton:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
   narxlar:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',smeta:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>'};
 const BNAV_L={xonalar:tr("Xonalar"),beton:tr("Beton"),narxlar:tr("Narxlar"),smeta:tr("Smeta")};
+// jonli 3D xona (room3d.js): Xonalar bo'limida doimiy canvas, har kiritishda set() bilan yangilanadi
+let R3=null;
+function room3d(r){if(!R3||!r)return;const q=d=>Array.from({length:Math.min(2,Math.max(1,Math.round(doorQ(d))))},()=>({w:num(d.w),h:num(d.h)}));
+  R3.set({L:num(r.L),W:num(r.W),H:num(r.H),doors:r.doors.flatMap(q),windows:r.windows.map(o=>({w:num(o.w),h:num(o.h)}))})}
 function render(){renderHeader();const t=S.ui.tab;
+  if(R3){R3.destroy();R3=null}
   $("#app").innerHTML=t==="xonalar"?viewRooms():t==="beton"?viewConcrete():t==="narxlar"?viewPrices():viewSmeta();
-  if(t==="xonalar"){renderDerived();renderCatItems()}
+  if(t==="xonalar"){const cv=$("#room3d");if(cv&&window.Room3D)R3=Room3D(cv,{autoRotate:false});renderDerived();renderCatItems()}
   renderTotal();save();
 }
 function curRoom(){return S.rooms.find(r=>r.id===S.ui.room)||S.rooms[0]}
@@ -150,6 +155,7 @@ function viewRooms(){
      <p class="note" style="margin:0">${tr("Devorning pastki qismi kafel bo'lsa, o'sha uzunlik plintusdan va bo'yoq maydonidan ayiriladi. Plintusni lenta bilan o'lchagan bo'lsangiz, \"qo'lda\" maydoniga yozing.")}</p>
     </fieldset>
    </div>
+   <div class="panel roomplan"><canvas class="r3d" id="room3d" role="img" aria-label="${tr("Xonaning 3D ko'rinishi")}"></canvas></div>
    <div id="derived" class="stack"></div>
   </section>`;
   const cat=`<aside class="panel catalog" id="catalog" aria-label="${tr("Katalog")}"><div class="head"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:nowrap"><h3 style="font-size:16px">${tr("Xonada nima bor?")}</h3><span class="note deskonly">${tr("bosing → o'lchang")}</span><button class="btn sm mobonly" data-act="closeCat" aria-label="${tr("Katalogni yopish")}">${tr("Yopish ×")}</button></div>
@@ -185,7 +191,8 @@ function renderDerived(){
     <td class="num r c-qty" data-l="${tr("Miqdor")}">${stepper(`<input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}">`,`iq-${it.uid}`,1)} <span class="note">${esc(U(it.unit))}</span></td>
     <td class="r c-price" data-l="${tr("Narx, so'm")}"><input class="inp numin price" id="ip-${it.uid}" data-it="${it.uid}" data-k="price" inputmode="decimal" value="${esc(it.price)}" aria-label="${tr("Narx")}"></td>
     <td class="num r c-sum" data-l="${tr("Jami")}" id="is-${it.uid}">${fmt(t.tot)}</td><td class="c-del"><button class="btn ghost sm" data-act="delItem" data-uid="${it.uid}" aria-label="${tr("O'chirish")}">×</button></td></tr>`}).join("");
-  box.innerHTML=`<div class="panel roomplan" aria-hidden="true">${planSvg(num(r.L),num(r.W))}</div>
+  room3d(r);
+  box.innerHTML=`
    <div class="metrics">
     <div class="metric"><div class="v">${fd(c.floorA)}<small>${U("m²")}</small></div><div class="k">${tr("Pol maydoni")}</div></div>
     <div class="metric"><div class="v">${fd(c.perim)}<small>${U("m")}</small></div><div class="k">${tr("Perimetr")}</div></div>

@@ -30,12 +30,12 @@ def _fill(color):
 STYLES = {
     "title": {"font": Font(bold=True, size=14, color="0C140F")},
     "meta": {"font": Font(color="536159")},
-    "head": {"font": Font(bold=True, color="FFFFFF"), "fill": _fill("15803D"),
+    "head": {"font": Font(bold=True, color="FFFFFF"), "fill": _fill("4D7C0F"),
              "alignment": Alignment(horizontal="center", vertical="center", wrap_text=True)},
-    "group": {"font": Font(bold=True, color="0C140F"), "fill": _fill("DCFCE7")},
+    "group": {"font": Font(bold=True, color="0C140F"), "fill": _fill("ECFCCB")},
     "sub": {"font": Font(bold=True), "fill": _fill("EEF3EF")},
     "total": {"font": Font(bold=True)},
-    "grand": {"font": Font(bold=True, size=12, color="4ADE80"), "fill": _fill("0C140F")},
+    "grand": {"font": Font(bold=True, size=12, color="C5F07E"), "fill": _fill("0C140F")},
     "b": {"font": Font(bold=True)},
 }
 LINE = Side(style="thin", color="C9D5CC")

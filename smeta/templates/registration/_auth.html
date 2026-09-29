@@ -1,0 +1,40 @@
+{% load static smeta_i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+{% include "smeta/_head.html" %}
+<title>{% block title %}SmetaGo{% endblock %} · SmetaGo</title>
+</head>
+{# Kirish / ro'yxatdan o'tish / parol sahifalari: chapda jonli 3D xona, o'ngda forma (doim to'q uslub) #}
+<body class="authp" data-uid="{{ user.pk|default:'' }}">
+<div class="au">
+  <aside class="au-art">
+    <div class="au-top">
+      <span class="au-live"><i></i>{% t "Jonli 3D smeta" %} · <span id="au-dims" class="mono">4,2 × 3,4 m</span></span>
+      <span class="au-rot mono">{% t "Aylantiring" %} ↻</span>
+    </div>
+    <canvas class="r3d au-canvas" id="au-3d" aria-label="{% t "Xonaning 3D ko'rinishi" %}" role="img"></canvas>
+    <div class="au-bottom">
+      <p class="au-lead">{% t "Xonalarni o'lchang, katalogdan tanlang — material, narx va ish haqi bilan tayyor smeta." %}</p>
+      <ol class="au-steps"><li><b>01</b>{% t "O'lchang" %}</li><li><b>02</b>{% t "Tanlang" %}</li><li><b>03</b>{% t "Hisoblang" %}</li></ol>
+    </div>
+  </aside>
+  <main class="au-main">
+    <header class="au-head">
+      <a class="au-brand" href="{% url 'obyekt_list' %}"><span class="mark">S</span><span><b>SmetaGo</b><small>{% t "o'lchang · tanlang · hisoblang" %}</small></span></a>
+      <form class="seg" method="post" action="{% url 'set_language' %}" aria-label="{% t 'Til' %}">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button name="language" value="uz" lang="uz" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}false{% else %}true{% endif %}">UZ</button>
+        <button name="language" value="ru" lang="ru" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}true{% else %}false{% endif %}">RU</button>
+      </form>
+    </header>
+    <div class="au-body">
+      {% if messages %}{% for m in messages %}<p class="au-msg">{{ m }}</p>{% endfor %}{% endif %}
+      {% block form %}{% endblock %}
+    </div>
+    <footer class="au-foot"><span>© 2026 SmetaGo</span><nav><a href="{% url 'help' %}">{% t "Yordam" %}</a><a href="{% url 'privacy' %}">{% t "Maxfiylik" %}</a></nav></footer>
+  </main>
+</div>
+<script src="{% static 'smeta/js/room3d.js' %}"></script>
+<script src="{% static 'smeta/js/auth.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{% load smeta_i18n %}<div class="au-f">
+  <label for="{{ id }}">{{ label }}</label>
+  <span class="au-in{% if errors %} bad{% endif %}">
+    {% if icon == "user" %}<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.9-3.6 4-5.6 7.5-5.6s6.6 2 7.5 5.6"/></svg>
+    {% elif icon == "mail" %}<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg>
+    {% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>{% endif %}
+    <input id="{{ id }}" name="{{ name }}" type="{{ type|default:'text' }}" {% if value %}value="{{ value }}"{% endif %} placeholder="{{ placeholder }}"
+           autocomplete="{{ autocomplete }}" {% if autofocus %}autofocus{% endif %} required{% if errors %} aria-invalid="true"{% endif %}>
+    {% if type == "password" %}<button type="button" class="au-eye" data-pw-toggle="{{ id }}" aria-pressed="false" aria-label="{% t "Parolni ko'rsatish" %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg></button>{% endif %}
+  </span>
+  {% if help %}<small class="au-help">{{ help }}</small>{% endif %}
+  {% for e in errors %}<small class="au-err">{{ e }}</small>{% endfor %}
+</div>

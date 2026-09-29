@@ -254,7 +254,7 @@ class SmetaTests(TestCase):
         ws = wb["Smeta"]
         self.assertEqual(ws["A1"].value, "SMETA: Test")
         self.assertTrue(ws["A1"].font.b)
-        self.assertEqual(ws["B2"].fill.fgColor.rgb[-6:], "15803D")  # sarlavha — yashil
+        self.assertEqual(ws["B2"].fill.fgColor.rgb[-6:], "4D7C0F")  # sarlavha — lime (sayt palitrasi)
         self.assertEqual((ws["C3"].value, ws["C3"].number_format), (2383333, "#,##0"))
         self.assertEqual(ws["C4"].number_format, "0.00")
         self.assertEqual(ws["B4"].data_type, "s")  # "=..." formula emas, matn bo'lib qoladi

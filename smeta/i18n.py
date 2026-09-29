@@ -58,6 +58,17 @@ RU = {
     "Parolni takrorlang": "Повторите пароль",
     "Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin.": "Не менее 8 символов, не только цифры.",
     "Hisobingiz bormi?": "Уже есть аккаунт?",
+    # kirish sahifalari (3D)
+    "Jonli 3D smeta": "Живая 3D-смета",
+    "Aylantiring": "Вращайте",
+    "Xonaning 3D ko'rinishi": "3D-вид комнаты",
+    "Hisobingizga kiring va smetalar ustida ishlashni davom ettiring.": "Войдите в аккаунт и продолжайте работу над сметами.",
+    "Loginingizni kiriting": "Введите логин",
+    "Parolni ko'rsatish": "Показать пароль",
+    "yoki": "или",
+    "Bepul hisob oching — smetalaringiz saqlanadi va istalgan qurilmadan ochiladi.":
+        "Создайте бесплатный аккаунт — сметы сохраняются и открываются с любого устройства.",
+    "Masalan: ali_usta": "Например: ali_usta",
     # Telegram orqali kirish
     "yoki login va parol bilan": "или по логину и паролю",
     "Telegram bilan — bir bosishda, parolsiz.": "Через Telegram — в одно нажатие, без пароля.",

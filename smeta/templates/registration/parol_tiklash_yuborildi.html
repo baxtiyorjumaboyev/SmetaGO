@@ -1,10 +1,9 @@
-{% extends "smeta/base.html" %}{% load smeta_i18n %}
-{% block title %}{% t "Parolni tiklash" %} · SmetaGo{% endblock %}
-{% block content %}
-<div class="panel pad stack auth">
-  <h1>{% t "Pochtangizni tekshiring" %}</h1>
-  <p>{% t "Agar bu email bilan hisob bo'lsa, unga yangi parol o'rnatish havolasi yuborildi. Xat bir necha daqiqada keladi — «Spam» papkasini ham ko'ring." %}</p>
-  <p class="ometa">{% t "Havola 24 soat amal qiladi va bir marta ishlatiladi." %}</p>
-  <p class="ometa"><a href="{% url 'login' %}">{% t "Kirish sahifasiga qaytish" %}</a></p>
-</div>
+{% extends "registration/_auth.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Parolni tiklash" %}{% endblock %}
+{% block form %}
+<h1>{% t "Pochtangizni tekshiring" %}</h1>
+<p class="au-sub">{% t "Agar bu email bilan hisob bo'lsa, unga yangi parol o'rnatish havolasi yuborildi. Xat bir necha daqiqada keladi — «Spam» papkasini ham ko'ring." %}</p>
+<p class="au-help">{% t "Havola 24 soat amal qiladi va bir marta ishlatiladi." %}</p>
+<hr class="au-hr">
+<p class="au-alt"><a href="{% url 'login' %}">{% t "Kirish sahifasiga qaytish" %}</a></p>
 {% endblock %}
