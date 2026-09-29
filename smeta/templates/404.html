@@ -1,0 +1,10 @@
+{% extends "smeta/base.html" %}{% load smeta_i18n %}
+{% block title %}{% t "Sahifa topilmadi" %} · SmetaGo{% endblock %}
+{% block content %}
+<section class="panel pad stack auth" style="text-align:center;align-items:center">
+  <p class="mono" style="font-size:44px;font-weight:700;margin:0;color:var(--accent)">404</p>
+  <h1>{% t "Sahifa topilmadi" %}</h1>
+  <p class="ometa" style="margin:0">{% t "Manzil noto'g'ri yoki sahifa o'chirilgan." %}</p>
+  <a class="btn pri" href="{% url 'obyekt_list' %}">{% t "Bosh sahifaga qaytish" %}</a>
+</section>
+{% endblock %}

@@ -54,10 +54,20 @@ def _new_username(data):
     return name
 
 
-def telegram_auth(request):
-    """Widget qaytaradigan manzil: kirish, yangi hisob yoki (kirgan bo'lsa) hisobga Telegram'ni ulash."""
+def telegram_auth(request, nonce):
+    """Widget qaytaradigan manzil: kirish, yangi hisob yoki (kirgan bo'lsa) hisobga Telegram'ni ulash.
+
+    `nonce` — tugma ko'rsatilganda shu sessiyaga yozilgan bir martalik kalit (templatetags/smeta_auth.py).
+    U mos kelmasa rad etiladi: aks holda begona tayyorlagan havola (imzosi to'g'ri bo'lsa ham) kirgan
+    foydalanuvchiga boshqa odamning Telegramini ulab yuborardi (hisobni egallash) yoki login CSRF bo'lardi.
+    """
     if not settings.TELEGRAM_BOT_TOKEN:
         return HttpResponseNotFound()
+    expected = request.session.pop("tg_nonce", None)
+    owner = request.session.pop("tg_nonce_uid", None)
+    uid = request.user.pk if request.user.is_authenticated else None
+    if not expected or not hmac.compare_digest(str(nonce), expected) or owner != uid:
+        return HttpResponseForbidden(tr("Havola eskirgan yoki boshqa sahifadan ochilgan. Sahifani yangilab, qaytadan urinib ko'ring."))
     data = verify(request.GET.dict(), settings.TELEGRAM_BOT_TOKEN)
     if data is None:
         return HttpResponseForbidden(tr("Telegram ma'lumoti tasdiqlanmadi. Qaytadan urinib ko'ring."))

@@ -8,7 +8,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .excel import build_workbook
+from .excel import DEMO_LIMITS, build_workbook
+
+DEMO_MAX_BODY = 300_000  # bayt; namuna smetasi odatda 20–60 KB
 from .forms import RegisterForm
 from .i18n import current_lang, tr
 from .malumotnoma import cached_reference
@@ -57,9 +59,12 @@ def demo(request):
 
 @require_POST
 def demo_excel(request):
-    """Namuna sahifasi uchun .xlsx: hech narsa saqlanmaydi, faqat yuborilgan varaq formatlanadi (CSRF bilan)."""
+    """Namuna sahifasi uchun .xlsx: hech narsa saqlanmaydi, faqat yuborilgan varaq formatlanadi (CSRF bilan).
+    Anonim so'rov — hajm chegaralari qattiqroq (DEMO_LIMITS), umumiy serverda CPU band qilinmasin."""
+    if len(request.body) > DEMO_MAX_BODY:
+        return JsonResponse({"error": "Varaq juda katta"}, status=413)
     try:
-        content = build_workbook(json.loads(request.body))
+        content = build_workbook(json.loads(request.body), **DEMO_LIMITS)
     except (ValueError, UnicodeDecodeError):
         return JsonResponse({"error": "Varaq ma'lumoti noto'g'ri"}, status=400)
     resp = HttpResponse(content, content_type=XLSX_TYPE)

@@ -50,6 +50,11 @@ except ImportError:
 if os.environ.get("DJANGO_BEHIND_PROXY") == "1":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = True
+    # brauzer bu domenga faqat HTTPS orqali kirsin (subdomenlarsiz — umumiy nip.io/boshqa saytlarga ta'sir yo'q).
+    # HTTP -> HTTPS yo'naltirishni Caddy qiladi, shuning uchun SECURE_SSL_REDIRECT kerak emas.
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
+    # W005/W021 (subdomenlar, preload) ataylab yoqilmaydi: domen (nip.io) bizniki emas
+    SILENCED_SYSTEM_CHECKS = ["security.W008", "security.W005", "security.W021"]
 
 ROOT_URLCONF = "config.urls"
 

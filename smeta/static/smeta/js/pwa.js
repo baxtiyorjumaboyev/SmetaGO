@@ -10,6 +10,20 @@
     addEventListener("load",function(){navigator.serviceWorker.register("/sw.js",{scope:"/"}).catch(function(){})});
   }
 
+  // 1b) umumiy qurilma: foydalanuvchi almashsa (chiqmasdan ketgan, sessiya tugagan), oldingisining
+  // keshlangan sahifalari va yuborilmagan navbati o'chiriladi — aks holda oflayn rejimda keyingi
+  // foydalanuvchiga oldingisining obyektlari ko'rinardi (sahifalar keshi URL bo'yicha, foydalanuvchisiz)
+  document.addEventListener("DOMContentLoaded",function(){
+    var uid=document.body&&document.body.dataset.uid;if(uid===undefined)return;
+    try{var prev=localStorage.getItem("smetago-uid");
+      if(prev!==null&&prev!==uid){
+        if(window.caches)caches.delete("smetago-pages-v1");
+        Object.keys(localStorage).forEach(function(k){if(k.indexOf("smetago-pending:")===0)localStorage.removeItem(k)});
+      }
+      localStorage.setItem("smetago-uid",uid);
+    }catch(e){}
+  });
+
   // 2) o'rnatish tugmasi
   var deferred=null;
   var btns=function(){return document.querySelectorAll("[data-install]")};

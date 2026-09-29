@@ -15,6 +15,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 MAX_SHEETS, MAX_ROWS, MAX_COLS, MAX_TEXT = 5, 20000, 40, 2000
+# anonim namuna (/api/excel/) uchun: haqiqiy smeta bir necha yuz qator va 16 ustundan oshmaydi;
+# katta varaq yasash CPU oladi (8000x40 ~ 4 s) — 2 workerli umumiy serverda anonim so'rov uchun bu ko'p
+DEMO_LIMITS = {"max_rows": 1000, "max_cols": 20}
 
 FORMATS = {"money": "#,##0", "dec2": "0.00", "int": "0"}
 
@@ -63,7 +66,7 @@ def _value(v):
     raise ValueError("katak qiymati noto'g'ri")
 
 
-def build_workbook(data):
+def build_workbook(data, max_rows=MAX_ROWS, max_cols=MAX_COLS):
     """Varaq modelidan .xlsx baytlarini qaytaradi. Noto'g'ri ma'lumotda ValueError."""
     if not isinstance(data, dict) or not isinstance(data.get("sheets"), list):
         raise ValueError("sheets yo'q")
@@ -79,7 +82,7 @@ def build_workbook(data):
         if not isinstance(sh, dict):
             raise ValueError("varaq noto'g'ri")
         rows, cols = sh.get("rows") or [], sh.get("cols") or []
-        if not isinstance(rows, list) or len(rows) > MAX_ROWS or not isinstance(cols, list) or len(cols) > MAX_COLS:
+        if not isinstance(rows, list) or len(rows) > max_rows or not isinstance(cols, list) or len(cols) > max_cols:
             raise ValueError("varaq hajmi noto'g'ri")
         ws = wb.create_sheet(_sheet_name(sh.get("name"), used))
 
@@ -94,7 +97,7 @@ def build_workbook(data):
         for ri, row in enumerate(rows, 1):
             if row is None:
                 continue
-            if not isinstance(row, list) or len(row) > MAX_COLS:
+            if not isinstance(row, list) or len(row) > max_cols:
                 raise ValueError("qator noto'g'ri")
             in_table = t_from <= ri - 1 <= t_to
             for ci in range(1, max(len(row), len(cols) if in_table else 0) + 1):

@@ -24,7 +24,7 @@
   .auth a{color:var(--accent);font-weight:600}
 </style>
 </head>
-<body class="site{% if user.is_authenticated %} in{% endif %}">
+<body class="site{% if user.is_authenticated %} in{% endif %}" data-uid="{{ user.pk|default:'' }}">
 <header class="top">
   <div class="wrap">
     <a class="brand" href="{% url 'obyekt_list' %}" style="color:inherit;text-decoration:none"><div class="mark">S</div><div>SmetaGo<small>{% t "o'lchang · tanlang · hisoblang" %}</small></div></a>

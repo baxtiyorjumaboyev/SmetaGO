@@ -116,7 +116,8 @@ a.btn{color:inherit;text-decoration:none}
 .roomhead input{font-family:var(--f-display);font-weight:600;font-size:20px;border:0;border-bottom:1px dashed var(--line);border-radius:0;background:transparent;padding:4px 0;flex:1;min-width:0}
 .roomhead input:focus{outline:none;border-bottom-color:var(--steel)}
 .dimline{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
-fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+/* min-width:0 — fieldset standart min-content kengligi telefonda sahifani gorizontal cho'zmasin */
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;min-width:0}
 legend{padding:0;margin-bottom:8px}
 .openings{display:flex;flex-wrap:wrap;gap:8px}
 .opening{display:flex;align-items:center;gap:4px;background:var(--surface2);border-radius:8px;padding:4px 4px 4px 10px;font-size:13px}
@@ -350,7 +351,7 @@ body.site{padding-bottom:0}
 .sitenav{flex:1;display:flex;justify-content:center;gap:28px}
 .sitenav a{color:var(--muted);text-decoration:none;font-weight:500;font-size:14px}
 .sitenav a:hover{color:var(--ink)}
-.landing{--hi:var(--accent)}
+.landing{--hi:#166534} /* kunduzgi: ochiq yashil fonda ham kontrast ≥ 4.5 (WCAG AA) */
 :root[data-theme="dark"] .landing{--hi:#4ade80}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .landing{--hi:#4ade80}}
 .kicker{font:600 12px/1.4 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--hi);margin:0 0 10px}
@@ -608,3 +609,21 @@ body.in .top{background:linear-gradient(100deg,var(--hdr1),var(--hdr2));color:#f
 .msgs{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .msgs p{margin:0}
 .msg-error{background:color-mix(in srgb,var(--danger) 14%,var(--surface));color:var(--ink)}
+
+/* audit tuzatishlari: telefonda eshik qatori o'raladi; kichik tugmalar kattaroq (≥40 px); kontrast (WCAG AA) */
+@media (max-width:760px){
+  .opening{flex-wrap:wrap;row-gap:6px;max-width:100%}
+  .opening select{flex:1 1 150px;min-height:40px}
+  .seg button{min-height:40px;min-width:44px}
+  .themebtn{width:40px;height:40px}
+  .site-foot nav{gap:4px 8px;flex-wrap:wrap}
+  .site-foot a,.sitenav a{display:inline-flex;align-items:center;min-height:40px;padding-inline:6px}
+  .auth a,.ometa a{display:inline-block;padding-block:8px}
+  .btn.sm{min-height:40px}
+  .opening .x{min-width:40px;min-height:40px}
+  .stepper button{width:44px;height:46px}
+  .stepper input{font-size:18px}
+  .calc-grid{grid-template-columns:minmax(0,1fr)}  /* 3 ustunda raqam va "Laminat" kesilib qolardi */
+  .toplist a,.ocard a.oname{padding-block:4px}
+}
+.toplist li:nth-child(3) .tn{background:#7c3aed}

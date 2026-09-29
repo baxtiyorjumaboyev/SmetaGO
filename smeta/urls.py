@@ -20,7 +20,7 @@ urlpatterns = [
     path("api/excel/", views.demo_excel, name="demo_excel"),
     path("kirish/", auth_views.LoginView.as_view(), name="login"),
     path("chiqish/", auth_views.LogoutView.as_view(), name="logout"),
-    path("kirish/telegram/", telegram.telegram_auth, name="telegram_auth"),
+    path("kirish/telegram/<str:nonce>/", telegram.telegram_auth, name="telegram_auth"),
     path("royxatdan-otish/", views.register, name="register"),
     path("parol-tiklash/", auth_views.PasswordResetView.as_view(
         template_name=R + "parol_tiklash.html",

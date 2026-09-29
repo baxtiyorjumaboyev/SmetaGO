@@ -4,7 +4,7 @@
 {% include "smeta/_head.html" %}
 <title>{% if o %}{{ o.name }}{% else %}{% t "Namuna smeta" %}{% endif %} · SmetaGo</title>
 </head>
-<body{% if o %} class="in"{% endif %}>
+<body{% if o %} class="in"{% endif %} data-uid="{{ user.pk|default:'' }}">
 <header class="top">
   <div class="wrap">
     {% if o %}

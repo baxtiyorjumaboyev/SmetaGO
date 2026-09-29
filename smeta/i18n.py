@@ -68,6 +68,12 @@ RU = {
     "Hisobingizga boshqa Telegram ulangan.": "К вашему аккаунту уже привязан другой Telegram.",
     "Telegram hisobingizga ulandi.": "Telegram подключён к вашему аккаунту.",
     "Hisob o'chirilgan.": "Аккаунт отключён.",
+    # xato sahifalari
+    "Sahifa topilmadi": "Страница не найдена",
+    "Manzil noto'g'ri yoki sahifa o'chirilgan.": "Неверный адрес или страница удалена.",
+    "Bosh sahifaga qaytish": "Вернуться на главную",
+    "Havola eskirgan yoki boshqa sahifadan ochilgan. Sahifani yangilab, qaytadan urinib ko'ring.":
+        "Ссылка устарела или открыта с другой страницы. Обновите страницу и попробуйте снова.",
     "Email": "Email",
     "Parolni unutsangiz, tiklash havolasi shu manzilga yuboriladi.":
         "Если забудете пароль, ссылка для восстановления придёт на этот адрес.",

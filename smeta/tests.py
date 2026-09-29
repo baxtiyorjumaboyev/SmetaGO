@@ -296,6 +296,14 @@ class SmetaTests(TestCase):
         self.assertTrue(r.content.startswith(b"PK"))  # xlsx = zip
         self.assertEqual(anon.post(reverse("demo_excel"), "{bad", content_type="application/json").status_code, 400)
         self.assertEqual(anon.get(reverse("demo_excel")).status_code, 405)
+        # anonim endpoint: katta varaq (CPU) rad etiladi; kirgan egasi uchun chegara kengroq
+        big = {"sheets": [{"name": "S", "cols": [10] * 8, "rows": [[{"v": 1}] * 8] * 1500}]}
+        self.assertEqual(anon.post(reverse("demo_excel"), json.dumps(big), content_type="application/json").status_code, 400)
+        huge = json.dumps({"sheets": [{"name": "S", "cols": [], "rows": [[{"v": "x" * 1000}]] * 400}]})
+        self.assertEqual(anon.post(reverse("demo_excel"), huge, content_type="application/json").status_code, 413)
+        o = Obyekt.objects.create(owner=self.user, state=STATE)
+        r = self.c.post(reverse("obyekt_excel", args=[o.pk]), json.dumps(big), content_type="application/json")
+        self.assertEqual(r.status_code, 200)
         strict = Client(enforce_csrf_checks=True)
         self.assertEqual(strict.post(reverse("demo_excel"), json.dumps(self.XLSX_SHEETS), content_type="application/json").status_code, 403)
 
@@ -328,39 +336,52 @@ def tg_signed(**data):
     return data
 
 
+def tg_url(client, page="login"):
+    """Sahifadagi widget qaytadigan manzil (sessiyaga bog'langan nonce bilan) — yo'l qismi."""
+    import re
+
+    html = client.get(reverse(page) if page != "/" else "/").content.decode()
+    m = re.search(r'data-auth-url="https?://[^/"]+(/kirish/telegram/[^"]+)"', html)
+    assert m, "widget topilmadi"
+    return m.group(1)
+
+
+TG_ON = {"TELEGRAM_BOT_TOKEN": TG_TOKEN, "TELEGRAM_BOT_NAME": "smetago_bot"}
+
+
 class TelegramLoginTests(TestCase):
     def test_hidden_without_token(self):
         self.assertNotContains(Client().get(reverse("login")), "telegram-widget.js")
-        self.assertEqual(Client().get(reverse("telegram_auth")).status_code, 404)
+        self.assertEqual(Client().get(reverse("telegram_auth", args=["x"])).status_code, 404)
 
     def test_login_creates_account_then_reuses_it(self):
         from .models import TelegramAccount
 
-        with self.settings(TELEGRAM_BOT_TOKEN=TG_TOKEN, TELEGRAM_BOT_NAME="smetago_bot"):
-            page = Client().get(reverse("login"))
-            self.assertContains(page, 'data-telegram-login="smetago_bot"')
-            self.assertContains(page, "/kirish/telegram/")
+        with self.settings(**TG_ON):
             c = Client()
-            r = c.get(reverse("telegram_auth"), tg_signed(id=777, first_name="Ali", username="ali_uz"))
+            url = tg_url(c)
+            self.assertContains(c.get(reverse("login")), 'data-telegram-login="smetago_bot"')
+            r = c.get(url, tg_signed(id=777, first_name="Ali", username="ali_uz"))
             self.assertRedirects(r, "/")
             acct = TelegramAccount.objects.get(tg_id=777)
             self.assertEqual(acct.user.username, "ali_uz")
             self.assertFalse(acct.user.has_usable_password())
-            self.assertEqual(c.get("/").status_code, 200)
             self.assertContains(c.get("/"), 'id="kpis"')  # kirgan — dashboard
-            # ikkinchi marta — o'sha hisob, yangisi ochilmaydi
-            Client().get(reverse("telegram_auth"), tg_signed(id=777, first_name="Ali", username="ali_uz"))
-            self.assertEqual(User.objects.filter(telegram__tg_id=777).count(), 1)
+            # nonce bir martalik: shu manzilni qayta ishlatib bo'lmaydi
+            self.assertEqual(Client().get(url, tg_signed(id=777, first_name="Ali")).status_code, 403)
+            # ikkinchi marta (yangi sahifadan) — o'sha hisob, yangisi ochilmaydi
+            c2 = Client()
+            c2.get(tg_url(c2), tg_signed(id=777, first_name="Ali", username="ali_uz"))
+            self.assertEqual(int(c2.session["_auth_user_id"]), acct.user.pk)
             self.assertEqual(User.objects.count(), 1)
 
     def test_forged_or_expired_rejected(self):
-        with self.settings(TELEGRAM_BOT_TOKEN=TG_TOKEN, TELEGRAM_BOT_NAME="smetago_bot"):
-            d = tg_signed(id=5, first_name="X")
-            d["id"] = "6"  # boshqa odam nomidan
-            self.assertEqual(Client().get(reverse("telegram_auth"), d).status_code, 403)
-            old = tg_signed(id=5, first_name="X", auth_date=1)
-            self.assertEqual(Client().get(reverse("telegram_auth"), old).status_code, 403)
-            self.assertEqual(Client().get(reverse("telegram_auth"), {"id": "5"}).status_code, 403)
+        with self.settings(**TG_ON):
+            for bad in ({**tg_signed(id=5, first_name="X"), "id": "6"},   # boshqa odam nomidan
+                        tg_signed(id=5, first_name="X", auth_date=1),     # eskirgan
+                        {"id": "5"}):                                      # imzosiz
+                c = Client()
+                self.assertEqual(c.get(tg_url(c), bad).status_code, 403)
             self.assertEqual(User.objects.count(), 0)
 
     def test_link_to_existing_account(self):
@@ -369,13 +390,44 @@ class TelegramLoginTests(TestCase):
         u = User.objects.create_user("vali", password="SmetaGo-2026!")
         c = Client()
         c.force_login(u)
-        with self.settings(TELEGRAM_BOT_TOKEN=TG_TOKEN, TELEGRAM_BOT_NAME="smetago_bot"):
-            self.assertContains(c.get("/"), "telegram-widget.js")  # "Telegram'ni ulash"
-            r = c.get(reverse("telegram_auth"), tg_signed(id=42, first_name="Vali"))
+        with self.settings(**TG_ON):
+            url = tg_url(c, "/")  # "Asosiy"dagi "Telegram'ni ulash"
+            r = c.get(url, tg_signed(id=42, first_name="Vali"))
             self.assertRedirects(r, "/")
             self.assertEqual(TelegramAccount.objects.get(tg_id=42).user, u)
             self.assertNotContains(c.get("/"), "telegram-widget.js")  # ulangan — tugma yo'q
-            # endi Telegram bilan kirish — o'sha hisob
             anon = Client()
-            anon.get(reverse("telegram_auth"), tg_signed(id=42, first_name="Vali"))
+            anon.get(tg_url(anon), tg_signed(id=42, first_name="Vali"))
             self.assertEqual(int(anon.session["_auth_user_id"]), u.pk)
+
+    def test_attacker_link_cannot_link_victim_account(self):
+        """Hujum: hujumchi o'z sessiyasidagi manzil + o'z imzolangan ma'lumoti bilan havola yasaydi,
+        kirgan qurbon uni ochadi — hujumchi Telegrami qurbon hisobiga ulanmasligi kerak."""
+        from .models import TelegramAccount
+
+        victim = User.objects.create_user("qurbon", password="SmetaGo-2026!")
+        v = Client()
+        v.force_login(victim)
+        with self.settings(**TG_ON):
+            attacker = Client()
+            evil = tg_url(attacker)
+            r = v.get(evil, tg_signed(id=666, first_name="Hujumchi"))
+            self.assertEqual(r.status_code, 403)
+            self.assertFalse(TelegramAccount.objects.filter(tg_id=666).exists())
+
+    def test_attacker_link_cannot_log_in_victim(self):
+        """Login CSRF: begona havola kirmagan qurbonni hujumchi hisobiga kiritmasligi kerak."""
+        with self.settings(**TG_ON):
+            attacker = Client()
+            evil = tg_url(attacker)
+            victim = Client()
+            victim.get(reverse("login"))  # qurbonning o'z sessiyasi bor
+            self.assertEqual(victim.get(evil, tg_signed(id=666, first_name="Hujumchi")).status_code, 403)
+            self.assertNotIn("_auth_user_id", victim.session)
+
+class ErrorPageTests(TestCase):
+    def test_custom_404(self):
+        r = Client().get("/bunday-sahifa-yoq/")
+        self.assertEqual(r.status_code, 404)
+        self.assertContains(r, "Sahifa topilmadi", status_code=404)
+        self.assertContains(r, 'rel="manifest"', status_code=404)  # sayt uslubida (base.html)
