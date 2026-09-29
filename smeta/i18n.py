@@ -13,6 +13,57 @@ RU = {
     "Til": "Язык",
     "Tungi rejim": "Ночной режим",
     "Kunduzgi rejim": "Дневной режим",
+    # proba dizayni: yon panel, boshqaruv paneli, loyihalar, yorug' kirish sahifasi
+    "3 manba": "3 источника", "Amallar": "Действия", "Aniq hisob": "Точный расчёт", "Aniqlik va ochiqlik": "Точность и прозрачность",
+    "Avto-saqlash": "Автосохранение", "Avto-saqlash yoqilgan": "Автосохранение включено",
+    "Barcha huquqlar himoyalangan.": "Все права защищены.", "Barcha loyihalar": "Все проекты",
+    "Barcha obyektlaringiz bir joyda: xonalar, pol maydoni, material va ish haqi bo'yicha smeta. Hisob ilovadagi formulalar bilan bir xil.":
+        "Все ваши объекты в одном месте: комнаты, площадь пола, смета по материалам и работе. Расчёт — по тем же формулам, что в приложении.",
+    "Barcha smetalardagi material, ish haqi va zaxira ulushi": "Доля материалов, работы и резерва во всех сметах",
+    "Barchasi": "Все", "Batafsil": "Подробнее", "Beton markasi": "Марка бетона", "Beton qorishmasi: hajm bo'yicha": "Бетонная смесь: по объёму",
+    "Birlik narxi": "Цена за ед.", "Boshqaruv paneli": "Панель управления", "Bu oy": "Этот месяц",
+    "Devor (sof, eshik va derazasiz)": "Стены (чистая, без дверей и окон)", "Eng qimmat pozitsiyalar": "Самые дорогие позиции",
+    "Eslab qolish": "Запомнить меня", "Excel eksport": "Экспорт в Excel", "Faol obyektlar": "Активные объекты", "Filtr": "Фильтр",
+    "Hajm": "Объём", "Hajm, m³": "Объём, м³", "Hali obyekt yo'q": "Объектов пока нет",
+    "Har bir material narxi uchun: eng arzon, o'rtacha, eng qimmat": "Для цены каждого материала: минимальная, средняя, максимальная",
+    "Har bir qatorda o'lchov, zaxira va narx manbasi ko'rinadi — har raqamni tekshirish oson.":
+        "В каждой строке видны замер, запас и источник цены — любую цифру легко проверить.",
+    "Internet uzilganda ham ma'lumotlar qurilmada saqlanadi va aloqa tiklanganda o'zi yuboriladi.":
+        "Даже без интернета данные сохраняются на устройстве и отправляются, когда связь восстановится.",
+    "Internetsiz ishlash va avtomatik sinxronlash": "Работа без интернета и автосинхронизация",
+    "Ish turi va resurs tavsifi": "Вид работ и описание ресурса", "Jami summa": "Итоговая сумма",
+    "Joriy narxlar bo'yicha hisoblangan smeta": "Смета по текущим ценам", "Materiallar": "Материалы",
+    "Materiallar narxi 3 manbadan olinadi; har obyektda o'z narxingizni ham kiritishingiz mumkin.":
+        "Цены материалов берутся из 3 источников; в каждом объекте можно указать и свою цену.",
+    "Menyu": "Меню", "Menyuni yopish": "Закрыть меню", "Miqdor": "Количество", "Namuna hisob": "Пример расчёта",
+    "Namuna smetada ochish": "Открыть в примере сметы", "Namuna va yordam": "Пример и помощь",
+    "Namuna: Mehmonxona 5 × 4 × 2,8 m": "Пример: гостиная 5 × 4 × 2,8 м", "Narxlar bazasi": "База цен",
+    "Narxlar — standart ma'lumotnoma (o'rtacha). Obyekt ichida o'z narxingizni kiritasiz.":
+        "Цены — стандартный справочник (средние). Внутри объекта можно указать свои.",
+    "O'lchang • Tanlang • Hisoblang": "Измеряйте • Выбирайте • Считайте", "O'lchov": "Ед. изм.",
+    "O'zgarishlar o'zi saqlanadi — internetsiz ham": "Изменения сохраняются сами — даже без интернета",
+    "Obyekt nomi bo'yicha qidirish…": "Поиск по названию объекта…", "Obyekt va hudud": "Объект и регион",
+    "Obyektlaringizning 3D ko'rinishi, xarajatlar tahlili va eng qimmat pozitsiyalar — bitta sahifada.":
+        "3D-вид объектов, анализ затрат и самые дорогие позиции — на одной странице.",
+    "Ochilmagan": "Не открыт", "Oflayn ishlash rejimi": "Работа офлайн", "Oflayn rejim": "Офлайн-режим", "Onlayn": "Онлайн",
+    "Oxirgi loyiha": "Последний проект", "Oxirgi obyekt bo'yicha: material + ish haqi": "По последнему объекту: материалы + работа",
+    "Plintusni lenta bilan o'lchagan bo'lsangiz, uni «qo'lda» maydoniga yozing — eshik va kafel uzunligi avtomatik ayirilmaydi. Zaxira foizini (10%) Narxlar → Sozlamalar bo'limida o'zgartirasiz.":
+        "Если плинтус измерен рулеткой, впишите его в поле «вручную» — двери и плитка не вычитаются автоматически. Процент запаса (10%) меняется в разделе Цены → Настройки.",
+    "Pol maydoni": "Площадь пола", "QQS (12%) qo'shish": "Добавить НДС (12%)", "Qidirish": "Поиск", "Qidirish…": "Поиск…",
+    "Qurilish smetalarini avtomatlashtirish": "Автоматизация строительных смет",
+    "Ro'yxatdan o'tmasdan namunaviy smetani ochib ko'ring; savollar uchun Yordam bo'limi.":
+        "Откройте пример сметы без регистрации; по вопросам — раздел «Помощь».",
+    "SSL himoyalangan": "Защищено SSL", "Sement markasi": "Марка цемента", "Smeta (jami / material)": "Смета (итого / материалы)",
+    "Smeta loyihalari": "Сметные проекты", "Smeta loyihalari va hisob-kitobi": "Сметные проекты и расчёты", "Smeta monitoringi": "Мониторинг смет",
+    "SmetaGo tizimiga xush kelibsiz. Hisobingizga kiring yoki yangisini yarating.": "Добро пожаловать в SmetaGo. Войдите в аккаунт или создайте новый.",
+    "Smetachi maslahati": "Совет сметчика", "So'nggi o'zgarishlar": "Последние изменения", "Sozlamalar (admin)": "Настройки (админ)",
+    "Tahlil": "Анализ", "Tezkor kalkulyator": "Быстрый калькулятор", "Tezkor, aniq va ishonchli": "Быстрые, точные и надёжные",
+    "To'liq hisob-kitobni ochish": "Открыть полный расчёт", "Xarajat tarkibi": "Структура затрат",
+    "Xona o'lchamlari asosida avtomatlashtirilgan hisob-kitoblar, material va ish haqi jadvali hamda bir zumda Excel eksport.":
+        "Автоматические расчёты по размерам комнат, таблица материалов и работ и мгновенный экспорт в Excel.",
+    "Xonalar": "Комнаты", "Xonalar va xarajat ulushi": "Комнаты и доля затрат", "Xush kelibsiz": "Добро пожаловать",
+    "Yangi smeta loyihasi": "Новый сметный проект", "Yangi smeta yaratish": "Создать смету", "Yangilangan": "Обновлено",
+    "Yordam bo'limi": "Раздел «Помощь»", "deraza": "окно", "eshik": "дверь", "model": "модель", "smeta loyihalari": "сметные проекты",
     # dashboard (Asosiy)
     "Asosiy": "Главная",
     "{0} ta obyekt": "Объектов: {0}",

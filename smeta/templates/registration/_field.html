@@ -1,5 +1,5 @@
 {% load smeta_i18n %}<div class="au-f">
-  <label for="{{ id }}">{{ label }}</label>
+  <div class="au-lrow"><label for="{{ id }}">{{ label }}{% if hint %} <small>{{ hint }}</small>{% endif %}</label>{% if link_url %}<a href="{{ link_url }}">{{ link_text }}</a>{% endif %}</div>
   <span class="au-in{% if errors %} bad{% endif %}">
     {% if icon == "user" %}<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.9-3.6 4-5.6 7.5-5.6s6.6 2 7.5 5.6"/></svg>
     {% elif icon == "mail" %}<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></svg>

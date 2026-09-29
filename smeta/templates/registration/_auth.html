@@ -4,37 +4,42 @@
 {% include "smeta/_head.html" %}
 <title>{% block title %}SmetaGo{% endblock %} · SmetaGo</title>
 </head>
-{# Kirish / ro'yxatdan o'tish / parol sahifalari: chapda jonli 3D xona, o'ngda forma (doim to'q uslub) #}
-<body class="authp" data-uid="{{ user.pk|default:'' }}">
-<div class="au">
-  <aside class="au-art">
-    <div class="au-top">
-      <span class="au-live"><i></i>{% t "Jonli 3D smeta" %} · <span id="au-dims" class="mono">4,2 × 3,4 m</span></span>
-      <span class="au-rot mono">{% t "Aylantiring" %} ↻</span>
+{# Kirish / ro'yxatdan o'tish / parol sahifalari: chapda qisqa tanishtiruv, o'ngda forma kartasi #}
+<body class="authp2" data-uid="{{ user.pk|default:'' }}">
+<header class="ah">
+  <div class="ah-in">
+    <a class="ah-brand" href="{% url 'obyekt_list' %}"><span class="mark">S</span><span><b>SmetaGo</b><small>{% t "O'lchang • Tanlang • Hisoblang" %}</small></span></a>
+    <div class="ah-acts"><span class="tb-pill ok" data-online><i></i>{% t "Onlayn" %}</span>{% include "smeta/_prefs.html" %}</div>
+  </div>
+  <div class="ah-rule" aria-hidden="true"></div>
+</header>
+<main class="ahm">
+  <section class="ah-left">
+    <p class="ah-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 6l-6 15M12 6l6 15M8.5 15h7"/></svg>{% t "Qurilish smetalarini avtomatlashtirish" %}</p>
+    <h1>{% t "Tezkor, aniq va ishonchli" %} <em>{% t "smeta loyihalari" %}</em></h1>
+    <p class="ah-lead">{% t "Xona o'lchamlari asosida avtomatlashtirilgan hisob-kitoblar, material va ish haqi jadvali hamda bir zumda Excel eksport." %}</p>
+    <div class="ah-stats">
+      <div><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M6 16V9M10 16V5M14 16v-6M18 16v-9"/></svg>{% t "3 manba" %}</b><span>{% t "Har bir material narxi uchun: eng arzon, o'rtacha, eng qimmat" %}</span></div>
+      <div><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9"/><path d="M18.5 3v4.2h-4.2M5.5 21v-4.2h4.2"/></svg>{% t "Oflayn" %}</b><span>{% t "Internetsiz ishlash va avtomatik sinxronlash" %}</span></div>
     </div>
-    <canvas class="r3d au-canvas" id="au-3d" aria-label="{% t "Xonaning 3D ko'rinishi" %}" role="img"></canvas>
-    <div class="au-bottom">
-      <p class="au-lead">{% t "Xonalarni o'lchang, katalogdan tanlang — material, narx va ish haqi bilan tayyor smeta." %}</p>
-      <ol class="au-steps"><li><b>01</b>{% t "O'lchang" %}</li><li><b>02</b>{% t "Tanlang" %}</li><li><b>03</b>{% t "Hisoblang" %}</li></ol>
+    <div class="ah-proj" aria-label="{% t "Namuna hisob" %}">
+      <div class="ap-h"><span><i></i>{% t "Namuna: Mehmonxona 5 × 4 × 2,8 m" %}</span><span>1 {% t "eshik" %} · 1 {% t "deraza" %}</span></div>
+      <div class="ap-r"><span>{% t "Pol maydoni" %}</span><b>20,00 m²</b></div>
+      <span class="ap-bar"><i style="width:43%"></i></span>
+      <div class="ap-r ap-t"><span>{% t "Devor (sof, eshik va derazasiz)" %}</span><b>46,26 m²</b></div>
     </div>
-  </aside>
-  <main class="au-main">
-    <header class="au-head">
-      <a class="au-brand" href="{% url 'obyekt_list' %}"><span class="mark">S</span><span><b>SmetaGo</b><small>{% t "o'lchang · tanlang · hisoblang" %}</small></span></a>
-      <form class="seg" method="post" action="{% url 'set_language' %}" aria-label="{% t 'Til' %}">{% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button name="language" value="uz" lang="uz" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}false{% else %}true{% endif %}">UZ</button>
-        <button name="language" value="ru" lang="ru" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}true{% else %}false{% endif %}">RU</button>
-      </form>
-    </header>
-    <div class="au-body">
-      {% if messages %}{% for m in messages %}<p class="au-msg">{{ m }}</p>{% endfor %}{% endif %}
-      {% block form %}{% endblock %}
-    </div>
-    <footer class="au-foot"><span>© 2026 SmetaGo</span><nav><a href="{% url 'help' %}">{% t "Yordam" %}</a><a href="{% url 'privacy' %}">{% t "Maxfiylik" %}</a></nav></footer>
-  </main>
-</div>
-<script src="{% static 'smeta/js/room3d.js' %}"></script>
+  </section>
+  <section class="ah-card">
+    <div class="ah-body">{% if messages %}{% for m in messages %}<p class="au-msg">{{ m }}</p>{% endfor %}{% endif %}{% block form %}{% endblock %}</div>
+    <div class="ah-cf"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.3 2.3 4.7-4.8"/></svg>{% t "Aniq hisob" %}</span><i></i><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9"/></svg>{% t "Oflayn rejim" %}</span><i></i><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14"/></svg>{% t "Excel eksport" %}</span></div>
+  </section>
+</main>
+<section class="ah-feats">
+  <article><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg></span><div><h3>{% t "Aniqlik va ochiqlik" %}</h3><p>{% t "Har bir qatorda o'lchov, zaxira va narx manbasi ko'rinadi — har raqamni tekshirish oson." %}</p></div></article>
+  <article><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="10" rx="1.5"/><rect x="17" y="8" width="4" height="10" rx="1"/><path d="M7 19h6"/></svg></span><div><h3>{% t "Oflayn ishlash rejimi" %}</h3><p>{% t "Internet uzilganda ham ma'lumotlar qurilmada saqlanadi va aloqa tiklanganda o'zi yuboriladi." %}</p></div></article>
+  <article><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span><div><h3>{% t "Namuna va yordam" %}</h3><p>{% t "Ro'yxatdan o'tmasdan namunaviy smetani ochib ko'ring; savollar uchun Yordam bo'limi." %}</p></div></article>
+</section>
+<footer class="ah-foot"><span>© 2026 SmetaGo. {% t "Barcha huquqlar himoyalangan." %}</span><nav><a href="{% url 'demo' %}">{% t "Namuna" %}</a><a href="{% url 'help' %}">{% t "Yordam" %}</a><a href="{% url 'privacy' %}">{% t "Maxfiylik" %}</a></nav></footer>
 <script src="{% static 'smeta/js/auth.js' %}"></script>
 </body>
 </html>

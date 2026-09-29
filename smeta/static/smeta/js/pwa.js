@@ -41,7 +41,9 @@
   // navigator.onLine har doim ham to'g'ri emas (Wi-Fi bor, internet yo'q) — shuning uchun app.js
   // saqlash natijasini ham bildiradi: window.smetagoNet(false) / (true)
   var down=false;
-  var net=function(){document.querySelectorAll("[data-netbadge]").forEach(function(el){el.hidden=navigator.onLine&&!down})};
+  var net=function(){var on=navigator.onLine&&!down;
+    document.querySelectorAll("[data-netbadge]").forEach(function(el){el.hidden=on});
+    document.querySelectorAll("[data-online]").forEach(function(el){el.hidden=!on})};
   window.smetagoNet=function(online){down=!online;net()};
   addEventListener("online",function(){down=false;net()});addEventListener("offline",net);document.addEventListener("DOMContentLoaded",net);
   document.addEventListener("submit",function(e){var f=e.target;

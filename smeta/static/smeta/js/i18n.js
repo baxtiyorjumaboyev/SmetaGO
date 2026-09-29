@@ -5,6 +5,18 @@
  */
 const LANG=/^ru/i.test(document.documentElement.lang||"")?"ru":"uz";
 const RU={
+ // boshqaruv paneli va loyihalar (proba dizayni)
+ "Barcha obyektlar bo'yicha: materiallar {0}, ish haqi {1} so'm.":"По всем объектам: материалы {0}, работа {1} сум.","Faol obyektlar":"Активные объекты",
+ "Hali o'zgarish yo'q.":"Изменений пока нет.","Hali obyekt yo'q":"Объектов пока нет","Hali ochilmagan":"Ещё не открыт","Hisoblangan":"Рассчитан",
+ "Ish haqi ulushi":"Доля работы","Jami smeta qiymati":"Общая стоимость смет","Jami smetalar":"Всего смет",
+ "Ko'rsatilgan: {0} ta pozitsiya (jami {1} tadan)":"Показано позиций: {0} (всего {1})","Ko'rsatilmoqda: {0} ta / {1} ta":"Показано: {0} из {1}",
+ "Kutilmagan":"Непредвиденные","Kutilmagan xarajatlar zaxirasi":"Резерв на непредвиденные","Maydon":"Площадь","Navbatda":"В очереди",
+ "Obyekt qo'shing — 3D ko'rinish va summalar shu yerda chiqadi.":"Добавьте объект — здесь появятся 3D-вид и суммы.","Oxirgi o'zgarish":"Последнее изменение",
+ "Oxirgi saqlash":"Последнее сохранение","Qo'shilgan qiymat solig'i (12%)":"НДС (12%)","Sinxronizatsiya":"Синхронизация","TANNARX":"СЕБЕСТОИМОСТЬ",
+ "Tayyor":"Готово","To'g'ridan-to'g'ri xarajatlar":"Прямые затраты","Umumiy pol maydoni":"Общая площадь пола","Umumiy portfel":"Общий портфель",
+ "Umumiy smeta":"Итого по смете","Xonalar hali kiritilmagan.":"Комнаты ещё не добавлены.","bu oy":"в этом месяце",
+ "hisoblangan obyektlar bo'yicha":"по рассчитанным объектам","kutmoqda":"ожидают","mat.":"мат.","pol maydoni":"площадь пола","saqlangan":"сохранено",
+ "ta":"шт.","ta hisoblangan":"рассчитано","xona":"комн.","{0} xona":"Комнат: {0}",
  // dashboard (Asosiy)
  "Elementlar":"Позиции","mlrd":"млрд","mln":"млн","ming":"тыс.","Jami smeta":"Итого по сметам","Obyektlar":"Объекты",
  "O'rtacha smeta":"Средняя смета","Smeta summasi":"Сумма смет","{0} ta obyekt":"Объектов: {0}",

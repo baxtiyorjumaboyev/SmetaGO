@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth import login
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.utils.http import content_disposition_header
@@ -22,16 +23,29 @@ def obyekt_list(request):
     if not request.user.is_authenticated:
         # kalkulyator uchun ma'lumotnoma (narxlar, qoplamalar, xona turlari)
         return render(request, "smeta/landing.html", {"ref": cached_reference(current_lang())})
+    return render(request, "smeta/obyekt_list.html", _dash_context(request))
+
+
+@login_required
+def loyihalar(request):
+    """Smeta loyihalari: barcha obyektlar jadvali, tezkor beton kalkulyatori, xarajat tarkibi."""
+    return render(request, "smeta/loyihalar.html", _dash_context(request))
+
+
+def _dash_context(request):
+    """Boshqaruv paneli va loyihalar sahifasi uchun: obyektlar va ularning holati.
+    Summalar brauzerda calc.js (buildSmeta) bilan hisoblanadi — ilovadagi bilan aynan bir xil."""
     obyektlar = list(request.user.obyektlar.all())
-    # dashboard summalari brauzerda calc.js bilan hisoblanadi (ilova bilan bir xil)
     dash = [{"id": o.pk, "name": o.name, "url": reverse("obyekt_app", args=[o.pk]),
              "created": o.created.isoformat(),
              "updated": o.updated.isoformat(), "state": o.state} for o in obyektlar]
-    return render(request, "smeta/obyekt_list.html", {
+    ref = cached_reference(current_lang())
+    return {
         "obyektlar": obyektlar,
         "dash": dash,
-        "ref": {"prices": cached_reference(current_lang())["prices"]},
-    })
+        "ref": {"prices": ref["prices"]},
+        "prices_updated": ref.get("pricesUpdated", ""),
+    }
 
 
 @login_required
@@ -134,6 +148,16 @@ def obyekt_excel(request, pk):
     resp = HttpResponse(content, content_type=XLSX_TYPE)
     resp["Content-Disposition"] = content_disposition_header(True, f"{o.name or 'Smeta'}.xlsx")
     return resp
+
+
+class Login(auth_views.LoginView):
+    """Kirish: "Eslab qolish" belgilanmasa — sessiya brauzer yopilganda tugaydi (umumiy kompyuter uchun)."""
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if not self.request.POST.get("remember"):
+            self.request.session.set_expiry(0)
+        return response
 
 
 def register(request):

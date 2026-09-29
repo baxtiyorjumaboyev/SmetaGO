@@ -1,94 +1,93 @@
-{% extends "smeta/base.html" %}{% load static smeta_i18n %}
-{% block title %}{% t "Asosiy" %} · SmetaGo{% endblock %}
+{% extends "smeta/shell.html" %}{% load static smeta_i18n %}
+{% block title %}{% t "Boshqaruv paneli" %}{% endblock %}
 {% block content %}
-<div class="dash">
-  <div class="dash-head">
-    <div><h1>{% t "Asosiy" %}</h1><p class="ometa">{% t "{0} ta obyekt" obyektlar|length %} · {% now "d.m.Y" %}</p></div>
-    <div class="row">
-      {% if tg_bot and not user.telegram %}<div class="tg-link" title="{% t "Telegram'ni ulasangiz, keyingi safar parolsiz kirasiz" %}"><span class="ometa">{% t "Telegram'ni ulash:" %}</span>{% include "smeta/_telegram.html" %}</div>{% endif %}
-      <div class="seg dash-seg" id="dash-metric" role="group" aria-label="{% t "Ko'rsatkich" %}">
-        <button type="button" data-m="grand" aria-pressed="true">{% t "Jami" %}</button>
-        <button type="button" data-m="mat" aria-pressed="false">{% t "Material" %}</button>
-        <button type="button" data-m="lab" aria-pressed="false">{% t "Ish haqi" %}</button>
-      </div>
-    </div>
+<div class="pg-head">
+  <div>
+    <p class="pg-chips"><span class="chip-g">{% t "{0} ta obyekt" obyektlar|length %}</span><span class="chip-l"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.3 2.3 4.7-4.8"/></svg>{% now "d.m.Y" %}</span></p>
+    <h1>{% t "Smeta monitoringi" %}</h1>
+    <p class="pg-sub">{% t "Obyektlaringizning 3D ko'rinishi, xarajatlar tahlili va eng qimmat pozitsiyalar — bitta sahifada." %}</p>
   </div>
-
-  <div class="dash-top">
-    <section class="dash-chart">
-      <div class="dc-head">
-        <div><span class="dc-k" id="dc-label">{% t "Smeta summasi" %}</span><b class="dc-v" id="dc-total">—</b></div>
-        <span class="dc-badge" id="dc-count"></span>
-      </div>
-      <div class="dc-svg" id="dc-svg"></div>
-    </section>
-    <div class="kpis" id="kpis"></div>
+  <div class="pg-acts">
+    {% if tg_bot and not user.telegram %}<div class="tg-link" title="{% t "Telegram'ni ulasangiz, keyingi safar parolsiz kirasiz" %}">{% include "smeta/_telegram.html" %}</div>{% endif %}
+    <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<input type="hidden" name="namuna" value="1"><button class="btn ol">{% t "Namunaviy obyekt" %}</button></form>
+    <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn pri lg">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>{% t "Yangi smeta loyihasi" %}</button></form>
   </div>
-
-  <div class="dash-row">
-    <section class="panel dcard"><h3>{% t "Xarajatlar tarkibi" %}</h3><p class="ometa">{% t "Barcha obyektlar" %}</p><div id="d-split"></div></section>
-    <section class="panel dcard"><h3>{% t "Bo'limlar bo'yicha" %}</h3><p class="ometa">{% t "Pol, devor, shift, elementlar, beton" %}</p><div id="d-donut" class="donut-wrap"></div></section>
-    <section class="panel dcard"><h3>{% t "Eng katta obyektlar" %}</h3><p class="ometa">{% t "Jami smeta bo'yicha" %}</p><ol id="d-top" class="toplist"></ol></section>
-  </div>
-
-  <div class="dash-head" style="margin-top:8px">
-    <h2>{% t "Obyektlar" %}</h2>
-    <div class="row">
-      <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}
-        <input type="hidden" name="namuna" value="1">
-        <button class="btn">{% t "Namunaviy obyekt" %}</button>
-      </form>
-      <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}
-        <button class="btn pri">{% t "+ Yangi obyekt" %}</button>
-      </form>
-    </div>
-  </div>
-
-  {# bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js) — yangi obyektga o'tkazish taklifi #}
-  <div class="hint row" id="draft-bar" hidden style="justify-content:space-between">
-    <span>{% t "Bosh sahifada o'lchangan xona saqlanmagan:" %} <b id="draft-text"></b></span>
-    <span class="row">
-      <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn sm pri">{% t "Yangi obyekt sifatida saqlash" %}</button></form>
-      <button type="button" class="btn sm ghost" id="draft-drop">{% t "Kerak emas" %}</button>
-    </span>
-  </div>
-  <script>
-  (function(){var d;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
-    if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return;
-    var bar=document.getElementById("draft-bar");bar.hidden=false;
-    document.getElementById("draft-text").textContent=[d.room.L,d.room.W,d.room.H].join(" × ")+" m";
-    document.getElementById("draft-drop").onclick=function(){try{localStorage.removeItem("smetago-draft")}catch(e){}bar.hidden=true};
-  })();
-  </script>
-
-  {% if obyektlar %}
-  <div class="olist">
-    {% for o in obyektlar %}
-    <article class="panel pad ocard">
-      <a class="oname" href="{% url 'obyekt_app' o.pk %}">{{ o.name }}</a>
-      <b class="osum mono" data-sum="{{ o.pk }}">—</b>
-      <div class="ometa">
-        {% if o.region %}{% t o.region %} · {% endif %}{% t "{0} xona" o.rooms_count %}<br>
-        {% t "O'zgartirilgan" %}: {{ o.updated|date:"d.m.Y H:i" }}
-      </div>
-      <div class="oacts">
-        <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">{% t "Ochish" %}</a>
-        <form method="post" action="{% url 'obyekt_copy' o.pk %}">{% csrf_token %}<button class="btn sm">{% t "Nusxa" %}</button></form>
-        <form method="post" action="{% url 'obyekt_delete' o.pk %}" data-confirm="{% t "«{0}» o'chirilsinmi? Bu amalni qaytarib bo'lmaydi." o.name %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}<button class="btn sm ghost">{% t "O'chirish" %}</button></form>
-      </div>
-    </article>
-    {% endfor %}
-  </div>
-  {% else %}
-  <section class="panel empty">
-    {% t "Hali obyekt yo'q. «+ Yangi obyekt» bilan boshlang yoki ilovani ko'rish uchun namunaviy obyekt oching." %}
-  </section>
-  {% endif %}
 </div>
+
+{# bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js) — yangi obyektga o'tkazish taklifi #}
+<div class="hint row" id="draft-bar" hidden style="justify-content:space-between">
+  <span>{% t "Bosh sahifada o'lchangan xona saqlanmagan:" %} <b id="draft-text"></b></span>
+  <span class="row">
+    <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn sm pri">{% t "Yangi obyekt sifatida saqlash" %}</button></form>
+    <button type="button" class="btn sm ghost" id="draft-drop">{% t "Kerak emas" %}</button>
+  </span>
+</div>
+
+<div class="kpi4" id="kpis"></div>
+
+<div class="dgrid">
+  <div class="dcol">
+    <section class="model" id="model">
+      <canvas class="r3d model-3d" id="model-3d" role="img" aria-label="{% t "Xonaning 3D ko'rinishi" %}"></canvas>
+      <div class="model-top">
+        <p class="pg-chips"><span class="chip-d">3D {% t "model" %}</span><span class="chip-a" id="model-room"></span></p>
+        <h2 id="model-name">{% t "Hali obyekt yo'q" %}</h2>
+        <p class="model-loc" id="model-loc"></p>
+      </div>
+      <span class="model-st" id="model-st"></span>
+      <div class="model-bar" id="model-bar"></div>
+    </section>
+
+    <section class="panel card">
+      <div class="card-h"><h2>{% t "Xonalar va xarajat ulushi" %}</h2><span class="ometa" id="rooms-note"></span></div>
+      <div class="stages" id="stages"></div>
+    </section>
+
+    <section class="panel card">
+      <div class="card-h"><div><h2>{% t "Eng qimmat pozitsiyalar" %}</h2><p class="ometa" style="margin:2px 0 0">{% t "Oxirgi obyekt bo'yicha: material + ish haqi" %}</p></div>
+        <span class="legend-i"><i class="lg-m"></i>{% t "Materiallar" %}<i class="lg-l"></i>{% t "Ish haqi" %}</span></div>
+      <div class="tscroll dtable"><table><thead><tr><th>№</th><th>{% t "Ish turi va resurs tavsifi" %}</th><th>{% t "O'lchov" %}</th><th class="r">{% t "Miqdor" %}</th><th class="r">{% t "Birlik narxi" %}</th><th class="r">{% t "Jami summa" %}</th></tr></thead>
+        <tbody id="lines"></tbody></table></div>
+      <div class="card-f"><span class="ometa" id="lines-note"></span><a id="lines-open" class="lnk" href="{% url 'loyihalar' %}">{% t "To'liq hisob-kitobni ochish" %} →</a></div>
+    </section>
+  </div>
+
+  <div class="dcol side">
+    <section class="panel card">
+      <div class="card-h"><h2>{% t "Xarajatlar tarkibi" %}</h2><span class="chip-g">{% t "Tahlil" %}</span></div>
+      <div class="hl" id="hl"></div>
+      <p class="eyebrow" style="margin:16px 0 8px">{% t "Bo'limlar bo'yicha" %}</p>
+      <div class="cats" id="cats"></div>
+    </section>
+    <section class="panel card">
+      <div class="card-h"><h2>{% t "So'nggi o'zgarishlar" %}</h2><span class="ometa">{% now "d.m" %}</span></div>
+      <ul class="feed" id="feed"></ul>
+      <a class="btn ol block" href="{% url 'loyihalar' %}">{% t "Barcha loyihalar" %}</a>
+    </section>
+    <section class="gcard">
+      <p class="gcard-h"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6M5 12v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6"/></svg>{% t "Narxlar bazasi" %}</p>
+      <p>{% t "Materiallar narxi 3 manbadan olinadi; har obyektda o'z narxingizni ham kiritishingiz mumkin." %}</p>
+      <div class="gcard-f"><span>{% if prices_updated %}{% t "Yangilangan" %}: {{ prices_updated }}{% endif %}</span><a href="{% url 'help' %}">{% t "Batafsil" %} →</a></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){var d;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
+  if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return;
+  var bar=document.getElementById("draft-bar");bar.hidden=false;
+  document.getElementById("draft-text").textContent=[d.room.L,d.room.W,d.room.H].join(" × ")+" m";
+  document.getElementById("draft-drop").onclick=function(){try{localStorage.removeItem("smetago-draft")}catch(e){}bar.hidden=true};
+})();
+</script>
 {{ dash|json_script:"dash-data" }}
 {{ ref|json_script:"smeta-ref" }}
+{% endblock %}
+{% block scripts %}
 <script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
 <script src="{% static 'smeta/js/calc.js' %}"></script>
+<script src="{% static 'smeta/js/room3d.js' %}"></script>
 <script src="{% static 'smeta/js/dashboard.js' %}"></script>
 {% endblock %}

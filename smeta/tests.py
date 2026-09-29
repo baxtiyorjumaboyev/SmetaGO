@@ -84,7 +84,7 @@ class SmetaTests(TestCase):
         self.assertEqual(o.rooms_count, 2)
         self.assertEqual(self.c.get(url).json(), STATE)
 
-        list_page = self.c.get("/").content.decode()
+        list_page = self.c.get(reverse("loyihalar")).content.decode()
         self.assertIn("Chilonzor kvartira", list_page)
         self.assertIn("2 xona", list_page)
 
@@ -168,8 +168,8 @@ class SmetaTests(TestCase):
         self.assertRedirects(r, "/", fetch_redirect_response=False)
         page = self.c.get("/")
         self.assertContains(page, '<html lang="ru">')
-        self.assertContains(page, "Объекты")
-        self.assertContains(page, "+ Новый объект")
+        self.assertContains(page, "Панель управления")
+        self.assertContains(self.c.get(reverse("loyihalar")), "Создать смету")
         self.c.post(reverse("obyekt_create"))
         self.assertEqual(Obyekt.objects.get().name, "Новый объект")
 
@@ -254,7 +254,7 @@ class SmetaTests(TestCase):
         ws = wb["Smeta"]
         self.assertEqual(ws["A1"].value, "SMETA: Test")
         self.assertTrue(ws["A1"].font.b)
-        self.assertEqual(ws["B2"].fill.fgColor.rgb[-6:], "4D7C0F")  # sarlavha — lime (sayt palitrasi)
+        self.assertEqual(ws["B2"].fill.fgColor.rgb[-6:], "15803D")  # sarlavha — yashil (sayt palitrasi)
         self.assertEqual((ws["C3"].value, ws["C3"].number_format), (2383333, "#,##0"))
         self.assertEqual(ws["C4"].number_format, "0.00")
         self.assertEqual(ws["B4"].data_type, "s")  # "=..." formula emas, matn bo'lib qoladi
@@ -429,3 +429,34 @@ class ErrorPageTests(TestCase):
         self.assertEqual(r.status_code, 404)
         self.assertContains(r, "Sahifa topilmadi", status_code=404)
         self.assertContains(r, 'rel="manifest"', status_code=404)  # sayt uslubida (base.html)
+
+class ShellPagesTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("ali", password="SmetaGo-2026!")
+
+    def test_dashboard_and_projects_pages(self):
+        c = Client()
+        c.force_login(self.user)
+        o = Obyekt.objects.create(owner=self.user, name="Chilonzor", state=STATE)
+        for url in ("/", reverse("loyihalar")):
+            r = c.get(url)
+            self.assertContains(r, 'class="sb"')          # yon panel
+            self.assertContains(r, 'id="dash-data"')      # summalar brauzerda (calc.js)
+            self.assertContains(r, "smeta/js/room3d.js")
+        page = c.get(reverse("loyihalar")).content.decode()
+        self.assertIn(f'data-id="{o.pk}"', page)
+        self.assertIn('id="qc"', page)                    # tezkor kalkulyator
+        self.assertRedirects(Client().get(reverse("loyihalar")), "/kirish/?next=/loyihalar/")
+        other = User.objects.create_user("vali", password="SmetaGo-2026!")
+        c2 = Client()
+        c2.force_login(other)
+        self.assertNotIn("Chilonzor", c2.get(reverse("loyihalar")).content.decode())  # faqat o'z obyektlari
+
+    def test_remember_me(self):
+        c = Client()
+        c.post(reverse("login"), {"username": "ali", "password": "SmetaGo-2026!", "remember": "1"})
+        self.assertFalse(c.session.get_expire_at_browser_close())
+        c2 = Client()
+        c2.post(reverse("login"), {"username": "ali", "password": "SmetaGo-2026!"})
+        self.assertIn("_auth_user_id", c2.session)
+        self.assertTrue(c2.session.get_expire_at_browser_close())  # belgilanmagan — brauzer yopilganda tugaydi
