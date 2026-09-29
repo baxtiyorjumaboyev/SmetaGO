@@ -31,16 +31,14 @@ class SmetaTests(TestCase):
         with self.settings(EMAIL_HOST="smtp.example.com"):
             self.assertContains(anon.get(reverse("login")), reverse("password_reset"))
         form = {"username": "vali", "password1": "Qurilish-2026!", "password2": "Qurilish-2026!"}
-        r = anon.post(reverse("register"), form)  # emailsiz — rad etiladi
-        self.assertEqual(r.status_code, 200)
-        self.assertFalse(User.objects.filter(username="vali").exists())
-        r = anon.post(reverse("register"), {**form, "email": "vali@example.com"})
+        self.assertNotContains(anon.get(reverse("register")), 'name="email"')  # email so'ralmaydi
+        r = anon.post(reverse("register"), form)
         self.assertRedirects(r, "/")
-        self.assertEqual(User.objects.get(username="vali").email, "vali@example.com")
-        # shu email bilan ikkinchi hisob ochilmaydi (katta-kichik harf farqi yo'q)
-        r = Client().post(reverse("register"), {**form, "username": "sobir", "email": "Vali@Example.com"})
+        self.assertEqual(User.objects.get(username="vali").email, "")
+        # shu login bilan ikkinchi hisob ochilmaydi
+        r = Client().post(reverse("register"), form)
         self.assertEqual(r.status_code, 200)
-        self.assertFalse(User.objects.filter(username="sobir").exists())
+        self.assertEqual(User.objects.filter(username="vali").count(), 1)
 
     def test_password_reset(self):
         from django.core import mail

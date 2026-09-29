@@ -75,9 +75,6 @@ RU = {
     "Havola eskirgan yoki boshqa sahifadan ochilgan. Sahifani yangilab, qaytadan urinib ko'ring.":
         "Ссылка устарела или открыта с другой страницы. Обновите страницу и попробуйте снова.",
     "Email": "Email",
-    "Parolni unutsangiz, tiklash havolasi shu manzilga yuboriladi.":
-        "Если забудете пароль, ссылка для восстановления придёт на этот адрес.",
-    "Bu email bilan hisob allaqachon bor.": "Аккаунт с таким email уже существует.",
     # parolni tiklash
     "Parolni unutdingizmi?": "Забыли пароль?",
     "Parolni tiklash": "Восстановление пароля",

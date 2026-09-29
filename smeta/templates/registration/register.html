@@ -6,8 +6,6 @@
   {% if tg_bot %}{% include "smeta/_telegram.html" %}<p class="helptext" style="text-align:center;margin:0">{% t "Telegram bilan — bir bosishda, parolsiz." %}</p><p class="or"><span>{% t "yoki login va parol bilan" %}</span></p>{% endif %}
   {{ form.non_field_errors }}
   <div><label for="id_username">{% t "Login" %}</label>{{ form.username }}{{ form.username.errors }}</div>
-  <div><label for="id_email">{% t "Email" %}</label>{{ form.email }}{{ form.email.errors }}
-    <div class="helptext">{% t "Parolni unutsangiz, tiklash havolasi shu manzilga yuboriladi." %}</div></div>
   <div><label for="id_password1">{% t "Parol" %}</label>{{ form.password1 }}{{ form.password1.errors }}
     <div class="helptext">{% t "Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin." %}</div></div>
   <div><label for="id_password2">{% t "Parolni takrorlang" %}</label>{{ form.password2 }}{{ form.password2.errors }}</div>
