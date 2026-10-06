@@ -125,6 +125,9 @@ PASSWORD_RESET_TIMEOUT = 60 * 60 * 24  # tiklash havolasi 24 soat amal qiladi
 TELEGRAM_BOT_TOKEN = os.environ.get("DJANGO_TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_BOT_NAME = os.environ.get("DJANGO_TELEGRAM_BOT_NAME", "").lstrip("@")
 
+# kirish: login yoki telefon raqami (smeta/recovery.py); ModelBackend — Telegram va tiklashdan keyingi kirish uchun
+AUTHENTICATION_BACKENDS = ["smeta.recovery.LoginBackend", "django.contrib.auth.backends.ModelBackend"]
+
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "obyekt_list"
 LOGOUT_REDIRECT_URL = "obyekt_list"  # mehmon uchun bu bosh sahifa (sayt)

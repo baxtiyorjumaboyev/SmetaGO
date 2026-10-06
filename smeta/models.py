@@ -179,3 +179,38 @@ class TelegramAccount(models.Model):
 
     def __str__(self):
         return f"@{self.username}" if self.username else str(self.tg_id)
+
+class Profile(models.Model):
+    """Qo'shimcha ma'lumot: telefon raqami (kirish va parolni tiklash uchun). Format: 998XXXXXXXXX."""
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                related_name="profile", verbose_name="Foydalanuvchi")
+    phone = models.CharField("Telefon raqami", max_length=12, unique=True, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Profil"
+        verbose_name_plural = "Profillar"
+
+    def __str__(self):
+        return f"{self.user} · +{self.phone}" if self.phone else str(self.user)
+
+
+class ResetRequest(models.Model):
+    """Parolni tiklash so'rovi: Telegram orqali kod yuborib bo'lmasa — administrator ko'rib, parolni yangilaydi."""
+
+    METHODS = [("phone", "Telefon raqami"), ("login", "Login")]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True,
+                             related_name="reset_requests", verbose_name="Foydalanuvchi (topilgan bo'lsa)")
+    method = models.CharField("Usul", max_length=10, choices=METHODS)
+    identifier = models.CharField("Kiritilgan qiymat", max_length=64)
+    created = models.DateTimeField("Yuborilgan", auto_now_add=True)
+    handled = models.BooleanField("Hal qilindi", default=False)
+
+    class Meta:
+        ordering = ["handled", "-created"]
+        verbose_name = "Parolni tiklash so'rovi"
+        verbose_name_plural = "Parolni tiklash so'rovlari"
+
+    def __str__(self):
+        return f"{self.get_method_display()}: {self.identifier}"

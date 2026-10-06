@@ -190,6 +190,6 @@ def register(request):
         return redirect("obyekt_list")
     form = RegisterForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        login(request, form.save())
+        login(request, form.save(), backend="django.contrib.auth.backends.ModelBackend")
         return redirect("obyekt_list")
     return render(request, "registration/register.html", {"form": form})

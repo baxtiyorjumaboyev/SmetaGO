@@ -1,10 +1,60 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+from django.urls import reverse
+from django.utils.html import format_html
 
-from .models import CatalogGroup, CatalogItem, CatalogVariant, Material, Obyekt, RoomType, TelegramAccount
+from .models import (CatalogGroup, CatalogItem, CatalogVariant, Material, Obyekt, Profile, ResetRequest,
+                     RoomType, TelegramAccount)
 
 admin.site.site_header = "SmetaGo boshqaruvi"
 admin.site.site_title = "SmetaGo"
 admin.site.index_title = "Ma'lumotnoma va obyektlar"
+
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = "Telefon raqami"
+    fields = ("phone",)
+
+
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class SmetaUserAdmin(UserAdmin):
+    """Foydalanuvchi + telefon raqami (kirish va parolni tiklash uchun)."""
+    inlines = [ProfileInline]
+    list_display = ("username", "phone", "first_name", "is_staff", "date_joined", "last_login")
+    search_fields = ("username", "first_name", "last_name", "profile__phone")
+
+    @admin.display(description="Telefon")
+    def phone(self, obj):
+        p = getattr(obj, "profile", None)
+        return f"+{p.phone}" if p and p.phone else "—"
+
+
+@admin.register(ResetRequest)
+class ResetRequestAdmin(admin.ModelAdmin):
+    """Parolni tiklash so'rovlari: foydalanuvchi bilan bog'lanib, "Parolni o'zgartirish" orqali yangilang."""
+    list_display = ("created", "method", "identifier", "user", "set_password", "handled")
+    list_filter = ("handled", "method")
+    list_editable = ("handled",)
+    search_fields = ("identifier", "user__username")
+    readonly_fields = ("user", "method", "identifier", "created")
+    actions = ["mark_handled"]
+
+    @admin.display(description="Yangi parol")
+    def set_password(self, obj):
+        if not obj.user_id:
+            return "hisob topilmadi"
+        return format_html('<a href="{}">Parolni o\'zgartirish →</a>',
+                           reverse("admin:auth_user_password_change", args=[obj.user_id]))
+
+    @admin.action(description="Hal qilindi deb belgilash")
+    def mark_handled(self, request, queryset):
+        queryset.update(handled=True)
 
 
 @admin.register(TelegramAccount)

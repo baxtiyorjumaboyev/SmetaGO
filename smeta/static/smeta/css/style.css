@@ -1093,3 +1093,12 @@ legend.sec-h{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;pad
 .start form{margin:0}
 @media (max-width:900px){.start ol{grid-template-columns:minmax(0,1fr)}.guide li.go{margin-left:0}}
 @media (max-width:760px){.grp-b{float:none;display:flex;margin-top:8px}.opening .own-t{width:100%}}
+/* parolni tiklash: Telefon | Login tablari (radio, JS'siz) */
+.rt-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface2);border-radius:12px;padding:4px}
+.rt-tabs input{position:absolute;opacity:0;pointer-events:none}
+.rt-tabs label{text-align:center;padding:11px 8px;border-radius:9px;font-weight:600;color:var(--muted);cursor:pointer}
+.rt-tabs input:checked+label{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.rt-tabs input:focus-visible+label{outline:2px solid var(--accent);outline-offset:1px}
+.rt:has(#rt-phone:checked) .rt-login,.rt:has(#rt-login:checked) .rt-phone{display:none}
+.ah-forgot{color:var(--accent);font-weight:600;font-size:14px;text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
+.ah-forgot:hover{text-decoration:underline}

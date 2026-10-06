@@ -1,25 +1,20 @@
 {% extends "registration/_auth.html" %}{% load smeta_i18n %}
 {% block title %}{% t "Kirish" %}{% endblock %}
 {% block form %}
-<p class="ah-eyebrow">{% t "Xush kelibsiz" %}</p>
-<div class="ah-title"><h1>{% t "Kirish" %}</h1><span class="ah-key" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2"/></svg></span></div>
-<p class="au-sub">{% t "SmetaGo tizimiga xush kelibsiz. Hisobingizga kiring yoki yangisini yarating." %}</p>
-{% if form.non_field_errors %}<p class="au-msg bad">{% t "Login yoki parol noto'g'ri." %}</p>{% endif %}
+<h1>{% t "Xush kelibsiz" %}</h1>
+<p class="au-sub">{% t "Hisobingizga kirish uchun ma'lumotlarni kiriting." %}</p>
+{% if form.non_field_errors %}<p class="au-msg bad">{% t "Login (telefon) yoki parol noto'g'ri." %}</p>{% endif %}
 <form method="post" class="au-form auth">{% csrf_token %}
-  {% t "Login" as l %}{% t "Loginingizni kiriting" as ph %}
+  {% t "Login yoki telefon raqami" as l %}{% t "familiya.ism yoki +998 90 123 45 67" as ph %}
   {% include "registration/_field.html" with id="id_username" name="username" label=l placeholder=ph icon="user" value=form.username.value autocomplete="username" autofocus=1 %}
-  {% t "Parol" as l %}{% t "Parolni unutdingizmi?" as lt %}{% url 'password_reset' as lu %}
-  {% if email_ready %}
-  {% include "registration/_field.html" with id="id_password" name="password" type="password" label=l placeholder="••••••••" icon="lock" autocomplete="current-password" link_url=lu link_text=lt %}
-  {% else %}
+  {% t "Parol" as l %}
   {% include "registration/_field.html" with id="id_password" name="password" type="password" label=l placeholder="••••••••" icon="lock" autocomplete="current-password" %}
-  {% endif %}
   <div class="ah-row">
-    <label class="chk"><input type="checkbox" name="remember" value="1" checked> {% t "Eslab qolish" %}</label>
-    {% if request.is_secure %}<span class="ah-ssl"><i></i>{% t "SSL himoyalangan" %}</span>{% endif %}
+    <label class="chk"><input type="checkbox" name="remember" value="1" checked> {% t "Ushbu qurilmada eslab qolish" %}</label>
+    <a class="ah-forgot" href="{% url 'password_reset' %}">{% t "Parolni unutdingizmi?" %}</a>
   </div>
   <input type="hidden" name="next" value="{{ next }}">
-  <button class="au-btn">{% t "Kirish" %} <span aria-hidden="true">→</span></button>
+  <button class="au-btn">{% t "Tizimga kirish" %} <span aria-hidden="true">→</span></button>
 </form>
 {% if tg_bot %}<p class="or"><span>{% t "yoki" %}</span></p>{% include "smeta/_telegram.html" %}{% endif %}
 <p class="au-alt ah-center">{% t "Hisobingiz yo'qmi?" %} <a href="{% url 'register' %}">{% t "Ro'yxatdan o'ting" %}</a></p>

@@ -8,6 +8,8 @@
 <form method="post" class="au-form auth">{% csrf_token %}
   {% t "Login" as l %}{% t "Masalan: ali_usta" as ph %}
   {% include "registration/_field.html" with id="id_username" name="username" label=l placeholder=ph icon="user" value=form.username.value errors=form.username.errors autocomplete="username" autofocus=1 %}
+  {% t "Telefon raqami" as l %}{% t "(ixtiyoriy)" as hn %}{% t "Parolni unutsangiz, shu raqam orqali tiklaysiz. Kirishda login o'rniga ham yozsa bo'ladi." as h %}
+  {% include "registration/_field.html" with id="id_phone" name="phone" type="tel" label=l hint=hn placeholder="+998 90 123 45 67" icon="phone" value=form.phone.value errors=form.phone.errors help=h autocomplete="tel" inputmode="tel" optional=1 %}
   {% t "Parol" as l %}{% t "Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin." as h %}
   {% include "registration/_field.html" with id="id_password1" name="password1" type="password" label=l placeholder="••••••••" icon="lock" errors=form.password1.errors help=h autocomplete="new-password" %}
   {% t "Parolni takrorlang" as l %}

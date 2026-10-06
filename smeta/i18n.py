@@ -13,6 +13,34 @@ RU = {
     "Til": "Язык",
     "Tungi rejim": "Ночной режим",
     "Kunduzgi rejim": "Дневной режим",
+    # kirish (login yoki telefon) va parolni tiklash
+    "(ixtiyoriy)": "(необязательно)",
+    "Agar bunday hisob bo'lsa, so'rovingiz administratorga yuborildi. U parolingizni yangilab, siz bilan bog'lanadi.":
+        "Если такой аккаунт есть, запрос отправлен администратору. Он обновит пароль и свяжется с вами.",
+    "Bu telefon raqami bilan hisob allaqachon bor.": "Аккаунт с этим номером телефона уже существует.",
+    "Hisobingiz Telegram'ga ulangan bo'lsa, 6 xonali kod yuborildi — uni va yangi parolni kiriting. Kod kelmagan bo'lsa, so'rovingiz administratorga yuborilgan: u siz bilan bog'lanadi.":
+        "Если аккаунт привязан к Telegram, отправлен 6-значный код — введите его и новый пароль. Если код не пришёл, запрос отправлен администратору: он свяжется с вами.",
+    "Hisobingiz Telegram'ga ulangan bo'lsa, kod Telegram orqali keladi. Aks holda so'rov administratorga boradi.":
+        "Если аккаунт привязан к Telegram, код придёт в Telegram. Иначе запрос уйдёт администратору.",
+    "Hisobingizga kirish uchun ma'lumotlarni kiriting.": "Введите данные для входа в аккаунт.",
+    "Juda ko'p urinish. Bir soatdan keyin qayta urinib ko'ring.": "Слишком много попыток. Попробуйте через час.",
+    "Kod eskirgan yoki noto'g'ri. Qaytadan so'rov yuboring.": "Код устарел или неверен. Отправьте запрос заново.",
+    "Kod noto'g'ri. Qolgan urinishlar: {0}": "Неверный код. Осталось попыток: {0}",
+    "Login (telefon) yoki parol noto'g'ri.": "Неверный логин (телефон) или пароль.",
+    "Login yoki telefon raqami": "Логин или номер телефона", "Loginni kiriting.": "Введите логин.",
+    "Parolni unutsangiz, shu raqam orqali tiklaysiz. Kirishda login o'rniga ham yozsa bo'ladi.":
+        "Если забудете пароль — восстановите по этому номеру. Его можно вводить при входе вместо логина.",
+    "Ro'yxatdan o'tishda yozgan raqamingiz.": "Номер, указанный при регистрации.",
+    "SmetaGo: parolni tiklash kodi — {0}. Kod 10 daqiqa amal qiladi. Siz so'ramagan bo'lsangiz, e'tibor bermang.":
+        "SmetaGo: код восстановления пароля — {0}. Действует 10 минут. Если вы не запрашивали, проигнорируйте.",
+    "So'rov administratorga boradi — u parolni yangilab, siz bilan bog'lanadi.": "Запрос уйдёт администратору — он обновит пароль и свяжется с вами.",
+    "So'rov qabul qilindi": "Запрос принят", "Telefon raqami": "Номер телефона",
+    "Telefon raqamingiz yoki loginingizni yozing — parolni tiklashga yordam beramiz.": "Введите номер телефона или логин — поможем восстановить пароль.",
+    "Telefon raqamini to'liq kiriting: +998 90 123 45 67": "Введите номер полностью: +998 90 123 45 67",
+    "Telegram'dagi kod": "Код из Telegram", "Tiklash so'rovini yuborish": "Отправить запрос на восстановление",
+    "Tiklash usuli": "Способ восстановления", "Tizimga kirish": "Войти в систему",
+    "Ushbu qurilmada eslab qolish": "Запомнить на этом устройстве", "familiya.ism": "familiya.ism",
+    "familiya.ism yoki +998 90 123 45 67": "familiya.ism или +998 90 123 45 67",
     # boshqaruv paneli: "3 qadamda smeta"
     "Material, ish haqi va jami narx o'zi hisoblanadi. Excel'ga yuklab olib, buyurtmachiga yuborasiz.":
         "Материалы, работа и итоговая цена считаются сами. Скачайте Excel и отправьте заказчику.",

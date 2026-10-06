@@ -1,9 +1,21 @@
 {% extends "registration/_auth.html" %}{% load smeta_i18n %}
 {% block title %}{% t "Parolni tiklash" %}{% endblock %}
 {% block form %}
-<h1>{% t "Pochtangizni tekshiring" %}</h1>
-<p class="au-sub">{% t "Agar bu email bilan hisob bo'lsa, unga yangi parol o'rnatish havolasi yuborildi. Xat bir necha daqiqada keladi — «Spam» papkasini ham ko'ring." %}</p>
-<p class="au-help">{% t "Havola 24 soat amal qiladi va bir marta ishlatiladi." %}</p>
-<hr class="au-hr">
-<p class="au-alt"><a href="{% url 'login' %}">{% t "Kirish sahifasiga qaytish" %}</a></p>
+<h1>{% t "So'rov qabul qilindi" %}</h1>
+{% if code_mode %}
+<p class="au-sub">{% t "Hisobingiz Telegram'ga ulangan bo'lsa, 6 xonali kod yuborildi — uni va yangi parolni kiriting. Kod kelmagan bo'lsa, so'rovingiz administratorga yuborilgan: u siz bilan bog'lanadi." %}</p>
+{% if error %}<p class="au-msg bad">{{ error }}</p>{% endif %}
+{% for e in form.non_field_errors %}<p class="au-msg bad">{{ e }}</p>{% endfor %}
+<form method="post" class="au-form auth">{% csrf_token %}
+  {% t "Telegram'dagi kod" as l %}
+  {% include "registration/_field.html" with id="id_code" name="code" label=l placeholder="123456" icon="lock" autocomplete="one-time-code" inputmode="numeric" autofocus=1 %}
+  {% t "Yangi parol" as l %}{% t "Kamida 8 belgi, faqat raqamlardan iborat bo'lmasin." as h %}
+  {% include "registration/_field.html" with id="id_new_password1" name="new_password1" type="password" label=l placeholder="••••••••" icon="lock" errors=form.new_password1.errors help=h autocomplete="new-password" %}
+  {% t "Parolni takrorlang" as l %}
+  {% include "registration/_field.html" with id="id_new_password2" name="new_password2" type="password" label=l placeholder="••••••••" icon="lock" errors=form.new_password2.errors autocomplete="new-password" %}
+  <button class="au-btn">{% t "Parolni saqlash" %} <span aria-hidden="true">→</span></button>
+</form>
+{% else %}
+<p class="au-sub">{% t "Agar bunday hisob bo'lsa, so'rovingiz administratorga yuborildi. U parolingizni yangilab, siz bilan bog'lanadi." %}</p>{% endif %}
+<p class="au-alt ah-center"><a href="{% url 'login' %}">{% t "Kirish sahifasiga qaytish" %}</a></p>
 {% endblock %}

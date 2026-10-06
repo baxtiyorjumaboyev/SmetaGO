@@ -1,1 +1,0 @@
-{% load smeta_i18n %}{% t "SmetaGo: parolni tiklash" %}

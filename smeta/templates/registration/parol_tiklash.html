@@ -2,12 +2,24 @@
 {% block title %}{% t "Parolni tiklash" %}{% endblock %}
 {% block form %}
 <h1>{% t "Parolni tiklash" %}</h1>
-<p class="au-sub">{% t "Ro'yxatdan o'tishda kiritgan emailingizni yozing — yangi parol o'rnatish havolasini yuboramiz." %}</p>
-<form method="post" class="au-form auth">{% csrf_token %}
-  {% t "Email" as l %}
-  {% include "registration/_field.html" with id="id_email" name="email" type="email" label=l placeholder="nom@example.com" icon="mail" value=form.email.value errors=form.email.errors autocomplete="email" autofocus=1 %}
-  <button class="au-btn">{% t "Havolani yuborish" %} <span aria-hidden="true">→</span></button>
+<p class="au-sub">{% t "Telefon raqamingiz yoki loginingizni yozing — parolni tiklashga yordam beramiz." %}</p>
+{% for e in form.non_field_errors %}<p class="au-msg bad">{{ e }}</p>{% endfor %}
+<form method="post" class="au-form auth rt">{% csrf_token %}
+  {# usul: radio tugmalar tab ko'rinishida (JS'siz ishlaydi) #}
+  <div class="rt-tabs" role="radiogroup" aria-label="{% t "Tiklash usuli" %}">
+    <input type="radio" name="method" value="phone" id="rt-phone"{% if form.method.value != "login" %} checked{% endif %}><label for="rt-phone">{% t "Telefon raqami" %}</label>
+    <input type="radio" name="method" value="login" id="rt-login"{% if form.method.value == "login" %} checked{% endif %}><label for="rt-login">{% t "Login" %}</label>
+  </div>
+  <div class="rt-phone">
+    {% t "Telefon raqami" as l %}{% t "Ro'yxatdan o'tishda yozgan raqamingiz." as h %}
+    {% include "registration/_field.html" with id="id_phone" name="phone" type="tel" label=l placeholder="+998 90 123 45 67" icon="phone" value=form.phone.value errors=form.phone.errors help=h autocomplete="tel" inputmode="tel" optional=1 %}
+  </div>
+  <div class="rt-login">
+    {% t "Login" as l %}{% t "familiya.ism" as ph %}
+    {% include "registration/_field.html" with id="id_login" name="login" label=l placeholder=ph icon="user" value=form.login.value errors=form.login.errors autocomplete="username" optional=1 %}
+  </div>
+  <p class="au-help">{% if tg_bot %}{% t "Hisobingiz Telegram'ga ulangan bo'lsa, kod Telegram orqali keladi. Aks holda so'rov administratorga boradi." %}{% else %}{% t "So'rov administratorga boradi — u parolni yangilab, siz bilan bog'lanadi." %}{% endif %}</p>
+  <button class="au-btn">{% t "Tiklash so'rovini yuborish" %}</button>
 </form>
-<hr class="au-hr">
-<p class="au-alt"><a href="{% url 'login' %}">{% t "Kirish sahifasiga qaytish" %}</a></p>
+<p class="au-alt ah-center"><a href="{% url 'login' %}">{% t "Kirish sahifasiga qaytish" %}</a></p>
 {% endblock %}

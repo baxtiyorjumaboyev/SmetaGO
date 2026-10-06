@@ -27,47 +27,76 @@ class SmetaTests(TestCase):
         self.assertContains(landing, reverse("register"))
         self.assertContains(landing, 'rel="manifest"')
         self.assertRedirects(anon.get(reverse("obyekt_create")), "/kirish/?next=/obyekt/yangi/")
-        # "Parolni unutdingizmi?" — faqat xat yuborish sozlangan bo'lsa
-        self.assertNotContains(anon.get(reverse("login")), reverse("password_reset"))
-        with self.settings(EMAIL_HOST="smtp.example.com"):
-            self.assertContains(anon.get(reverse("login")), reverse("password_reset"))
+        self.assertContains(anon.get(reverse("login")), reverse("password_reset"))  # "Parolni unutdingizmi?" doim
         form = {"username": "vali", "password1": "Qurilish-2026!", "password2": "Qurilish-2026!"}
         self.assertNotContains(anon.get(reverse("register")), 'name="email"')  # email so'ralmaydi
-        r = anon.post(reverse("register"), form)
+        r = anon.post(reverse("register"), {**form, "phone": "+998 90 123-45-67"})
         self.assertRedirects(r, "/")
-        self.assertEqual(User.objects.get(username="vali").email, "")
-        # shu login bilan ikkinchi hisob ochilmaydi
+        vali = User.objects.get(username="vali")
+        self.assertEqual(vali.profile.phone, "998901234567")
+        # shu login yoki shu telefon bilan ikkinchi hisob ochilmaydi
         r = Client().post(reverse("register"), form)
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(User.objects.filter(username="vali").count(), 1)
+        r = Client().post(reverse("register"), {**form, "username": "sobir", "phone": "901234567"})
+        self.assertFalse(User.objects.filter(username="sobir").exists())
+        r = Client().post(reverse("register"), {**form, "username": "sobir", "phone": "123"})  # noto'g'ri raqam
+        self.assertFalse(User.objects.filter(username="sobir").exists())
+        r = Client().post(reverse("register"), {**form, "username": "sobir"})  # telefonsiz ham bo'ladi
+        self.assertTrue(User.objects.filter(username="sobir").exists())
+        # kirish: login yoki telefon raqami bilan
+        self.assertTrue(Client().login(username="vali", password="Qurilish-2026!"))
+        c = Client()
+        c.post(reverse("login"), {"username": "+998 90 123 45 67", "password": "Qurilish-2026!"})
+        self.assertEqual(int(c.session["_auth_user_id"]), vali.pk)
+        c = Client()
+        c.post(reverse("login"), {"username": "901234567", "password": "notogri"})
+        self.assertNotIn("_auth_user_id", c.session)
 
-    def test_password_reset(self):
-        from django.core import mail
+    def test_password_reset_request_to_admin(self):
+        """Bot sozlanmagan: so'rov administratorga tushadi; javob hisob bor-yo'qligidan qat'i nazar bir xil."""
+        from .models import Profile, ResetRequest
 
-        self.user.email = "ali@example.com"
-        self.user.save()
+        Profile.objects.create(user=self.user, phone="998901112233")
         anon = Client()
-        # noma'lum email: xat ketmaydi, lekin sahifa bir xil (hisob borligi oshkor bo'lmaydi)
-        r = anon.post(reverse("password_reset"), {"email": "yoq@example.com"})
+        page = anon.get(reverse("password_reset")).content.decode()
+        self.assertIn('id="rt-phone"', page)
+        self.assertIn('id="rt-login"', page)
+        r = anon.post(reverse("password_reset"), {"method": "phone", "phone": "90 111 22 33"})
         self.assertRedirects(r, reverse("password_reset_done"))
-        self.assertEqual(len(mail.outbox), 0)
-        r = anon.post(reverse("password_reset"), {"email": "ALI@example.com"})
-        self.assertRedirects(r, reverse("password_reset_done"))
-        self.assertEqual(len(mail.outbox), 1)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.to, ["ali@example.com"])
-        self.assertIn("ali", msg.body)
-        link = next(w for w in msg.body.split() if "/parol-tiklash/" in w)
-        path = link.split("://", 1)[1].split("/", 1)[1]
-        r = anon.get("/" + path, follow=True)  # token sessiyaga olinadi, forma ochiladi
-        self.assertContains(r, 'name="new_password1"')
-        r = anon.post(r.redirect_chain[-1][0], {"new_password1": "Yangi-parol-2026", "new_password2": "Yangi-parol-2026"})
-        self.assertRedirects(r, reverse("password_reset_complete"))
-        self.assertTrue(Client().login(username="ali", password="Yangi-parol-2026"))
-        # havola bir marta ishlaydi
-        self.assertContains(Client().get("/" + path, follow=True), reverse("password_reset"))
-        self.assertNotContains(Client().get("/" + path, follow=True), 'name="new_password1"')
+        r = Client().post(reverse("password_reset"), {"method": "login", "login": "yoq_odam"})
+        self.assertRedirects(r, reverse("password_reset_done"))  # topilmasa ham bir xil
+        reqs = list(ResetRequest.objects.order_by("created"))
+        self.assertEqual([(q.method, q.user_id) for q in reqs], [("phone", self.user.pk), ("login", None)])
+        self.assertContains(anon.get(reverse("password_reset_done")), "administrator")
+        self.assertEqual(Client().post(reverse("password_reset"), {"method": "phone", "phone": "12"}).status_code, 200)
+        # admin ro'yxatida "Parolni o'zgartirish" havolasi
+        admin = User.objects.create_superuser("bosh", password="Admin-parol-2026")
+        a = Client()
+        a.force_login(admin)
+        self.assertContains(a.get("/admin/smeta/resetrequest/"), f"/admin/auth/user/{self.user.pk}/password/")
 
+    def test_password_reset_telegram_code(self):
+        """Hisob Telegram'ga ulangan va bot bor: kod Telegram'ga, kod + yangi parol bilan tiklanadi."""
+        from unittest import mock
+
+        from .models import ResetRequest, TelegramAccount
+
+        TelegramAccount.objects.create(user=self.user, tg_id=555)
+        sent = {}
+        with self.settings(TELEGRAM_BOT_TOKEN="1:t", TELEGRAM_BOT_NAME="b"), \
+                mock.patch("smeta.recovery.send_telegram_code", side_effect=lambda cid, code: sent.update(cid=cid, code=code) or True):
+            c = Client()
+            c.post(reverse("password_reset"), {"method": "login", "login": "ALI"})
+            self.assertEqual(sent["cid"], 555)
+            self.assertFalse(ResetRequest.objects.exists())  # kod ketdi — adminga so'rov shart emas
+            pw = {"new_password1": "Yangi-parol-2026", "new_password2": "Yangi-parol-2026"}
+            r = c.post(reverse("password_reset_done"), {"code": "000000" if sent["code"] != "000000" else "111111", **pw})
+            self.assertContains(r, "noto")  # xato kod
+            self.assertEqual(Client().post(reverse("password_reset_done"), {"code": sent["code"], **pw}).status_code, 200)  # boshqa brauzer — ishlamaydi
+            r = c.post(reverse("password_reset_done"), {"code": sent["code"], **pw})
+            self.assertRedirects(r, reverse("password_reset_complete"))
+        self.assertTrue(Client().login(username="ali", password="Yangi-parol-2026"))
+        self.assertNotIn("pw_reset", c.session)  # kod bir martalik
     def test_create_open_and_save(self):
         r = self.c.post(reverse("obyekt_create"))
         o = Obyekt.objects.get(owner=self.user)

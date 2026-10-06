@@ -1,12 +1,7 @@
 from django.contrib.auth import views as auth_views
-from django.urls import path, reverse_lazy
+from django.urls import path
 
-from . import telegram, views
-
-
-def _reset(view, template, **kw):
-    """Parolni tiklash sahifasi (Django'ning o'z mexanizmi): email -> bir martalik havola -> yangi parol."""
-    return view.as_view(template_name=f"registration/parol_tiklash{template}.html", **kw)
+from . import recovery, telegram, views
 
 
 urlpatterns = [
@@ -35,13 +30,8 @@ urlpatterns = [
     path("chiqish/", auth_views.LogoutView.as_view(), name="logout"),
     path("royxatdan-otish/", views.register, name="register"),
     path("kirish/telegram/<str:nonce>/", telegram.telegram_auth, name="telegram_auth"),
-    # parolni tiklash — faqat emaili bor (admin qo'shgan) hisoblar uchun, xat yuborish sozlangan bo'lsa
-    path("parol-tiklash/", _reset(auth_views.PasswordResetView, "",
-         email_template_name="registration/parol_tiklash_email.txt",
-         subject_template_name="registration/parol_tiklash_mavzu.txt",
-         success_url=reverse_lazy("password_reset_done")), name="password_reset"),
-    path("parol-tiklash/yuborildi/", _reset(auth_views.PasswordResetDoneView, "_yuborildi"), name="password_reset_done"),
-    path("parol-tiklash/<uidb64>/<token>/", _reset(auth_views.PasswordResetConfirmView, "_yangi",
-         success_url=reverse_lazy("password_reset_complete")), name="password_reset_confirm"),
-    path("parol-tiklash/tayyor/", _reset(auth_views.PasswordResetCompleteView, "_tayyor"), name="password_reset_complete"),
+    # parolni tiklash — telefon yoki login orqali: Telegram kodi yoki administratorga so'rov (smeta/recovery.py)
+    path("parol-tiklash/", recovery.reset_request, name="password_reset"),
+    path("parol-tiklash/yuborildi/", recovery.reset_done, name="password_reset_done"),
+    path("parol-tiklash/tayyor/", recovery.reset_complete, name="password_reset_complete"),
 ]
