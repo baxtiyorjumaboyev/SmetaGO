@@ -1050,3 +1050,46 @@ body.authp2{padding-bottom:0;background:radial-gradient(40% 50% at 18% 30%,color
 /* kontrast (WCAG AA): oq yozuv to'qroq yashilda; och-yashil chiplarda yozuv to'qroq (tungi rejimda — ochroq) */
 .sb-nav a[aria-current="page"],.chip-a{background:#15803d}
 .chip-g,.ah-pill,.tb-pill.ok,.ly-table .tag{color:color-mix(in srgb,var(--accent) 72%,var(--ink))}
+
+/* ================= Soddalashtirish: raqamlangan bo'limlar, "+ O'zim qo'shaman", yo'riqnoma ================= */
+legend.sec-h{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;padding:0}
+.sec-n{flex:none;width:26px;height:26px;border-radius:99px;background:var(--accent);color:var(--on-accent);display:inline-grid;place-items:center;font:700 13px var(--f-mono)}
+.sec-h b{display:block;font:700 15.5px var(--f-display)}
+.sec-h small{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-top:1px}
+.plus{align-self:flex-start;border:1.5px dashed color-mix(in srgb,var(--accent) 55%,var(--line));background:transparent;color:var(--accent);border-radius:8px;padding:6px 11px;font-weight:600;font-size:13px;cursor:pointer;min-height:36px}
+.plus:hover,.plus:focus-visible{background:var(--accent-soft);border-style:solid}
+.btn.plus{border-style:dashed}
+.own-card{border:1.5px dashed color-mix(in srgb,var(--accent) 55%,var(--line))!important;background:var(--accent-soft)!important}
+.own-card b{color:var(--accent)}
+.opening .own-t{width:200px;text-align:left}
+.adv{border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--surface2)}
+.adv[open]{padding-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.adv summary{cursor:pointer;padding:10px 0;font-weight:600;font-size:13.5px;color:var(--muted);list-style-position:inside}
+.adv summary:hover{color:var(--ink)}
+.adv .fcol>.fld{font-weight:600;font-size:12.5px}
+.grp td{vertical-align:middle}
+.grp-t{display:inline-flex;align-items:center;gap:8px}
+.grp-t .sec-n{width:22px;height:22px;font-size:12px}
+.grp-b{float:right;display:inline-flex;gap:6px;flex-wrap:wrap}
+.guide{background:var(--surface);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.g-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.g-h b{font:700 15px var(--f-display)}
+.g-h span{color:var(--muted);font-size:13px}
+.g-h .x{margin-left:auto;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;min-width:36px;min-height:32px;border-radius:8px}
+.g-h .x:hover{color:var(--ink);background:var(--surface2)}
+.guide ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.guide li{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border-radius:99px;padding:5px 12px 5px 5px;font-size:13.5px}
+.guide li i{font-style:normal;width:24px;height:24px;border-radius:99px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);font:700 12px var(--f-mono);color:var(--muted)}
+.guide li.ok{background:var(--accent-soft)}
+.guide li.ok i{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.guide li.go{background:transparent;padding:0;margin-left:auto}
+.start{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)}
+.start h2{font:700 19px var(--f-display);margin:0 0 14px}
+.start ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.start li{display:flex;gap:12px}
+.start .sn{flex:none;width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font:700 15px var(--f-display)}
+.start b{display:block;font-size:15px;margin-bottom:3px}
+.start p{margin:0 0 8px;color:var(--muted);font-size:13.5px;line-height:1.5}
+.start form{margin:0}
+@media (max-width:900px){.start ol{grid-template-columns:minmax(0,1fr)}.guide li.go{margin-left:0}}
+@media (max-width:760px){.grp-b{float:none;display:flex;margin-top:8px}.opening .own-t{width:100%}}

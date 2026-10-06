@@ -119,40 +119,50 @@ function viewRooms(){
   const opt=(o,cur)=>Object.entries(o).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${esc(lab(v))}</option>`).join("");
   // qoplama o'lchami: placeholder — xonaning o'lchami (renderDerived yangilab turadi)
   const fdim=(f,ph,l)=>`<label class="fld">${tr(l)}<input class="inp numin" id="r-${f}" data-f="${f}" data-ph="${ph}" inputmode="decimal" value="${esc(r[f]??"")}" placeholder="${esc(r[ph])}"></label>`;
+  // har bo'lim: raqam, sarlavha va bir qatorlik oddiy tushuntirish
+  const sec=(n,t,h)=>`<legend class="sec-h"><span class="sec-n">${n}</span><span><b>${tr(t)}</b><small>${tr(h)}</small></span></legend>`;
+  const plus=(kind)=>`<button type="button" class="plus" data-act="ownFinish" data-k="${kind}" title="${tr("Ro'yxatda yo'q bo'lsa — o'zingiz yozing")}">+ ${tr("O'zim yozaman")}</button>`;
   const edit=`<section class="stack">
    ${S.sample?`<div class="hint">${tr("Bu namunaviy obyekt: 3 xona va 2 ta beton ishi bilan to'ldirilgan. O'zingiznikini boshlash uchun")} <button class="btn sm" data-act="reset">${S.ui.confirmReset?tr("Tasdiqlang: hammasi o'chadi"):tr("Yangi obyekt")}</button></div>`:""}
+   ${guide(r)}
    <div class="panel pad stack">
     <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><span class="tag">${esc(rtLabel(r.type))}</span><button class="btn ghost sm" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
-    <fieldset><legend class="eyebrow">${tr("O'lchamlar, metr")}</legend>
+    <fieldset>${sec(1,"Xona o'lchami","Lenta bilan uzunligi, eni va balandligini o'lchang (metrda, masalan 4,5).")}
      <div class="grid3">
       <label class="fld">${tr("Uzunligi")}${stepper(`<input class="inp numin" id="r-L" data-f="L" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00">`,"r-L",.1)}</label>
       <label class="fld">${tr("Eni")}${stepper(`<input class="inp numin" id="r-W" data-f="W" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00">`,"r-W",.1)}</label>
       <label class="fld">${tr("Balandligi")}${stepper(`<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00">`,"r-H",.1)}</label>
      </div></fieldset>
-    <fieldset><legend class="eyebrow">${tr("Eshiklar — turi, eni × bo'yi, m (eni plintusdan ayiriladi)")}</legend>
-     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}</select><input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}">${stepper(`<input class="inp numin qn" id="d-${i}-q" data-door="${i}" data-k="q" inputmode="decimal" value="${esc(d.q??"")}" placeholder="1" aria-label="${tr("Soni")}">`,`d-${i}-q`,1)}${esc(U("dona"))}<span class="m2" id="d-${i}-a"></span><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
+    <fieldset>${sec(2,"Eshiklar","Har bir eshik: turi, eni × bo'yi (m). Devor va plintusdan o'zi ayiriladi.")}
+     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}${d.own||(d.t&&!DOOR_TYPES.includes(d.t))
+       ?`<input class="inp own-t" id="d-${i}-t" data-door="${i}" data-k="t" value="${esc(d.t)}" placeholder="${tr("Eshik turi (o'zim yozaman)")}" aria-label="${tr("Eshik turi")}">`
+       :`<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}<option value="__own">${tr("Boshqa (o'zim yozaman)…")}</option></select>`}<input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}">${stepper(`<input class="inp numin qn" id="d-${i}-q" data-door="${i}" data-k="q" inputmode="decimal" value="${esc(d.q??"")}" placeholder="1" aria-label="${tr("Soni")}">`,`d-${i}-q`,1)}${esc(U("dona"))}<span class="m2" id="d-${i}-a"></span><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
      <p class="note opsum" id="doors-sum"></p>
-     <div class="openings adddoor">${DOOR_TYPES.map(t=>`<button class="btn sm" data-act="addDoor" data-t="${esc(t)}">+ ${esc(tr(t))}</button>`).join("")}</div></fieldset>
-    <fieldset><legend class="eyebrow">${tr("Derazalar — eni × balandligi, m")}</legend>
+     <div class="openings adddoor">${DOOR_TYPES.map(t=>`<button class="btn sm" data-act="addDoor" data-t="${esc(t)}">+ ${esc(tr(t))}</button>`).join("")}<button class="btn sm plus" data-act="addDoor" data-t="__own">+ ${tr("Boshqa eshik")}</button></div></fieldset>
+    <fieldset>${sec(3,"Derazalar","Har bir deraza: eni × balandligi (m). Devor maydonidan o'zi ayiriladi.")}
      <div class="openings">${r.windows.map((w,i)=>`<span class="opening">${i+1}<input class="inp numin" id="w-${i}-w" data-win="${i}" data-k="w" inputmode="decimal" value="${esc(w.w)}" aria-label="${tr("Deraza eni")}">×<input class="inp numin" id="w-${i}-h" data-win="${i}" data-k="h" inputmode="decimal" value="${esc(w.h)}" aria-label="${tr("Deraza balandligi")}"><span class="m2" id="w-${i}-a"></span><button class="x" data-act="delWin" data-i="${i}" aria-label="${tr("Derazani olib tashlash")}">×</button></span>`).join("")}
      <button class="btn sm" data-act="addWin">${tr("+ Deraza")}</button></div>
      <p class="note opsum" id="wins-sum"></p></fieldset>
-    <fieldset><legend class="eyebrow">${tr("Qoplamalar")}</legend>
+    <fieldset>${sec(4,"Pol, devor va shift","Nima bilan qoplanadi — tanlang. Ro'yxatda yo'q bo'lsa «+ O'zim yozaman» ni bosing.")}
      <div class="grid3 g-stack">
-      <div class="fcol"><label class="fld">${tr("Pol")}<select class="inp" id="r-floor" data-f="floor">${opt(FLOOR,r.floor)}</select></label>
-       <div class="fdims">${fdim("fL","L","Uzunligi")}${fdim("fW","W","Eni")}</div></div>
-      <div class="fcol"><label class="fld">${tr("Devor")}<select class="inp" id="r-wall" data-f="wall">${opt(WALL,r.wall)}</select></label>
-       <div class="fdims">${fdim("wL","L","Uzunligi")}${fdim("wW","W","Eni")}${fdim("wH","H","Balandligi")}</div></div>
-      <div class="fcol"><label class="fld">${tr("Shift")}<select class="inp" id="r-ceil" data-f="ceil">${opt(CEIL,r.ceil)}</select></label>
-       <div class="fdims">${fdim("cL","L","Uzunligi")}${fdim("cW","W","Eni")}</div></div>
+      <div class="fcol"><label class="fld">${tr("Pol")}<select class="inp" id="r-floor" data-f="floor">${opt(FLOOR,r.floor)}</select></label>${plus("pol")}</div>
+      <div class="fcol"><label class="fld">${tr("Devor")}<select class="inp" id="r-wall" data-f="wall">${opt(WALL,r.wall)}</select></label>${plus("devor")}</div>
+      <div class="fcol"><label class="fld">${tr("Shift")}<select class="inp" id="r-ceil" data-f="ceil">${opt(CEIL,r.ceil)}</select></label>${plus("shift")}</div>
      </div>
+     <details class="adv" id="adv"${S.ui.adv?" open":""}><summary>${tr("Qo'shimcha sozlamalar (ixtiyoriy)")}</summary>
      <p class="note" style="margin:0">${tr("Qoplama o'lchami, m: bo'sh qoldirilsa — xonaning o'lchami olinadi.")}</p>
+     <div class="grid3 g-stack">
+      <div class="fcol"><span class="fld">${tr("Pol")}</span><div class="fdims">${fdim("fL","L","Uzunligi")}${fdim("fW","W","Eni")}</div></div>
+      <div class="fcol"><span class="fld">${tr("Devor")}</span><div class="fdims">${fdim("wL","L","Uzunligi")}${fdim("wW","W","Eni")}${fdim("wH","H","Balandligi")}</div></div>
+      <div class="fcol"><span class="fld">${tr("Shift")}</span><div class="fdims">${fdim("cL","L","Uzunligi")}${fdim("cW","W","Eni")}</div></div>
+     </div>
      <div class="grid3 g-stack">
       <label class="fld">${tr("Devordagi kafel uzunligi, m")}<input class="inp numin" id="r-tileLen" data-f="tileLen" inputmode="decimal" value="${esc(r.tileLen)}" placeholder="0"></label>
       <label class="fld">${tr("Kafel balandligi, m")}<input class="inp numin" id="r-tileH" data-f="tileH" inputmode="decimal" value="${esc(r.tileH)}" placeholder="0"></label>
       <label class="fld">${tr("Plintus, m (qo'lda)")}<input class="inp numin" id="r-plinthOv" data-f="plinthOv" inputmode="decimal" value="${esc(r.plinthOv)}" placeholder="${tr("avto")}"></label>
      </div>
      <p class="note" style="margin:0">${tr("Devorning pastki qismi kafel bo'lsa, o'sha uzunlik plintusdan va bo'yoq maydonidan ayiriladi. Plintusni lenta bilan o'lchagan bo'lsangiz, \"qo'lda\" maydoniga yozing.")}</p>
+     </details>
     </fieldset>
    </div>
    <div class="panel roomplan"><canvas class="r3d" id="room3d" role="img" aria-label="${tr("Xonaning 3D ko'rinishi")}"></canvas></div>
@@ -164,15 +174,25 @@ function viewRooms(){
    <div class="catbody"><div id="catItems" class="stack"></div><button class="addown" data-act="custom">${tr("+ Ro'yxatda yo'q narsani qo'shish")}</button></div></aside>`;
   return `<div class="layout">${list}${edit}${cat}</div><button class="fab mobonly" data-act="openCat">${tr("+ Element qo'shish")}</button><button class="catbg" hidden data-act="closeCat" aria-label="${tr("Katalogni yopish")}"></button>`;
 }
+// "Qanday ishlaydi" — 4 qadam; bajarilgani ✓ bilan (yopilsa S.ui.noGuide)
+function guide(r){if(S.ui.noGuide)return "";
+  const st=[[num(r.L)>0&&num(r.W)>0,"Xonani o'lchang"],[r.doors.length+r.windows.length>0,"Eshik va derazani qo'shing"],
+    [!!(r.floor||r.wall||r.ceil),"Pol, devor, shiftni tanlang"],[r.items.length>0,"Xonadagi narsalarni qo'shing"]];
+  return `<div class="guide" role="note"><div class="g-h"><b>${tr("Qanday ishlaydi?")}</b><span>${tr("Qadamma-qadam to'ldiring — narx o'zi hisoblanadi.")}</span>
+    <button class="x" data-act="hideGuide" aria-label="${tr("Yo'riqnomani yopish")}">×</button></div>
+    <ol>${st.map(([ok,t],i)=>`<li class="${ok?"ok":""}"><i>${ok?"✓":i+1}</i>${tr(t)}</li>`).join("")}
+    <li class="go"><button class="btn sm pri" data-act="tab" data-k="smeta">${tr("Tayyor smetani ko'rish")} →</button></li></ol></div>`}
 function renderCatItems(){
   const box=$("#catItems");if(!box)return;const r=curRoom();const q=S.ui.q.trim().toLowerCase();
   const card=(it,s)=>`<button class="cat-item${s?" sugg":""}" data-act="pick" data-cid="${it.id}"><b>${esc(it.n)}</b><span>${it.v?tr("dan")+" ":""}${fmt(it.v?Math.min(...it.v.map(v=>v[1])):it.p)} / ${esc(U(it.u))}</span></button>`;
-  const sugg=()=>{const t=ROOM_TYPES[r?.type]||ROOM_DEFAULT;return `<p class="eyebrow" style="margin:0">${esc(tr("{0} uchun odatiy",r?rtLabel(r.type):""))}</p><div class="catgrid">${t.s.map(id=>CAT_INDEX[id]).filter(Boolean).map(it=>card(it,1)).join("")}</div>`};
+  // har ro'yxatning boshida: ro'yxatda yo'q narsani o'zi qo'shish
+  const own=(name="")=>`<button class="cat-item own-card" data-act="custom" data-name="${esc(name)}"><b>+ ${tr("O'zim qo'shaman")}</b><span>${tr("ro'yxatda yo'q bo'lsa")}</span></button>`;
+  const sugg=()=>{const t=ROOM_TYPES[r?.type]||ROOM_DEFAULT;return `<p class="eyebrow" style="margin:0">${esc(tr("{0} uchun odatiy",r?rtLabel(r.type):""))}</p><div class="catgrid">${own()}${t.s.map(id=>CAT_INDEX[id]).filter(Boolean).map(it=>card(it,1)).join("")}</div>`};
   let html="";
   if(q){const res=Object.values(CAT_INDEX).filter(it=>(it.n+" "+(it.v||[]).map(v=>v[0]).join(" ")+" "+it.g).toLowerCase().includes(q));
-    html=res.length?`<div class="catgrid">${res.map(it=>card(it)).join("")}</div>`:`<p class="note">${esc(tr("\"{0}\" topilmadi — pastdagi tugma orqali o'zingiz qo'shing.",S.ui.q))}</p>`}
+    html=res.length?`<div class="catgrid">${own(S.ui.q.trim())}${res.map(it=>card(it)).join("")}</div>`:`<p class="note">${esc(tr("\"{0}\" topilmadi — o'zingiz qo'shing:",S.ui.q))}</p><div class="catgrid">${own(S.ui.q.trim())}</div>`}
   else if(S.ui.grp==="Tavsiya")html=sugg();
-  else{const g=CATALOG.find(g=>g.g===S.ui.grp);html=g?`<div class="catgrid">${g.items.map(it=>card(it)).join("")}</div>`:sugg()}
+  else{const g=CATALOG.find(g=>g.g===S.ui.grp);html=g?`<div class="catgrid">${own()}${g.items.map(it=>card(it)).join("")}</div>`:sugg()}
   box.innerHTML=html;
 }
 // eshik/deraza yonidagi m² va jami; qoplama o'lchamlari placeholder'i (xona o'lchami)
@@ -186,6 +206,7 @@ function updOpenings(r,c){const m2=U("m²");const set=(id,t)=>{const el=document
 }
 function renderDerived(){
   const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);updOpenings(r,c);
+  {const g=$(".guide");if(g)g.outerHTML=guide(r)}  // qadamlar ✓ har kiritishda yangilanadi
   const autoRows=c.lines.map(l=>{const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)} <span class="tag auto">${tr("avto")}</span></div><div class="itemsub">${esc(l.sub)}</div></td><td class="num r c-qty" data-l="${tr("Miqdor")}">${fd(l.qty)} ${esc(U(l.unit))}</td><td class="num r c-price" data-l="${tr("Narx")}">${fmt(l.price)}</td><td class="num r c-sum" data-l="${tr("Jami")}">${fmt(t.tot)}</td><td class="c-del"></td></tr>`}).join("");
   const itemRows=r.items.map(it=>{const l=itemLine(it);const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)}${it.custom?` <span class="tag own">${tr("o'zim qo'shdim")}</span>`:""}</div><div class="itemsub">${esc(l.sub)||"&nbsp;"}</div></td>
     <td class="num r c-qty" data-l="${tr("Miqdor")}">${stepper(`<input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}">`,`iq-${it.uid}`,1)} <span class="note">${esc(U(it.unit))}</span></td>
@@ -200,8 +221,9 @@ function renderDerived(){
     <div class="metric"><div class="v">${fd(c.pl)}<small>${U("m")}</small></div><div class="k">${tr("Plintus")}${String(r.plinthOv).trim()!==""?" ("+tr("qo'lda")+")":""}</div></div></div>
    <div class="tscroll"><table class="rtable"><thead><tr><th>${tr("Nomi")}</th><th class="r">${tr("Miqdor")}</th><th class="r">${tr("Narx, so'm")}</th><th class="r">${tr("Jami*, so'm")}</th><th></th></tr></thead>
    <tbody>${autoRows||`<tr><td colspan="5" class="note">${tr("O'lchamlarni kiriting — pol, plintus, devor va shift hisobi shu yerda chiqadi.")}</td></tr>`}
-   <tr class="grp"><td colspan="5">${tr("Xonadagi elementlar ({0})",r.items.length)} <button class="btn sm pri mobonly" data-act="openCat">${tr("+ Qo'shish")}</button></td></tr>
-   ${itemRows||`<tr><td colspan="5" class="note">${tr("O'ngdagi katalogdan tanlang yoki o'zingiz qo'shing.")}</td></tr>`}</tbody></table></div>
+   <tr class="grp"><td colspan="5"><span class="grp-t"><span class="sec-n">5</span>${tr("Xonadagi narsalar ({0})",r.items.length)}</span>
+     <span class="grp-b"><button class="btn sm pri mobonly" data-act="openCat">${tr("+ Katalogdan")}</button><button class="btn sm plus" data-act="custom">+ ${tr("O'zim qo'shaman")}</button></span></td></tr>
+   ${itemRows||`<tr><td colspan="5" class="note">${tr("Mebel, rozetka, santexnika va boshqalar: katalogdan tanlang yoki ro'yxatda yo'q bo'lsa «+ O'zim qo'shaman» ni bosing.")}</td></tr>`}</tbody></table></div>
    <p class="note" style="margin:0">${tr("* Jami = material + ish haqi (soatlik stavka {0} so'm, o'rtacha oylikdan). Xona bo'yicha:",fmt(rate()))} <b class="mono">${fmt(roomTotal(r))} ${SOM}</b></p>`;
 }
 function renderTotal(){const s=buildSmeta();
@@ -366,14 +388,14 @@ function openPick(cid){const c=CAT_INDEX[cid];M={cid,vi:0};
    <div class="sf"><button class="btn" data-act="close">${tr("Bekor qilish")}</button><button class="btn pri" data-act="modalAdd">${tr("Xonaga qo'shish")}</button></div></div></div>`;
   $("#modal").hidden=false;updModalSum();setTimeout(()=>$("#m-qty")?.select(),30);
 }
-function openCustom(){M={custom:true};
+function openCustom(p={}){M={custom:true};  // p: {name, unit, qty} — oldindan to'ldirish (masalan, qoplama m² bilan)
   $("#modal").innerHTML=`<div class="backdrop" data-act="closeBg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
    <div class="sh"><div><div class="eyebrow">${tr("O'z elementingiz")}</div><h3 id="m-t" style="font-size:20px">${tr("Ro'yxatda yo'q narsa")}</h3></div><button class="btn ghost" data-act="close" aria-label="${tr("Yopish")}">×</button></div>
    <div class="sb">
-    <label class="fld">${tr("Nomi")}<input class="inp" id="m-name" placeholder="${tr("masalan: Oyna, Akvarium, Sport trenajyori")}"></label>
+    <label class="fld">${tr("Nomi")}<input class="inp" id="m-name" value="${esc(p.name||"")}" placeholder="${tr("masalan: Oyna, Akvarium, Sport trenajyori")}"></label>
     <div class="grid3">
-     <label class="fld">${tr("Birlik")}<select class="inp" id="m-unit">${["dona","m","m²","m³","kg","komplekt"].map(u=>`<option value="${u}">${esc(U(u))}</option>`).join("")}</select></label>
-     <label class="fld">${tr("Miqdori")}<input class="inp numin" id="m-qty" inputmode="decimal" value="1"></label>
+     <label class="fld">${tr("Birlik")}<select class="inp" id="m-unit">${["dona","m","m²","m³","kg","komplekt"].map(u=>`<option value="${u}"${u===p.unit?" selected":""}>${esc(U(u))}</option>`).join("")}</select></label>
+     <label class="fld">${tr("Miqdori")}<input class="inp numin" id="m-qty" inputmode="decimal" value="${esc(p.qty||"1")}"></label>
      <label class="fld">${tr("Narx, so'm")}<input class="inp numin" id="m-price" inputmode="decimal" placeholder="0"></label>
     </div>
     <div class="grid3">
@@ -385,7 +407,7 @@ function openCustom(){M={custom:true};
     <p class="note" id="m-err" style="margin:0;color:var(--danger)" hidden>${tr("Nomini yozing.")}</p>
    </div>
    <div class="sf"><button class="btn" data-act="close">${tr("Bekor qilish")}</button><button class="btn pri" data-act="modalAdd">${tr("Xonaga qo'shish")}</button></div></div></div>`;
-  $("#modal").hidden=false;updModalSum();setTimeout(()=>$("#m-name")?.focus(),30);
+  $("#modal").hidden=false;updModalSum();setTimeout(()=>{const n=$("#m-name");if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}},30);
 }
 function updModalSum(){const el=$("#m-sum");if(!el)return;el.textContent=fmt(num($("#m-qty")?.value)*num($("#m-price")?.value))+" "+SOM}
 function closeModal(){$("#modal").hidden=true;$("#modal").innerHTML="";M=null}
@@ -411,7 +433,12 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "syncPrices":if(!S.ui.confirmSync){S.ui.confirmSync=true;render();break}
     defaultPrices().forEach(np=>{const p=S.prices.find(x=>x.id===np.id);if(p)Object.assign(p,{n:np.n,u:np.u,g:np.g,src:np.src,s:np.s});else S.prices.push(np)});
     S.ui.confirmSync=false;render();toast(tr("Manba narxlari yangilandi"));break;
-   case "addDoor":r.doors.push(mkDoor(b.dataset.t));render();$("#d-"+(r.doors.length-1)+"-w")?.select();break;
+   case "addDoor":if(b.dataset.t==="__own"){r.doors.push({...mkDoor(""),own:true});render();$("#d-"+(r.doors.length-1)+"-t")?.focus();break}
+    r.doors.push(mkDoor(b.dataset.t));render();$("#d-"+(r.doors.length-1)+"-w")?.select();break;
+   case "ownFinish":{const c=roomCalc(r),k=b.dataset.k;  // ro'yxatda yo'q qoplama: nom + m² (xonaning maydoni bilan)
+    const q={pol:c.floorA,devor:c.wallNet,shift:c.ceilA}[k];
+    openCustom({name:{pol:tr("Pol"),devor:tr("Devor"),shift:tr("Shift")}[k]+": ",unit:"m²",qty:fd(q)});break}
+   case "hideGuide":S.ui.noGuide=true;render();break;
    case "delDoor":r.doors.splice(+b.dataset.i,1);render();break;
    case "addWin":r.windows.push({w:"1,2",h:"1,4"});render();$("#w-"+(r.windows.length-1)+"-w")?.select();break;
    case "delWin":r.windows.splice(+b.dataset.i,1);render();break;
@@ -419,7 +446,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "openCat":document.body.classList.add("cat-open");break;
    case "closeCat":document.body.classList.remove("cat-open");break;
    case "pick":openPick(b.dataset.cid);break;
-   case "custom":openCustom();break;
+   case "custom":openCustom({name:b.dataset.name||""});break;
    case "close":case "closeBg":closeModal();break;
    case "modalAdd":modalAdd();break;
    case "delItem":r.items=r.items.filter(i=>i.uid!==b.dataset.uid);renderDerived();renderTotal();save();break;
@@ -438,7 +465,10 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
   if(t.closest("#modal")){if(t.id==="m-variant"){const c=CAT_INDEX[M.cid];$("#m-price").value=c.v[+t.value][1]}updModalSum();return}
   if(t.dataset.f&&r){r[t.dataset.f]=t.value;S.sample=false;if(t.dataset.f==="name"){const b=document.querySelector(`.roombtn[data-id="${r.id}"] b`);if(b)b.textContent=t.value}
     renderDerived();renderTotal();save();return}
-  if(t.dataset.door!=null){r.doors[+t.dataset.door][t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
+  if(t.dataset.door!=null){const d=r.doors[+t.dataset.door];
+    // "Boshqa (o'zim yozaman)…" — ro'yxat o'rniga matn maydoni chiqadi
+    if(t.dataset.k==="t"&&t.value==="__own"){d.t="";d.own=true;render();$("#"+t.id)?.focus();return}
+    d[t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
   if(t.dataset.win!=null){r.windows[+t.dataset.win][t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
   if(t.dataset.it){const it=r.items.find(i=>i.uid===t.dataset.it);if(it){it[t.dataset.k]=t.value;const el=$("#is-"+it.uid);if(el)el.textContent=fmt(lineTotals(itemLine(it)).tot)}renderTotal();save();return}
   if(t.dataset.c){const c=S.concrete.find(x=>x.id===t.dataset.c);c[t.dataset.k]=t.value;if(t.dataset.rerender){render();}renderConcreteDerived();renderTotal();save();return}
@@ -446,6 +476,8 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
     if(t.dataset.k==="mode"){render();return}const el=$("#pr-"+p.id);if(el)el.innerHTML=`<b>${fmt(priceOf(p.id))}</b>`;renderTotal();save();return}
   if(t.dataset.s){S.settings[t.dataset.s]=t.type==="checkbox"?t.checked:t.value;renderTotal();save();return}
 });
+// "Qo'shimcha sozlamalar" ochiq/yopiqligi obyektda eslab qolinadi
+document.addEventListener("toggle",e=>{if(e.target.id==="adv"){S.ui.adv=e.target.open;save()}},true);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
 
 // ?tab=smeta — kerakli bo'limni ochish (masalan, bosh sahifadagi "Namuna smetani ko'rish")

@@ -318,7 +318,7 @@ class SmetaTests(TestCase):
         html = self.c.get("/").content.decode()
         self.assertIn("data-panels-menu", html)
         self.assertIn("smeta/js/panels.js", html)
-        keys = ("kpi", "model", "rooms", "top", "costs", "feed", "prices")
+        keys = ("start", "kpi", "model", "rooms", "top", "costs", "feed", "prices")
         for k in keys:  # har bir panel uchun karta ham, menyuda belgi ham bor
             self.assertIn(f'data-panel="{k}"', html)
             self.assertIn(f'data-panel-toggle="{k}"', html)
@@ -472,3 +472,16 @@ class ShellPagesTests(TestCase):
         c2.post(reverse("login"), {"username": "ali", "password": "SmetaGo-2026!"})
         self.assertIn("_auth_user_id", c2.session)
         self.assertTrue(c2.session.get_expire_at_browser_close())  # belgilanmagan — brauzer yopilganda tugaydi
+
+class SimpleEditorTests(TestCase):
+    """Soddalashtirilgan xona muharriri: "+ O'zim qo'shaman" va "3 qadam" yo'riqnomasi sahifada bor."""
+
+    def test_manual_add_and_guide_present(self):
+        u = User.objects.create_user("ali", password="SmetaGo-2026!")
+        c = Client()
+        c.force_login(u)
+        self.assertContains(c.get("/"), 'data-panel="start"')
+        js = finders.find("smeta/js/app.js")
+        src = open(js, encoding="utf-8").read()
+        for marker in ('data-act="ownFinish"', 'data-act="custom"', '"__own"', "function guide(", 'class="adv"'):
+            self.assertIn(marker, src)

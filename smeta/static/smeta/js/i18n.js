@@ -5,6 +5,21 @@
  */
 const LANG=/^ru/i.test(document.documentElement.lang||"")?"ru":"uz";
 const RU={
+ // soddalashtirish: qadamlar, "+ O'zim qo'shaman"
+ "+ Katalogdan":"+ Из каталога","Boshqa (o'zim yozaman)…":"Другое (впишу сам)…","Boshqa eshik":"Другая дверь",
+ "Eshik turi (o'zim yozaman)":"Тип двери (впишу сам)",
+ "Mebel, rozetka, santexnika va boshqalar: katalogdan tanlang yoki ro'yxatda yo'q bo'lsa «+ O'zim qo'shaman» ni bosing.":"Мебель, розетки, сантехника и др.: выберите из каталога, а если чего-то нет — нажмите «+ Добавлю сам».",
+ "O'zim qo'shaman":"Добавлю сам","O'zim yozaman":"Впишу сам","Qadamma-qadam to'ldiring — narx o'zi hisoblanadi.":"Заполняйте по шагам — цена посчитается сама.",
+ "Qanday ishlaydi?":"Как это работает?","Qo'shimcha sozlamalar (ixtiyoriy)":"Дополнительные настройки (необязательно)",
+ "Ro'yxatda yo'q bo'lsa — o'zingiz yozing":"Если нет в списке — впишите сами","Tayyor smetani ko'rish":"Посмотреть готовую смету",
+ "Xonadagi narsalar ({0})":"Предметы в комнате ({0})","Xonaning 3D ko'rinishi":"3D-вид комнаты","Yo'riqnomani yopish":"Скрыть подсказку",
+ "\"{0}\" topilmadi — o'zingiz qo'shing:":"«{0}» не найдено — добавьте сами:","ro'yxatda yo'q bo'lsa":"если нет в списке",
+ "Xonani o'lchang":"Измерьте комнату","Eshik va derazani qo'shing":"Добавьте двери и окна","Pol, devor, shiftni tanlang":"Выберите пол, стены, потолок",
+ "Xonadagi narsalarni qo'shing":"Добавьте предметы в комнате","Xona o'lchami":"Размеры комнаты",
+ "Lenta bilan uzunligi, eni va balandligini o'lchang (metrda, masalan 4,5).":"Измерьте рулеткой длину, ширину и высоту (в метрах, например 4,5).",
+ "Eshiklar":"Двери","Har bir eshik: turi, eni × bo'yi (m). Devor va plintusdan o'zi ayiriladi.":"Каждая дверь: тип, ширина × высота (м). Вычитается из стен и плинтуса автоматически.",
+ "Derazalar":"Окна","Har bir deraza: eni × balandligi (m). Devor maydonidan o'zi ayiriladi.":"Каждое окно: ширина × высота (м). Вычитается из площади стен автоматически.",
+ "Pol, devor va shift":"Пол, стены и потолок","Nima bilan qoplanadi — tanlang. Ro'yxatda yo'q bo'lsa «+ O'zim yozaman» ni bosing.":"Выберите отделку. Если нужной нет в списке — нажмите «+ Впишу сам».",
  // boshqaruv paneli va loyihalar (proba dizayni)
  "Barcha obyektlar bo'yicha: materiallar {0}, ish haqi {1} so'm.":"По всем объектам: материалы {0}, работа {1} сум.","Faol obyektlar":"Активные объекты",
  "Hali o'zgarish yo'q.":"Изменений пока нет.","Hali obyekt yo'q":"Объектов пока нет","Hali ochilmagan":"Ещё не открыт","Hisoblangan":"Рассчитан",

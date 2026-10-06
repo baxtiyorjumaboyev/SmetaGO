@@ -13,6 +13,7 @@
       <summary class="btn ol" title="{% t "Panellarni tanlash" %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>{% t "Panellar" %} <span class="pnl-n" data-panels-count></span></summary>
       <div class="pnl-pop">
         <p class="eyebrow">{% t "Ko'rsatiladigan panellar" %}</p>
+        <label><input type="checkbox" data-panel-toggle="start" checked> {% t "Qanday ishlaydi (3 qadam)" %}</label>
         <label><input type="checkbox" data-panel-toggle="kpi" checked> {% t "Asosiy ko'rsatkichlar" %}</label>
         <label><input type="checkbox" data-panel-toggle="model" checked> {% t "3D model va jami smeta" %}</label>
         <label><input type="checkbox" data-panel-toggle="rooms" checked> {% t "Xonalar va xarajat ulushi" %}</label>
@@ -40,6 +41,18 @@
 </div>
 
 <p class="hint" data-panels-empty hidden>{% t "Barcha panellar yashirilgan — «Panellar» menyusidan keraklisini tanlang." %}</p>
+
+{# yangi foydalanuvchi uchun: sayt nima qiladi va qanday ishlaydi — 3 qadam #}
+<section class="start" data-panel="start" aria-labelledby="start-h">
+  <h2 id="start-h">{% t "SmetaGo 3 qadamda smeta tuzadi" %}</h2>
+  <ol>
+    <li><span class="sn">1</span><div><b>{% t "Yangi smeta oching" %}</b><p>{% t "Obyekt — bu kvartira, uy yoki ofis. Unga nom bering." %}</p>
+      <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn sm pri">+ {% t "Yangi smeta" %}</button></form></div></li>
+    <li><span class="sn">2</span><div><b>{% t "Xonalarni o'lchang va to'ldiring" %}</b><p>{% t "Uzunlik, en, balandlik; eshik va derazalar; pol, devor, shift va xonadagi narsalar. Ro'yxatda yo'q narsani «+ O'zim qo'shaman» bilan yozasiz." %}</p></div></li>
+    <li><span class="sn">3</span><div><b>{% t "Tayyor smetani oling" %}</b><p>{% t "Material, ish haqi va jami narx o'zi hisoblanadi. Excel'ga yuklab olib, buyurtmachiga yuborasiz." %}</p>
+      <a class="lnk" href="{% url 'demo' %}">{% t "Namunani ko'rish" %} →</a></div></li>
+  </ol>
+</section>
 
 <div class="kpi4" id="kpis" data-panel="kpi"></div>
 

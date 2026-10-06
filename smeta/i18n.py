@@ -13,6 +13,19 @@ RU = {
     "Til": "Язык",
     "Tungi rejim": "Ночной режим",
     "Kunduzgi rejim": "Дневной режим",
+    # boshqaruv paneli: "3 qadamda smeta"
+    "Material, ish haqi va jami narx o'zi hisoblanadi. Excel'ga yuklab olib, buyurtmachiga yuborasiz.":
+        "Материалы, работа и итоговая цена считаются сами. Скачайте Excel и отправьте заказчику.",
+    "Namunani ko'rish": "Посмотреть пример",
+    "Obyekt — bu kvartira, uy yoki ofis. Unga nom bering.": "Объект — это квартира, дом или офис. Дайте ему название.",
+    "Qanday ishlaydi (3 qadam)": "Как это работает (3 шага)",
+    "SmetaGo 3 qadamda smeta tuzadi": "SmetaGo составляет смету за 3 шага",
+    "Tayyor smetani oling": "Получите готовую смету",
+    "Uzunlik, en, balandlik; eshik va derazalar; pol, devor, shift va xonadagi narsalar. Ro'yxatda yo'q narsani «+ O'zim qo'shaman» bilan yozasiz.":
+        "Длина, ширина, высота; двери и окна; пол, стены, потолок и предметы в комнате. Чего нет в списке — добавьте кнопкой «+ Добавлю сам».",
+    "Xonalarni o'lchang va to'ldiring": "Измерьте и заполните комнаты",
+    "Yangi smeta": "Новая смета",
+    "Yangi smeta oching": "Откройте новую смету",
     # proba dizayni: yon panel, boshqaruv paneli, loyihalar, yorug' kirish sahifasi
     "3 manba": "3 источника", "Amallar": "Действия", "Aniq hisob": "Точный расчёт", "Aniqlik va ochiqlik": "Точность и прозрачность",
     "Avto-saqlash": "Автосохранение", "Avto-saqlash yoqilgan": "Автосохранение включено",
