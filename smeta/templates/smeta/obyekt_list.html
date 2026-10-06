@@ -8,6 +8,21 @@
     <p class="pg-sub">{% t "Obyektlaringizning 3D ko'rinishi, xarajatlar tahlili va eng qimmat pozitsiyalar — bitta sahifada." %}</p>
   </div>
   <div class="pg-acts">
+    {# Panellar: foydalanuvchi qaysi kartalarni ko'rishini o'zi tanlaydi (js/panels.js, tanlov shu brauzerda saqlanadi) #}
+    <details class="pnl" data-panels-menu>
+      <summary class="btn ol" title="{% t "Panellarni tanlash" %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>{% t "Panellar" %} <span class="pnl-n" data-panels-count></span></summary>
+      <div class="pnl-pop">
+        <p class="eyebrow">{% t "Ko'rsatiladigan panellar" %}</p>
+        <label><input type="checkbox" data-panel-toggle="kpi" checked> {% t "Asosiy ko'rsatkichlar" %}</label>
+        <label><input type="checkbox" data-panel-toggle="model" checked> {% t "3D model va jami smeta" %}</label>
+        <label><input type="checkbox" data-panel-toggle="rooms" checked> {% t "Xonalar va xarajat ulushi" %}</label>
+        <label><input type="checkbox" data-panel-toggle="top" checked> {% t "Eng qimmat pozitsiyalar" %}</label>
+        <label><input type="checkbox" data-panel-toggle="costs" checked> {% t "Xarajatlar tarkibi" %}</label>
+        <label><input type="checkbox" data-panel-toggle="feed" checked> {% t "So'nggi o'zgarishlar" %}</label>
+        <label><input type="checkbox" data-panel-toggle="prices" checked> {% t "Narxlar bazasi" %}</label>
+        <button type="button" class="btn sm block" data-panels-reset>{% t "Hammasini ko'rsatish" %}</button>
+      </div>
+    </details>
     {% if tg_bot and not user.telegram %}<div class="tg-link" title="{% t "Telegram'ni ulasangiz, keyingi safar parolsiz kirasiz" %}">{% include "smeta/_telegram.html" %}</div>{% endif %}
     <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<input type="hidden" name="namuna" value="1"><button class="btn ol">{% t "Namunaviy obyekt" %}</button></form>
     <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn pri lg">
@@ -24,11 +39,13 @@
   </span>
 </div>
 
-<div class="kpi4" id="kpis"></div>
+<p class="hint" data-panels-empty hidden>{% t "Barcha panellar yashirilgan — «Panellar» menyusidan keraklisini tanlang." %}</p>
+
+<div class="kpi4" id="kpis" data-panel="kpi"></div>
 
 <div class="dgrid">
   <div class="dcol">
-    <section class="model" id="model">
+    <section class="model" id="model" data-panel="model">
       <canvas class="r3d model-3d" id="model-3d" role="img" aria-label="{% t "Xonaning 3D ko'rinishi" %}"></canvas>
       <div class="model-top">
         <p class="pg-chips"><span class="chip-d">3D {% t "model" %}</span><span class="chip-a" id="model-room"></span></p>
@@ -39,12 +56,12 @@
       <div class="model-bar" id="model-bar"></div>
     </section>
 
-    <section class="panel card">
+    <section class="panel card" data-panel="rooms">
       <div class="card-h"><h2>{% t "Xonalar va xarajat ulushi" %}</h2><span class="ometa" id="rooms-note"></span></div>
       <div class="stages" id="stages"></div>
     </section>
 
-    <section class="panel card">
+    <section class="panel card" data-panel="top">
       <div class="card-h"><div><h2>{% t "Eng qimmat pozitsiyalar" %}</h2><p class="ometa" style="margin:2px 0 0">{% t "Oxirgi obyekt bo'yicha: material + ish haqi" %}</p></div>
         <span class="legend-i"><i class="lg-m"></i>{% t "Materiallar" %}<i class="lg-l"></i>{% t "Ish haqi" %}</span></div>
       <div class="tscroll dtable"><table><thead><tr><th>№</th><th>{% t "Ish turi va resurs tavsifi" %}</th><th>{% t "O'lchov" %}</th><th class="r">{% t "Miqdor" %}</th><th class="r">{% t "Birlik narxi" %}</th><th class="r">{% t "Jami summa" %}</th></tr></thead>
@@ -54,18 +71,18 @@
   </div>
 
   <div class="dcol side">
-    <section class="panel card">
+    <section class="panel card" data-panel="costs">
       <div class="card-h"><h2>{% t "Xarajatlar tarkibi" %}</h2><span class="chip-g">{% t "Tahlil" %}</span></div>
       <div class="hl" id="hl"></div>
       <p class="eyebrow" style="margin:16px 0 8px">{% t "Bo'limlar bo'yicha" %}</p>
       <div class="cats" id="cats"></div>
     </section>
-    <section class="panel card">
+    <section class="panel card" data-panel="feed">
       <div class="card-h"><h2>{% t "So'nggi o'zgarishlar" %}</h2><span class="ometa">{% now "d.m" %}</span></div>
       <ul class="feed" id="feed"></ul>
       <a class="btn ol block" href="{% url 'loyihalar' %}">{% t "Barcha loyihalar" %}</a>
     </section>
-    <section class="gcard">
+    <section class="gcard" data-panel="prices">
       <p class="gcard-h"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6M5 12v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6"/></svg>{% t "Narxlar bazasi" %}</p>
       <p>{% t "Materiallar narxi 3 manbadan olinadi; har obyektda o'z narxingizni ham kiritishingiz mumkin." %}</p>
       <div class="gcard-f"><span>{% if prices_updated %}{% t "Yangilangan" %}: {{ prices_updated }}{% endif %}</span><a href="{% url 'help' %}">{% t "Batafsil" %} →</a></div>
@@ -90,4 +107,5 @@
 <script src="{% static 'smeta/js/calc.js' %}"></script>
 <script src="{% static 'smeta/js/room3d.js' %}"></script>
 <script src="{% static 'smeta/js/dashboard.js' %}"></script>
+<script src="{% static 'smeta/js/panels.js' %}"></script>
 {% endblock %}

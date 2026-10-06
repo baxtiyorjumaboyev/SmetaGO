@@ -79,14 +79,16 @@ SmetaGO/
 │   └── wsgi.py
 ├── smeta/                       # yagona Django ilovasi
 │   ├── models.py                # Obyekt + CatalogGroup/CatalogItem/CatalogVariant/Material/RoomType (*_ru maydonlari bilan)
-│   ├── views.py                 # ro'yxat/landing, yaratish, ilova sahifasi, nusxa, o'chirish, state API, ro'yxatdan o'tish
+│   ├── views.py                 # 5 bo'lim: ommaviy sahifalar · kabinet · obyekt amallari · API (state, Excel) · hisob
 │   ├── urls.py
 │   ├── admin.py                 # ma'lumotnoma admini (kalit yaratilgandan keyin faqat o'qiladi)
-│   ├── malumotnoma.py           # build_reference(lang) — bazadan frontend formatiga; load_seed / load_ru
+│   ├── malumotnoma.py           # build_reference(lang) + cached_reference — faqat sayt ishlashi uchun (kesh bilan)
 │   ├── i18n.py                  # Python RU lug'ati, tr(), LanguageMiddleware
 │   ├── pwa.py                   # manifest, service worker (versiya = fayllar hash'i), offline
 │   ├── excel.py                 # build_workbook(): varaq modeli -> .xlsx (openpyxl)
 │   ├── templatetags/smeta_i18n.py   # {% t "o'zbekcha matn" %}
+│   ├── context.py               # yagona context processor: email_ready, tg_bot, theme-color
+│   ├── seed/__init__.py         # load_seed / load_ru / sync_materials — FAQAT migratsiyalar uchun
 │   ├── seed/malumotnoma.json    # asl data.js dan olingan ma'lumotnoma
 │   ├── seed/ru.json             # ruscha nomlar (kalit bo'yicha)
 │   ├── migrations/0001..0005
@@ -96,7 +98,7 @@ SmetaGO/
 │   │   ├── _head.html           # umumiy <head>: manifest, theme-color, ikonkalar, prefs.js, pwa.js, CSS
 │   │   ├── _prefs.html          # Oflayn belgisi, O'rnatish tugmasi, UZ|RU, rejim tugmasi
 │   │   ├── app.html             # smeta ilovasi (xonalar/beton/narxlar/smeta) — JS bilan chiziladi
-│   │   ├── obyekt_list.html     # obyektlar ro'yxati
+│   │   ├── obyekt_list.html     # boshqaruv paneli; har karta data-panel="…", "Panellar" menyusi (js/panels.js)
 │   │   ├── landing.html         # mehmon uchun bosh sahifa (sayt, jonli kalkulyator)
 │   │   ├── yordam.html, maxfiylik.html  # FAQ va maxfiylik (faktlarga asoslangan)
 │   │   ├── offline.html         # internet yo'q + keshda yo'q sahifa
@@ -160,6 +162,12 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
 - Ranglar `css/style.css` boshidagi `:root` tokenlarida: `--accent` (yashil), `--ink`, `--bar` / `--on-bar` / `--bar-accent` (qora pastki qator). Tungi palitra **ikki joyda**: `@media (prefers-color-scheme: dark)` va `:root[data-theme="dark"]`. Yangi rangni ikkalasiga ham yozing.
 - Rejim tanlovi brauzerda (`localStorage` `smetago-theme`), `prefs.js` `<head>` da sinxron yuklanadi (sahifa miltillamasligi uchun). `theme-color` meta ham shu yerda yangilanadi.
 - Telefon chegaralari: 1180px, 760px, 400px. `.mobonly` / `.deskonly`.
+
+### 5.4b Boshqaruv paneli: "Panellar" menyusi (2026-10-06)
+- Foydalanuvchi talabi: boshqaruv panelidagi har bir kartani o'zi yoqib-o'chirib tanlay olsin.
+- Belgilash: karta — `data-panel="kalit"`, menyuda `<input data-panel-toggle="kalit">` (`<details data-panels-menu>`). Mantiq — `static/smeta/js/panels.js` (umumiy: boshqa sahifaga ham shu atributlar bilan qo'shiladi).
+- Yashirilganlar `localStorage["smetago-panels:<uid>:<sahifa>"]` da (foydalanuvchi va sahifa bo'yicha). O'ng/chap ustun bo'shasa, ikkinchisi to'liq kenglikka o'tadi (CSS `:has`).
+- **CSS nomlari:** yon panel — `aside.sb`; element qo'shish oynasining tanasi ham `.sb` ("sheet body"). Yon panel qoidalarini faqat `aside.sb` ga yozing — avval `.sb{height:100vh}` oynani buzib, "Xonaga qo'shish" tugmasini ekrandan chiqarib yuborgan edi.
 
 ### 5.5 Excel (.xlsx)
 - **Bitta varaq modeli, ikki ishlatilish.** `app.js` dagi `sheetSmeta()` va `sheetRooms()` modelni quradi (katak: `{v, f: "money"|"dec2"|"int", s: "title"|"meta"|"head"|"group"|"sub"|"total"|"grand"|"b"}`, varaq: `{name, cols, rows, freeze, table:[boshi, oxiri]}`).

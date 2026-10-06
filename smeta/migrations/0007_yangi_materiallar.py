@@ -2,7 +2,7 @@ from django.db import migrations
 
 
 def seed(apps, schema_editor):
-    from smeta.malumotnoma import sync_materials
+    from smeta.seed import sync_materials
 
     sync_materials(apps)
 

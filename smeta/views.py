@@ -1,30 +1,68 @@
+"""SmetaGo sahifalari va API.
+
+Bo'limlar:
+  1. Ommaviy sahifalar  — bosh sahifa (sayt), namuna, yordam, maxfiylik
+  2. Kabinet            — boshqaruv paneli, smeta loyihalari, obyekt muharriri
+  3. Obyekt amallari    — yaratish, nusxa, o'chirish
+  4. API                — holatni saqlash (PUT), Excel fayl
+  5. Hisob              — kirish, ro'yxatdan o'tish
+
+Hisob-kitob brauzerda (static/smeta/js/calc.js); server faqat saqlaydi va Excel faylni formatlaydi.
+"""
 import json
 
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
-from django.utils.http import content_disposition_header
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import content_disposition_header
 from django.views.decorators.http import require_POST
 
 from .excel import DEMO_LIMITS, build_workbook
-
-DEMO_MAX_BODY = 300_000  # bayt; namuna smetasi odatda 20–60 KB
 from .forms import RegisterForm
 from .i18n import current_lang, tr
 from .malumotnoma import cached_reference
 from .models import Obyekt
 
+XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+DEMO_MAX_BODY = 300_000  # bayt; namuna smetasi odatda 20–60 KB
+
+
+def _ref():
+    """Joriy tildagi ma'lumotnoma (katalog, narxlar, xona turlari) — keshdan."""
+    return cached_reference(current_lang())
+
+
+def _my_obyekt(request, pk):
+    """Faqat egasining obyekti; begonasiga 404."""
+    return get_object_or_404(Obyekt, pk=pk, owner=request.user)
+
+
+# ---------- 1. Ommaviy sahifalar ----------
 
 def obyekt_list(request):
-    """Bosh sahifa: mehmonga — sayt (landing), kirgan foydalanuvchiga — obyektlar ro'yxati."""
+    """Bosh sahifa: mehmonga — sayt (jonli kalkulyator bilan), kirgan foydalanuvchiga — boshqaruv paneli."""
     if not request.user.is_authenticated:
-        # kalkulyator uchun ma'lumotnoma (narxlar, qoplamalar, xona turlari)
-        return render(request, "smeta/landing.html", {"ref": cached_reference(current_lang())})
+        return render(request, "smeta/landing.html", {"ref": _ref()})
     return render(request, "smeta/obyekt_list.html", _dash_context(request))
 
+
+def demo(request):
+    """Namuna smeta: ro'yxatdan o'tmasdan to'liq ilova. Holat faqat brauzerda saqlanadi."""
+    return render(request, "smeta/app.html", {"o": None, "ref": _ref()})
+
+
+def help_page(request):
+    return render(request, "smeta/yordam.html")
+
+
+def privacy_page(request):
+    return render(request, "smeta/maxfiylik.html")
+
+
+# ---------- 2. Kabinet ----------
 
 @login_required
 def loyihalar(request):
@@ -33,20 +71,27 @@ def loyihalar(request):
 
 
 def _dash_context(request):
-    """Boshqaruv paneli va loyihalar sahifasi uchun: obyektlar va ularning holati.
-    Summalar brauzerda calc.js (buildSmeta) bilan hisoblanadi — ilovadagi bilan aynan bir xil."""
+    """Boshqaruv paneli va loyihalar sahifasi uchun obyektlar.
+    Summalar brauzerda calc.js bilan hisoblanadi — ilovadagi bilan aynan bir xil."""
     obyektlar = list(request.user.obyektlar.all())
-    dash = [{"id": o.pk, "name": o.name, "url": reverse("obyekt_app", args=[o.pk]),
-             "created": o.created.isoformat(),
-             "updated": o.updated.isoformat(), "state": o.state} for o in obyektlar]
-    ref = cached_reference(current_lang())
+    ref = _ref()
     return {
         "obyektlar": obyektlar,
-        "dash": dash,
+        "dash": [{"id": o.pk, "name": o.name, "url": reverse("obyekt_app", args=[o.pk]),
+                  "created": o.created.isoformat(), "updated": o.updated.isoformat(), "state": o.state}
+                 for o in obyektlar],
         "ref": {"prices": ref["prices"]},
         "prices_updated": ref.get("pricesUpdated", ""),
     }
 
+
+@login_required
+def obyekt_app(request, pk):
+    """Obyekt muharriri: xonalar, beton, narxlar, smeta."""
+    return render(request, "smeta/app.html", {"o": _my_obyekt(request, pk), "ref": _ref()})
+
+
+# ---------- 3. Obyekt amallari ----------
 
 @login_required
 @require_POST
@@ -61,43 +106,9 @@ def obyekt_create(request):
 
 
 @login_required
-def obyekt_app(request, pk):
-    o = get_object_or_404(Obyekt, pk=pk, owner=request.user)
-    return render(request, "smeta/app.html", {"o": o, "ref": cached_reference(current_lang())})
-
-
-def demo(request):
-    """Namuna smeta: ro'yxatdan o'tmasdan to'liq ilova. Holat faqat brauzerda saqlanadi (serverga yozilmaydi)."""
-    return render(request, "smeta/app.html", {"o": None, "ref": cached_reference(current_lang())})
-
-
-@require_POST
-def demo_excel(request):
-    """Namuna sahifasi uchun .xlsx: hech narsa saqlanmaydi, faqat yuborilgan varaq formatlanadi (CSRF bilan).
-    Anonim so'rov — hajm chegaralari qattiqroq (DEMO_LIMITS), umumiy serverda CPU band qilinmasin."""
-    if len(request.body) > DEMO_MAX_BODY:
-        return JsonResponse({"error": "Varaq juda katta"}, status=413)
-    try:
-        content = build_workbook(json.loads(request.body), **DEMO_LIMITS)
-    except (ValueError, UnicodeDecodeError):
-        return JsonResponse({"error": "Varaq ma'lumoti noto'g'ri"}, status=400)
-    resp = HttpResponse(content, content_type=XLSX_TYPE)
-    resp["Content-Disposition"] = content_disposition_header(True, "Smeta.xlsx")
-    return resp
-
-
-def help_page(request):
-    return render(request, "smeta/yordam.html")
-
-
-def privacy_page(request):
-    return render(request, "smeta/maxfiylik.html")
-
-
-@login_required
 @require_POST
 def obyekt_copy(request, pk):
-    o = get_object_or_404(Obyekt, pk=pk, owner=request.user)
+    o = _my_obyekt(request, pk)
     state = json.loads(json.dumps(o.state))
     name = f"{o.name} {tr('(nusxa)')}"[:200]
     if isinstance(state.get("obj"), dict):
@@ -109,14 +120,16 @@ def obyekt_copy(request, pk):
 @login_required
 @require_POST
 def obyekt_delete(request, pk):
-    get_object_or_404(Obyekt, pk=pk, owner=request.user).delete()
+    _my_obyekt(request, pk).delete()
     return redirect("obyekt_list")
 
 
+# ---------- 4. API ----------
+
 @login_required
 def obyekt_state(request, pk):
-    """Frontenddagi `S` holatini o'qish (GET) va saqlash (PUT)."""
-    o = get_object_or_404(Obyekt, pk=pk, owner=request.user)
+    """Brauzerdagi `S` holatini o'qish (GET) va saqlash (PUT)."""
+    o = _my_obyekt(request, pk)
     if request.method == "GET":
         return JsonResponse(o.state, safe=False)
     if request.method != "PUT":
@@ -133,22 +146,34 @@ def obyekt_state(request, pk):
     return JsonResponse({"ok": True, "updated": o.updated.isoformat()})
 
 
-XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+def _xlsx_response(request, filename, **limits):
+    """Brauzer yuborgan varaq modeli -> .xlsx fayl (smeta/excel.py)."""
+    try:
+        content = build_workbook(json.loads(request.body), **limits)
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"error": "Varaq ma'lumoti noto'g'ri"}, status=400)
+    resp = HttpResponse(content, content_type=XLSX_TYPE)
+    resp["Content-Disposition"] = content_disposition_header(True, filename)
+    return resp
 
 
 @login_required
 @require_POST
 def obyekt_excel(request, pk):
-    """Brauzer hisoblagan smeta (varaq modeli) -> .xlsx fayl. Qarang: smeta/excel.py"""
-    o = get_object_or_404(Obyekt, pk=pk, owner=request.user)
-    try:
-        content = build_workbook(json.loads(request.body))
-    except (ValueError, UnicodeDecodeError):
-        return JsonResponse({"error": "Varaq ma'lumoti noto'g'ri"}, status=400)
-    resp = HttpResponse(content, content_type=XLSX_TYPE)
-    resp["Content-Disposition"] = content_disposition_header(True, f"{o.name or 'Smeta'}.xlsx")
-    return resp
+    o = _my_obyekt(request, pk)
+    return _xlsx_response(request, f"{o.name or 'Smeta'}.xlsx")
 
+
+@require_POST
+def demo_excel(request):
+    """Namuna sahifasi uchun: hech narsa saqlanmaydi (CSRF bilan). Anonim so'rov — chegaralar qattiqroq,
+    umumiy serverda CPU band qilinmasin."""
+    if len(request.body) > DEMO_MAX_BODY:
+        return JsonResponse({"error": "Varaq juda katta"}, status=413)
+    return _xlsx_response(request, "Smeta.xlsx", **DEMO_LIMITS)
+
+
+# ---------- 5. Hisob ----------
 
 class Login(auth_views.LoginView):
     """Kirish: "Eslab qolish" belgilanmasa — sessiya brauzer yopilganda tugaydi (umumiy kompyuter uchun)."""
@@ -165,7 +190,6 @@ def register(request):
         return redirect("obyekt_list")
     form = RegisterForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        user = form.save()
-        login(request, user)
+        login(request, form.save())
         return redirect("obyekt_list")
     return render(request, "registration/register.html", {"form": form})

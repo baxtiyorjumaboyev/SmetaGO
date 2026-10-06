@@ -313,6 +313,15 @@ RU = {
     "Ma'lumotni o'chirish": "Удаление данных",
     "Istalgan obyektni «Obyektlar» sahifasida o'chirishingiz mumkin. Hisobni butunlay o'chirish uchun sayt ma'muriga murojaat qiling.":
         "Любой объект можно удалить на странице «Объекты». Чтобы полностью удалить аккаунт, обратитесь к администратору сайта.",
+    # boshqaruv paneli: "Panellar" menyusi
+    "Panellar": "Панели",
+    "Panellarni tanlash": "Выбрать панели",
+    "Ko'rsatiladigan panellar": "Показывать панели",
+    "Asosiy ko'rsatkichlar": "Основные показатели",
+    "3D model va jami smeta": "3D-модель и итог сметы",
+    "Hammasini ko'rsatish": "Показать все",
+    "Barcha panellar yashirilgan — «Panellar» menyusidan keraklisini tanlang.":
+        "Все панели скрыты — выберите нужные в меню «Панели».",
     # hududlar (obyektda o'zbekcha saqlanadi)
     "Toshkent sh.": "г. Ташкент", "Toshkent vil.": "Ташкентская обл.", "Andijon": "Андижан",
     "Buxoro": "Бухара", "Farg'ona": "Фергана", "Jizzax": "Джизак", "Xorazm": "Хорезм",

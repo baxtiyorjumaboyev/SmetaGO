@@ -29,6 +29,7 @@ PRECACHE_STATIC = [
     "smeta/js/calc.js",
     "smeta/js/app.js",
     "smeta/js/dashboard.js",
+    "smeta/js/panels.js",
     "smeta/js/room3d.js",
     "smeta/js/auth.js",
     "smeta/js/landing.js",
@@ -102,11 +103,3 @@ def service_worker(request):
 
 def offline(request):
     return render(request, "smeta/offline.html")
-
-
-PWA_CONTEXT = {"pwa_theme_light": THEME_LIGHT, "pwa_theme_dark": THEME_DARK}
-
-
-def pwa_context(request):
-    """Shablonlar uchun: theme-color qiymatlari (context processor)."""
-    return PWA_CONTEXT

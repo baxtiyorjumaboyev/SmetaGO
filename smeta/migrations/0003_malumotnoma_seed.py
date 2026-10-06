@@ -2,7 +2,7 @@ from django.db import migrations
 
 
 def seed(apps, schema_editor):
-    from smeta.malumotnoma import load_seed
+    from smeta.seed import load_seed
 
     load_seed(apps)
 

@@ -709,7 +709,8 @@ body.authp{
 
 /* ================= "Proba" dizayni: yon panelli qobiq (shell.html), Boshqaruv paneli, Smeta loyihalari ================= */
 body.shell{padding-bottom:0;display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh;--forest:#0b3d20;--forest2:#0a2f19}
-.sb{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:18px;padding:18px 14px;background:linear-gradient(180deg,var(--forest),var(--forest2));color:#e6f2ea;overflow-y:auto}
+/* yon panel: faqat <aside> — element qo'shish oynasidagi .sb (sheet body) bilan to'qnashmasin */
+aside.sb{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:18px;padding:18px 14px;background:linear-gradient(180deg,var(--forest),var(--forest2));color:#e6f2ea;overflow-y:auto}
 .sb-brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;padding:2px 4px}
 .sb-logo{width:40px;height:40px;border-radius:11px;background:#16a34a;display:grid;place-items:center;flex:none}
 .sb-logo svg,.sb-nav svg,.sb-foot svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -790,6 +791,23 @@ body.shell{padding-bottom:0;display:grid;grid-template-columns:248px minmax(0,1f
 .k-foot b{color:var(--ink);font-weight:600}
 /* ikki ustunli joylashuv */
 .dgrid,.ly-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+/* Panellar menyusi (js/panels.js): yashirilgan karta joy egallamaydi; ustun bo'shab qolsa, ikkinchisi to'liq kenglikda */
+[data-panel][hidden]{display:none!important}
+.dgrid:not(:has(.dcol.side > :not([hidden]))),.dgrid:not(:has(.dcol:not(.side) > :not([hidden]))){grid-template-columns:minmax(0,1fr)}
+.dcol:not(:has(> :not([hidden]))){display:none}
+.pnl{position:relative}
+.pnl>summary{list-style:none;cursor:pointer}
+.pnl>summary::-webkit-details-marker{display:none}
+.pnl>summary svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.pnl-n{font:600 11px var(--f-mono);color:var(--muted)}
+.pnl-pop{position:absolute;right:0;top:calc(100% + 8px);z-index:30;width:270px;padding:14px;display:flex;flex-direction:column;gap:6px;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 48px rgba(0,0,0,.18)}
+.pnl-pop .eyebrow{margin:0 0 4px}
+.pnl-pop label{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:14px}
+.pnl-pop label:hover{background:var(--surface2)}
+.pnl-pop input{width:16px;height:16px;accent-color:var(--accent)}
+.pnl-pop .btn{margin-top:6px}
+@media (max-width:760px){.pnl-pop{right:auto;left:0}}
 .dcol{display:flex;flex-direction:column;gap:20px;min-width:0}
 .card{padding:20px;border-radius:16px}
 .card.flush{padding:0}
@@ -920,8 +938,8 @@ body.shell{padding-bottom:0;display:grid;grid-template-columns:248px minmax(0,1f
 @media (max-width:1100px){.kpi4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:900px){
   body.shell{grid-template-columns:minmax(0,1fr)}
-  .sb{position:fixed;inset:0 auto 0 0;width:260px;z-index:40;transform:translateX(-102%);transition:transform .2s}
-  body.sb-open .sb{transform:none}
+  aside.sb{position:fixed;inset:0 auto 0 0;width:260px;z-index:40;transform:translateX(-102%);transition:transform .2s}
+  body.sb-open aside.sb{transform:none}
   body.sb-open .sb-scrim{display:block;position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.45);border:0}
   .tb{padding:10px 14px;gap:8px}
   .tb-menu{display:grid}

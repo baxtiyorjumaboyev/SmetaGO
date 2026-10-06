@@ -6,7 +6,8 @@ from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .malumotnoma import SEED_FILE, build_reference
+from .malumotnoma import build_reference
+from .seed import SEED_FILE
 from .models import CatalogItem, Material, Obyekt
 
 STATE = {"v": 1, "obj": {"name": "Chilonzor kvartira", "region": "Toshkent sh."}, "rooms": [{}, {}]}
@@ -311,6 +312,17 @@ class SmetaTests(TestCase):
             self.assertContains(c.get(reverse(name)), uz)
             c.cookies["django_language"] = "ru"
             self.assertContains(c.get(reverse(name)), ru)
+
+    def test_dashboard_panels_menu(self):
+        """Boshqaruv paneli: har bir karta "Panellar" menyusidan tanlanadi (js/panels.js)."""
+        html = self.c.get("/").content.decode()
+        self.assertIn("data-panels-menu", html)
+        self.assertIn("smeta/js/panels.js", html)
+        keys = ("kpi", "model", "rooms", "top", "costs", "feed", "prices")
+        for k in keys:  # har bir panel uchun karta ham, menyuda belgi ham bor
+            self.assertIn(f'data-panel="{k}"', html)
+            self.assertIn(f'data-panel-toggle="{k}"', html)
+        self.assertEqual(html.count('data-panel-toggle="'), len(keys))
 
     def test_csrf_required_for_save(self):
         o = Obyekt.objects.create(owner=self.user)
