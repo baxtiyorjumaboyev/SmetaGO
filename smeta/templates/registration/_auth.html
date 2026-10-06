@@ -8,7 +8,7 @@
 <body class="authp2" data-uid="{{ user.pk|default:'' }}">
 <header class="ah">
   <div class="ah-in">
-    <a class="ah-brand" href="{% url 'obyekt_list' %}"><span class="mark">S</span><span><b>SmetaGo</b><small>{% t "O'lchang • Tanlang • Hisoblang" %}</small></span></a>
+    <a class="ah-brand" href="{% url 'obyekt_list' %}"><span class="mark"><img class="logo-img" src="{% static 'smeta/icons/logo-mark.png' %}" alt="" width="40" height="40"></span><span><b>SmetaGo</b><small>{% t "O'lchang • Tanlang • Hisoblang" %}</small></span></a>
     <div class="ah-acts"><span class="tb-pill ok" data-online><i></i>{% t "Onlayn" %}</span>{% include "smeta/_prefs.html" %}</div>
   </div>
   <div class="ah-rule" aria-hidden="true"></div>

@@ -1102,3 +1102,6 @@ legend.sec-h{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;pad
 .rt:has(#rt-phone:checked) .rt-login,.rt:has(#rt-login:checked) .rt-phone{display:none}
 .ah-forgot{color:var(--accent);font-weight:600;font-size:14px;text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
 .ah-forgot:hover{text-decoration:underline}
+/* logotip (SG belgisi, icons/logo-mark.png): sarlavha, yon panel, kirish sahifasi */
+.mark:has(.logo-img),.sb-logo:has(.logo-img){background:#101e38!important;padding:0;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
+.logo-img{display:block;width:100%;height:100%;object-fit:cover}

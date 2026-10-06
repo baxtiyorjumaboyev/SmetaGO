@@ -1,4 +1,4 @@
-{% load smeta_i18n %}<!doctype html>
+{% load static smeta_i18n %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
 {% include "smeta/_head.html" %}
@@ -7,7 +7,7 @@
 <body>
 <main class="wrap" style="min-height:80vh;display:grid;place-items:center;text-align:center">
   <div class="panel pad stack" style="max-width:440px;align-items:center">
-    <div class="brand"><div class="mark">S</div><div>SmetaGo</div></div>
+    <div class="brand"><div class="mark"><img class="logo-img" src="{% static 'smeta/icons/logo-mark.png' %}" alt="" width="40" height="40"></div><div>SmetaGo</div></div>
     <h1 style="font-size:22px">{% t "Internet yo'q" %}</h1>
     <p class="note" style="margin:0;font-size:14px">{% t "Bu sahifa hali qurilmada saqlanmagan. Avval ochilgan obyektlar internetsiz ham ishlaydi — ularni aloqa bor paytda bir marta oching." %}</p>
     <button class="btn pri" onclick="location.reload()">{% t "Qayta urinish" %}</button>

@@ -9,7 +9,7 @@
 {% with un=request.resolver_match.url_name %}
 <aside class="sb" id="sb" aria-label="{% t "Bo'limlar" %}">
   <a class="sb-brand" href="{% url 'obyekt_list' %}">
-    <span class="sb-logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 6l-6 15M12 6l6 15M8.5 15h7"/><circle cx="12" cy="6" r="1.6"/></svg></span>
+    <span class="sb-logo" aria-hidden="true"><img class="logo-img" src="{% static 'smeta/icons/logo-mark.png' %}" alt="" width="40" height="40"></span>
     <span><b>SmetaGo</b><small>{% t "o'lchang · tanlang · hisoblang" %}</small></span>
   </a>
   <div class="sb-status">

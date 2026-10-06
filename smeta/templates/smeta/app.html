@@ -12,7 +12,7 @@
     {% else %}
     <a class="btn sm" href="{% url 'obyekt_list' %}" title="{% t 'Bosh sahifa' %}">←<span class="deskonly"> {% t "Bosh sahifa" %}</span></a>
     {% endif %}
-    <div class="brand"><div class="mark">S</div><div>SmetaGo<small>{% t "o'lchang · tanlang · hisoblang" %}</small></div></div>
+    <div class="brand"><div class="mark"><img class="logo-img" src="{% static 'smeta/icons/logo-mark.png' %}" alt="" width="40" height="40"></div><div>SmetaGo<small>{% t "o'lchang · tanlang · hisoblang" %}</small></div></div>
     <div class="objmeta">
       <input class="inp" id="o-name" data-o="name" aria-label="{% t 'Obyekt nomi' %}" placeholder="{% t 'Obyekt nomi' %}">
       <select class="inp" id="o-region" data-o="region" aria-label="{% t 'Hudud' %}" style="width:auto"></select>
