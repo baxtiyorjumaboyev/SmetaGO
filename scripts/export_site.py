@@ -53,6 +53,7 @@ for url, out_path in pages.items():
     html = html.replace('href="/yordam/"', 'href="yordam/"')
     html = html.replace('href="/maxfiylik/"', 'href="maxfiylik/"')
     html = html.replace('data-register="/app/"', 'data-register="app/"')
+    html = html.replace('href="/"', 'href="./"')
     html = html.replace('action="/i18n/setlang/"', 'action="javascript:void(0);"')
     
     full_path = os.path.join(out_dir, out_path)
