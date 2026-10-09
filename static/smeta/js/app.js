@@ -1,0 +1,509 @@
+/* SmetaGo — ilova mantig'i: holat (state), hisob-kitob, chizish (render) va hodisalar.
+ * i18n.js, data.js va calc.js (hisob-kitob) dan keyin yuklanadi. Tuzilishi: docs/ARXITEKTURA.md
+ * Barcha ko'rinadigan matnlar tr("o'zbekcha matn") orqali (ruscha tarjima — i18n.js),
+ * birliklar U("m²") orqali. Holatda (S) hamma kalitlar o'zbekcha saqlanadi.
+ */
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const SOM=tr("so'm");
+const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
+
+/* ---------- state ---------- */
+function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
+function mkItem(cid,opt={}){const c=CAT_INDEX[cid];if(!c)return null;const v=c.v&&c.v[opt.vi??0];return{uid:uid(),cid,name:c.n,variant:v?v[0]:"",unit:c.u,qty:opt.qty??1,price:v?v[1]:c.p,h:v&&v[2]!=null?v[2]:c.h,dims:opt.dims||"",watt:opt.watt||"",note:opt.note||"",custom:false}}
+function sample(){
+  return blank(null, tr("Yangi smeta"));
+}
+function blank(base,name){
+  const nr=mkRoom("Mehmonxona",null,"5","4","2,8");
+  return{
+    v:1,sample:false,
+    obj:{name:name||tr("Yangi smeta"),region:(base&&base.obj&&base.obj.region)||"Toshkent sh.",quarter:(base&&base.obj&&base.obj.quarter)||QUARTERS[0]},
+    settings:(base&&base.settings)||{...DEFAULT_SETTINGS},
+    prices:(base&&base.prices)||defaultPrices(),
+    rooms:[nr],
+    concrete:[],
+    ui:{tab:"xonalar",room:nr.id,grp:"Tavsiya",q:""}
+  };
+}
+/* Django orqali ochilganda (window.SMETAGO bor) holat serverdan keladi va serverga saqlanadi.
+ * Aks holda (index.html to'g'ridan-to'g'ri ochilsa) avvalgidek localStorage ishlatiladi. */
+const SERVER=window.SMETAGO||null;
+// namuna (demo) sahifasi: serversiz, holat faqat shu brauzerda; Excel — umumiy endpoint orqali
+const DEMO=window.SMETAGO_DEMO||null;
+const LKEY="smetago-v1";
+const XLSX=SERVER&&SERVER.xlsxUrl?{url:SERVER.xlsxUrl,csrf:SERVER.csrf}:DEMO?{url:DEMO.xlsxUrl,csrf:DEMO.csrf}:null;
+/* Bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js, "smetago-draft") yangi bo'sh obyektga
+ * birinchi xona bo'lib tushadi. Bir marta ishlatiladi. */
+function applyDraft(st){let d=null;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
+  if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return false;
+  try{localStorage.removeItem("smetago-draft")}catch(e){}
+  const x=d.room,r=st.rooms[0],type=ROOM_TYPES[x.type]?x.type:r.type;
+  Object.assign(r,{type,name:rtLabel(type),L:String(x.L||""),W:String(x.W||""),H:String(x.H||r.H)});
+  ["floor","wall","ceil"].forEach(k=>{if(x[k]&&({floor:FLOOR,wall:WALL,ceil:CEIL})[k][x[k]])r[k]=x[k]});
+  st.ui.draftApplied=true;return true}
+/* Oflayn navbat: serverga yetib bormagan oxirgi holat qurilmada saqlanadi ({ts, state})
+ * va aloqa tiklanganda yuboriladi. */
+const PKEY=SERVER?"smetago-pending:"+SERVER.saveUrl:null;
+const readPending=()=>{try{const p=JSON.parse(localStorage.getItem(PKEY));return p&&p.state&&p.state.v===1?p:null}catch(e){return null}};
+let S;
+if(SERVER){
+  let st=null;try{st=JSON.parse($("#smeta-state").textContent)}catch(e){}
+  S=st&&st.v===1?st:null;
+  const pend=readPending();
+  if(pend&&pend.ts>(Date.parse(SERVER.updated)||0))S=pend.state;
+  else if(pend){try{localStorage.removeItem(PKEY)}catch(e){}}
+  if(!S){S=blank(null,SERVER.name);applyDraft(S)}
+}else{
+  try{const raw=localStorage.getItem(LKEY);S=raw?JSON.parse(raw):null}catch(e){S=null}
+  if(!S||S.v!==1)S=blank(null,tr("Yangi smeta"));
+  applyDraft(S);
+}
+normState(S);
+// URL param ?tab= orqali ochish
+const initTab = new URLSearchParams(location.search).get("tab");
+if (initTab === "beton" || initTab === "smeta" || initTab === "xonalar") S.ui.tab = initTab;
+// katalog guruhi nomi tilga bog'liq: til almashganda eski guruh topilmasa — "Tavsiya"
+if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
+let saveT=null,offlineNoted=false;
+function persist(){saveT=null;const body=JSON.stringify(S);
+  if(!SERVER){
+    try{
+      localStorage.setItem(LKEY,body);
+      let projs=JSON.parse(localStorage.getItem("smetago-guest-projects")||"[]");
+      const pid=S.obj.id||(S.obj.id="p_"+Date.now().toString(36));
+      const idx=projs.findIndex(p=>p.id===pid);
+      const entry={id:pid,name:S.obj.name,updated:new Date().toISOString(),state:S};
+      if(idx>=0)projs[idx]=entry;else projs.unshift(entry);
+      localStorage.setItem("smetago-guest-projects",JSON.stringify(projs));
+    }catch(e){}
+    return;
+  }
+  const ts=Date.now();try{localStorage.setItem(PKEY,JSON.stringify({ts,state:S}))}catch(e){}
+  fetch(SERVER.saveUrl,{method:"PUT",credentials:"same-origin",keepalive:body.length<60000,headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body})
+   .then(r=>{if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status)})
+   .then(()=>{offlineNoted=false;window.smetagoNet?.(true);const p=readPending();if(p&&p.ts===ts)try{localStorage.removeItem(PKEY)}catch(e){}})
+   .catch(e=>{if(e.message==="auth")toast(tr("Sessiya tugagan — qayta kiring"));
+     else if(!navigator.onLine||e instanceof TypeError){window.smetagoNet?.(false);if(!offlineNoted){offlineNoted=true;toast(tr("Internet yo'q — o'zgarishlar qurilmada saqlandi"))}}
+     else toast(tr("Serverga saqlanmadi, qayta urinib ko'ring"))})}
+function save(){clearTimeout(saveT);saveT=setTimeout(persist,SERVER?700:300)}
+addEventListener("pagehide",()=>{if(saveT){clearTimeout(saveT);persist()}});
+addEventListener("online",()=>{if(SERVER&&readPending()){persist();toast(tr("Aloqa tiklandi — o'zgarishlar yuborilmoqda"))}});
+// "online" hodisasi kelmasa ham (Wi-Fi bor, internet yo'q edi) navbat vaqti-vaqti bilan qayta yuboriladi
+setInterval(()=>{if(SERVER&&!saveT&&readPending())persist()},30000);
+if(SERVER)save();
+
+
+/* ---------- rendering ---------- */
+const TABS=[["xonalar",tr("Xonalar va ta'mirlash")],["beton","🧱 " + tr("Beton ishlari")],["smeta",tr("Smeta va Excel")]];
+function renderHeader(){
+  $("#o-name").value=S.obj.name;
+  $("#o-region").innerHTML=REGIONS.map(r=>`<option value="${esc(r)}"${r===S.obj.region?" selected":""}>${esc(tr(r))}</option>`).join("");
+  $("#o-quarter").innerHTML=QUARTERS.map(r=>`<option value="${esc(r)}"${r===S.obj.quarter?" selected":""}>${esc(qLabel(r))}</option>`).join("");
+  $("#tabs").innerHTML=TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-k="${k}" aria-selected="${S.ui.tab===k}">${l}</button>`).join("");
+  // telefonda: pastki navigatsiya paneli (yuqoridagi tablar yashiriladi)
+  const bn=$("#bnav");if(bn)bn.innerHTML=TABS.map(([k])=>`<button data-act="tab" data-k="${k}" aria-current="${S.ui.tab===k?"page":"false"}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICON[k]}</svg><span>${BNAV_L[k]}</span></button>`).join("");
+}
+const TAB_ICON={xonalar:'<path d="M3 4h18v16H3zM3 12h8v8M11 4v5"/>',beton:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+  smeta:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>'};
+const BNAV_L={xonalar:tr("Xonalar"),beton:tr("Beton"),smeta:tr("Smeta")};
+
+function render(){renderHeader();const t=S.ui.tab;
+  $("#app").innerHTML=t==="xonalar"?viewRooms():t==="beton"?viewConcrete():viewSmeta();
+  if(t==="xonalar"){renderDerived();renderCatItems()}
+  renderTotal();save();
+}
+function curRoom(){return S.rooms.find(r=>r.id===S.ui.room)||S.rooms[0]}
+function roomTotal(r){const c=roomCalc(r);return sum([...c.lines,...r.items.map(itemLine)].map(l=>lineTotals(l).tot))}
+
+function viewRooms(){
+  const r=curRoom();
+  const list=`<aside class="panel roomlist"><ul>${S.rooms.map(x=>`<li><button class="roombtn" data-act="room" data-id="${x.id}" aria-current="${r&&x.id===r.id}"><b>${esc(x.name)}</b><span id="rl-${x.id}">${fmt(roomTotal(x))} ${SOM}</span></button></li>`).join("")}</ul>
+   <div class="addroom"><select class="inp" id="newType" aria-label="${tr("Xona turi")}">${Object.keys(ROOM_TYPES).map(k=>`<option value="${esc(k)}">${esc(rtLabel(k))}</option>`).join("")}</select><button class="btn pri" data-act="addRoom">${tr("+ Xona qo'shish")}</button></div></aside>`;
+  if(!r)return `<div class="layout">${list}<section class="panel pad empty">${tr("Xona qo'shing — o'lchamlarni kiritgach, hisob avtomatik chiqadi.")}</section></div>`;
+  const opt=(o,cur)=>Object.entries(o).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${esc(lab(v))}</option>`).join("");
+  // qoplama o'lchami: placeholder — xonaning o'lchami (renderDerived yangilab turadi)
+  const fdim=(f,ph,l)=>`<label class="fld">${tr(l)}<input class="inp numin" id="r-${f}" data-f="${f}" data-ph="${ph}" inputmode="decimal" value="${esc(r[f]??"")}" placeholder="${esc(r[ph])}"></label>`;
+  // har bo'lim: raqam, sarlavha va bir qatorlik oddiy tushuntirish
+  const sec=(n,t,h)=>`<legend class="sec-h"><span class="sec-n">${n}</span><span><b>${tr(t)}</b><small>${tr(h)}</small></span></legend>`;
+  const plus=(kind)=>`<button type="button" class="plus" data-act="ownFinish" data-k="${kind}" title="${tr("Ro'yxatda yo'q bo'lsa — o'zingiz yozing")}">+ ${tr("O'zim yozaman")}</button>`;
+  const edit=`<section class="stack">
+   ${guide(r)}
+   <div class="panel pad stack">
+    <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><span class="tag">${esc(rtLabel(r.type))}</span><button class="btn ghost sm" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
+    <fieldset>${sec(1,"Xona o'lchami","Lenta bilan uzunligi, eni va balandligini o'lchang (metrda, masalan 4,5).")}
+     <div class="grid3">
+      <label class="fld">${tr("Uzunligi")}${stepper(`<input class="inp numin" id="r-L" data-f="L" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00">`,"r-L",.1)}</label>
+      <label class="fld">${tr("Eni")}${stepper(`<input class="inp numin" id="r-W" data-f="W" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00">`,"r-W",.1)}</label>
+      <label class="fld">${tr("Balandligi")}${stepper(`<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00">`,"r-H",.1)}</label>
+     </div></fieldset>
+    <fieldset>${sec(2,"Eshiklar","Har bir eshik: turi, eni × bo'yi (m). Devor va plintusdan o'zi ayiriladi.")}
+     <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}${d.own||(d.t&&!DOOR_TYPES.includes(d.t))
+       ?`<input class="inp own-t" id="d-${i}-t" data-door="${i}" data-k="t" value="${esc(d.t)}" placeholder="${tr("Eshik turi (o'zim yozaman)")}" aria-label="${tr("Eshik turi")}">`
+       :`<select class="inp" id="d-${i}-t" data-door="${i}" data-k="t" aria-label="${tr("Eshik turi")}"><option value="">${tr("Turi?")}</option>${DOOR_TYPES.map(t=>`<option value="${esc(t)}"${t===d.t?" selected":""}>${esc(tr(t))}</option>`).join("")}<option value="__own">${tr("Boshqa (o'zim yozaman)…")}</option></select>`}<input class="inp numin" id="d-${i}-w" data-door="${i}" data-k="w" inputmode="decimal" value="${esc(d.w)}" aria-label="${tr("Eshik eni")}">×<input class="inp numin" id="d-${i}-h" data-door="${i}" data-k="h" inputmode="decimal" value="${esc(d.h)}" aria-label="${tr("Eshik bo'yi")}">${stepper(`<input class="inp numin qn" id="d-${i}-q" data-door="${i}" data-k="q" inputmode="decimal" value="${esc(d.q??"")}" placeholder="1" aria-label="${tr("Soni")}">`,`d-${i}-q`,1)}${esc(U("dona"))}<span class="m2" id="d-${i}-a"></span><button class="x" data-act="delDoor" data-i="${i}" aria-label="${tr("Eshikni olib tashlash")}">×</button></span>`).join("")}</div>
+     <p class="note opsum" id="doors-sum"></p>
+     <div class="openings adddoor">${DOOR_TYPES.map(t=>`<button class="btn sm" data-act="addDoor" data-t="${esc(t)}">+ ${esc(tr(t))}</button>`).join("")}<button class="btn sm plus" data-act="addDoor" data-t="__own">+ ${tr("Boshqa eshik")}</button></div></fieldset>
+    <fieldset>${sec(3,"Derazalar","Har bir deraza: eni × balandligi (m). Devor maydonidan o'zi ayiriladi.")}
+     <div class="openings">${r.windows.map((w,i)=>`<span class="opening">${i+1}<input class="inp numin" id="w-${i}-w" data-win="${i}" data-k="w" inputmode="decimal" value="${esc(w.w)}" aria-label="${tr("Deraza eni")}">×<input class="inp numin" id="w-${i}-h" data-win="${i}" data-k="h" inputmode="decimal" value="${esc(w.h)}" aria-label="${tr("Deraza balandligi")}"><span class="m2" id="w-${i}-a"></span><button class="x" data-act="delWin" data-i="${i}" aria-label="${tr("Derazani olib tashlash")}">×</button></span>`).join("")}
+     <button class="btn sm" data-act="addWin">${tr("+ Deraza")}</button></div>
+     <p class="note opsum" id="wins-sum"></p></fieldset>
+    <fieldset>${sec(4,"Pol, devor va shift","Nima bilan qoplanadi — tanlang. Ro'yxatda yo'q bo'lsa «+ O'zim yozaman» ni bosing.")}
+     <div class="grid3 g-stack">
+      <div class="fcol"><label class="fld">${tr("Pol")}<select class="inp" id="r-floor" data-f="floor">${opt(FLOOR,r.floor)}</select></label>${plus("pol")}</div>
+      <div class="fcol"><label class="fld">${tr("Devor")}<select class="inp" id="r-wall" data-f="wall">${opt(WALL,r.wall)}</select></label>${plus("devor")}</div>
+      <div class="fcol"><label class="fld">${tr("Shift")}<select class="inp" id="r-ceil" data-f="ceil">${opt(CEIL,r.ceil)}</select></label>${plus("shift")}</div>
+     </div>
+     <details class="adv" id="adv"${S.ui.adv?" open":""}><summary>${tr("Qo'shimcha sozlamalar (ixtiyoriy)")}</summary>
+     <p class="note" style="margin:0">${tr("Qoplama o'lchami, m: bo'sh qoldirilsa — xonaning o'lchami olinadi.")}</p>
+     <div class="grid3 g-stack">
+      <div class="fcol"><span class="fld">${tr("Pol")}</span><div class="fdims">${fdim("fL","L","Uzunligi")}${fdim("fW","W","Eni")}</div></div>
+      <div class="fcol"><span class="fld">${tr("Devor")}</span><div class="fdims">${fdim("wL","L","Uzunligi")}${fdim("wW","W","Eni")}${fdim("wH","H","Balandligi")}</div></div>
+      <div class="fcol"><span class="fld">${tr("Shift")}</span><div class="fdims">${fdim("cL","L","Uzunligi")}${fdim("cW","W","Eni")}</div></div>
+     </div>
+     <div class="grid3 g-stack">
+      <label class="fld">${tr("Devordagi kafel uzunligi, m")}<input class="inp numin" id="r-tileLen" data-f="tileLen" inputmode="decimal" value="${esc(r.tileLen)}" placeholder="0"></label>
+      <label class="fld">${tr("Kafel balandligi, m")}<input class="inp numin" id="r-tileH" data-f="tileH" inputmode="decimal" value="${esc(r.tileH)}" placeholder="0"></label>
+      <label class="fld">${tr("Plintus, m (qo'lda)")}<input class="inp numin" id="r-plinthOv" data-f="plinthOv" inputmode="decimal" value="${esc(r.plinthOv)}" placeholder="${tr("avto")}"></label>
+     </div>
+     <p class="note" style="margin:0">${tr("Devorning pastki qismi kafel bo'lsa, o'sha uzunlik plintusdan va bo'yoq maydonidan ayiriladi. Plintusni lenta bilan o'lchagan bo'lsangiz, \"qo'lda\" maydoniga yozing.")}</p>
+     </details>
+    </fieldset>
+   </div>
+   <div class="panel roomplan pad" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface)"><div style="font-weight:600;font-size:13px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">📐 <span>${tr("Xona chizmasi (2D reja)")}</span></div><div id="room-plan-2d" style="width:100%;max-width:320px;display:flex;justify-content:center"></div></div>
+   <div id="derived" class="stack"></div>
+  </section>`;
+  const cat=`<aside class="panel catalog" id="catalog" aria-label="${tr("Katalog")}"><div class="head"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:nowrap"><h3 style="font-size:16px">${tr("Xonada nima bor?")}</h3><span class="note deskonly">${tr("bosing → o'lchang")}</span><button class="btn sm mobonly" data-act="closeCat" aria-label="${tr("Katalogni yopish")}">${tr("Yopish ×")}</button></div>
+   <input class="inp" id="catq" placeholder="${tr("Qidirish: rozetka, vytyazhka…")}" value="${esc(S.ui.q)}" aria-label="${tr("Katalogdan qidirish")}">
+   <div class="chips">${["Tavsiya",...CATALOG.map(g=>g.g)].map(g=>`<button class="chip" data-act="grp" data-g="${esc(g)}" aria-pressed="${S.ui.grp===g}">${esc(g==="Tavsiya"?tr("Tavsiya"):g)}</button>`).join("")}</div></div>
+   <div class="catbody"><div id="catItems" class="stack"></div><button class="addown" data-act="custom">${tr("+ Ro'yxatda yo'q narsani qo'shish")}</button></div></aside>`;
+  return `<div class="layout">${list}${edit}${cat}</div><button class="fab mobonly" data-act="openCat">${tr("+ Element qo'shish")}</button><button class="catbg" hidden data-act="closeCat" aria-label="${tr("Katalogni yopish")}"></button>`;
+}
+// "Qanday ishlaydi" — 4 qadam; bajarilgani ✓ bilan (yopilsa S.ui.noGuide)
+function guide(r){if(S.ui.noGuide)return "";
+  const st=[[num(r.L)>0&&num(r.W)>0,"Xonani o'lchang"],[r.doors.length+r.windows.length>0,"Eshik va derazani qo'shing"],
+    [!!(r.floor||r.wall||r.ceil),"Pol, devor, shiftni tanlang"],[r.items.length>0,"Xonadagi narsalarni qo'shing"]];
+  return `<div class="guide" role="note"><div class="g-h"><b>${tr("Qanday ishlaydi?")}</b><span>${tr("Qadamma-qadam to'ldiring — narx o'zi hisoblanadi.")}</span>
+    <button class="x" data-act="hideGuide" aria-label="${tr("Yo'riqnomani yopish")}">×</button></div>
+    <ol>${st.map(([ok,t],i)=>`<li class="${ok?"ok":""}"><i>${ok?"✓":i+1}</i>${tr(t)}</li>`).join("")}
+    <li class="go"><button class="btn sm pri" data-act="tab" data-k="smeta">${tr("Tayyor smetani ko'rish")} →</button></li></ol></div>`}
+function renderCatItems(){
+  const box=$("#catItems");if(!box)return;const r=curRoom();const q=S.ui.q.trim().toLowerCase();
+  const card=(it,s)=>`<button class="cat-item${s?" sugg":""}" data-act="pick" data-cid="${it.id}"><b>${esc(it.n)}</b><span>${it.v?tr("dan")+" ":""}${fmt(it.v?Math.min(...it.v.map(v=>v[1])):it.p)} / ${esc(U(it.u))}</span></button>`;
+  // har ro'yxatning boshida: ro'yxatda yo'q narsani o'zi qo'shish
+  const own=(name="")=>`<button class="cat-item own-card" data-act="custom" data-name="${esc(name)}"><b>+ ${tr("O'zim qo'shaman")}</b><span>${tr("ro'yxatda yo'q bo'lsa")}</span></button>`;
+  const sugg=()=>{const t=ROOM_TYPES[r?.type]||ROOM_DEFAULT;return `<p class="eyebrow" style="margin:0">${esc(tr("{0} uchun odatiy",r?rtLabel(r.type):""))}</p><div class="catgrid">${own()}${t.s.map(id=>CAT_INDEX[id]).filter(Boolean).map(it=>card(it,1)).join("")}</div>`};
+  let html="";
+  if(q){const res=Object.values(CAT_INDEX).filter(it=>(it.n+" "+(it.v||[]).map(v=>v[0]).join(" ")+" "+it.g).toLowerCase().includes(q));
+    html=res.length?`<div class="catgrid">${own(S.ui.q.trim())}${res.map(it=>card(it)).join("")}</div>`:`<p class="note">${esc(tr("\"{0}\" topilmadi — o'zingiz qo'shing:",S.ui.q))}</p><div class="catgrid">${own(S.ui.q.trim())}</div>`}
+  else if(S.ui.grp==="Tavsiya")html=sugg();
+  else{const g=CATALOG.find(g=>g.g===S.ui.grp);html=g?`<div class="catgrid">${own()}${g.items.map(it=>card(it)).join("")}</div>`:sugg()}
+  box.innerHTML=html;
+}
+// eshik/deraza yonidagi m² va jami; qoplama o'lchamlari placeholder'i (xona o'lchami)
+function updOpenings(r,c){const m2=U("m²");const set=(id,t)=>{const el=document.getElementById(id);if(el)el.textContent=t};
+  r.doors.forEach((d,i)=>set(`d-${i}-a`,`= ${fd(openA(d)*doorQ(d))} ${m2}`));
+  r.windows.forEach((w,i)=>set(`w-${i}-a`,`= ${fd(openA(w))} ${m2}`));
+  const dq=sum(r.doors.map(doorQ));
+  set("doors-sum",r.doors.length?tr("Jami: {0} ta eshik, {1} m²",fd(dq,Number.isInteger(dq)?0:2),fd(c.doorA)):"");
+  set("wins-sum",r.windows.length?tr("Jami: {0} ta deraza, {1} m²",r.windows.length,fd(c.winA)):"");
+  document.querySelectorAll("[data-ph]").forEach(el=>{el.placeholder=r[el.dataset.ph]??""});
+}
+function renderDerived(){
+  const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);updOpenings(r,c);
+  {const g=$(".guide");if(g)g.outerHTML=guide(r)}  // qadamlar ✓ har kiritishda yangilanadi
+  const autoRows=c.lines.map(l=>{const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)} <span class="tag auto">${tr("avto")}</span></div><div class="itemsub">${esc(l.sub)}</div></td><td class="num r c-qty" data-l="${tr("Miqdor")}">${fd(l.qty)} ${esc(U(l.unit))}</td><td class="num r c-price" data-l="${tr("Narx")}">${fmt(l.price)}</td><td class="num r c-sum" data-l="${tr("Jami")}">${fmt(t.tot)}</td><td class="c-del"></td></tr>`}).join("");
+  const itemRows=r.items.map(it=>{const l=itemLine(it);const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)}${it.custom?` <span class="tag own">${tr("o'zim qo'shdim")}</span>`:""}</div><div class="itemsub">${esc(l.sub)||"&nbsp;"}</div></td>
+    <td class="num r c-qty" data-l="${tr("Miqdor")}">${stepper(`<input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}">`,`iq-${it.uid}`,1)} <span class="note">${esc(U(it.unit))}</span></td>
+    <td class="r c-price" data-l="${tr("Narx, so'm")}"><input class="inp numin price" id="ip-${it.uid}" data-it="${it.uid}" data-k="price" inputmode="decimal" value="${esc(it.price)}" aria-label="${tr("Narx")}"></td>
+    <td class="num r c-sum" data-l="${tr("Jami")}" id="is-${it.uid}">${fmt(t.tot)}</td><td class="c-del"><button class="btn ghost sm" data-act="delItem" data-uid="${it.uid}" aria-label="${tr("O'chirish")}">×</button></td></tr>`}).join("");
+  box.innerHTML=`
+    <div class="metric"><div class="v">${fd(c.floorA)}<small>${U("m²")}</small></div><div class="k">${tr("Pol maydoni")}</div></div>
+    <div class="metric"><div class="v">${fd(c.perim)}<small>${U("m")}</small></div><div class="k">${tr("Perimetr")}</div></div>
+    <div class="metric"><div class="v">${fd(c.wallNet)}<small>${U("m²")}</small></div><div class="k">${tr("Devor (sof)")}</div></div>
+    <div class="metric"><div class="v">${fd(c.pl)}<small>${U("m")}</small></div><div class="k">${tr("Plintus")}${String(r.plinthOv).trim()!==""?" ("+tr("qo'lda")+")":""}</div></div></div>
+   <div class="tscroll"><table class="rtable"><thead><tr><th>${tr("Nomi")}</th><th class="r">${tr("Miqdor")}</th><th class="r">${tr("Narx, so'm")}</th><th class="r">${tr("Jami*, so'm")}</th><th></th></tr></thead>
+   <tbody>${autoRows||`<tr><td colspan="5" class="note">${tr("O'lchamlarni kiriting — pol, plintus, devor va shift hisobi shu yerda chiqadi.")}</td></tr>`}
+   <tr class="grp"><td colspan="5"><span class="grp-t"><span class="sec-n">5</span>${tr("Xonadagi narsalar ({0})",r.items.length)}</span>
+     <span class="grp-b"><button class="btn sm pri mobonly" data-act="openCat">${tr("+ Katalogdan")}</button><button class="btn sm plus" data-act="custom">+ ${tr("O'zim qo'shaman")}</button></span></td></tr>
+   ${itemRows||`<tr><td colspan="5" class="note">${tr("Mebel, rozetka, santexnika va boshqalar: katalogdan tanlang yoki ro'yxatda yo'q bo'lsa «+ O'zim qo'shaman» ni bosing.")}</td></tr>`}</tbody></table></div>
+   <p class="note" style="margin:0">${tr("* Jami = material + ish haqi (soatlik stavka {0} so'm, o'rtacha oylikdan). Xona bo'yicha:",fmt(rate()))} <b class="mono">${fmt(roomTotal(r))} ${SOM}</b></p>`;
+  const p2d = $("#room-plan-2d");
+  if (p2d) p2d.innerHTML = planSvg(num(r.L), num(r.W));
+}
+function renderTotal(){const s=buildSmeta();
+  $("#totalbar").innerHTML=`<div class="wrap"><div class="t"><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div class="t"><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div class="t"><span>${esc(tr("Kutilmagan {0}%",S.settings.contingency))}${S.settings.vat?" + "+tr("QQS"):""}</span><b>${fmt(s.cont+s.vat)}</b></div><div class="t grand"><span>${tr("Jami smeta, so'm")}</span><b>${fmt(s.grand)}</b></div><div class="spacer"></div><button class="btn xlbtn" data-act="xlsx" title="${tr("Excel yuklab olish")}" aria-label="${tr("Excel yuklab olish")}">${DL_ICON}<span>Excel</span></button>${S.ui.tab!=="smeta"?`<button class="btn" data-act="tab" data-k="smeta">${tr("Smetani ochish →")}</button>`:""}</div>`;
+  S.rooms.forEach(r=>{const el=$("#rl-"+r.id);if(el)el.textContent=fmt(roomTotal(r))+" "+SOM});
+}
+
+function viewConcrete(){
+  return `<div class="pagehead"><div><h2>🧱 ${tr("Beton ishlari va qorishma hisobi")}</h2><p>${tr("Marka va hajmni kiriting — sement, shag'al, qum va suv sarfi ГОСТ 7473-2010 va СНиП 82-02-95 bo'yicha hisoblanadi.")}</p></div><button class="btn pri btn-new-smeta" data-act="addConc">+ ${tr("Yangi beton ishi")}</button></div>
+  <div class="section">
+    <div class="beton-recipes-grid" style="margin-bottom:16px">
+      <div class="beton-recipe-card"><small>M100 (B7.5)</small><b>166 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M150 (B12.5)</small><b>205 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M200 (B15)</small><b>241 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M250 (B20)</small><b>300 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M300 (B22.5)</small><b>356 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M400 (B30)</small><b>440 kg</b><small>${tr("Sement / m³")}</small></div>
+    </div>
+    <div class="cards">${S.concrete.map(c=>`<div class="panel pad ccard">
+    <div class="row" style="justify-content:space-between;align-items:center"><input class="inp" style="font-weight:600;flex:1" id="c-${c.id}-name" data-c="${c.id}" data-k="name" value="${esc(c.name)}" aria-label="${tr("Nomi")}"><button class="btn ghost sm" data-act="delConc" data-id="${c.id}">${tr("O'chirish")}</button></div>
+    <div class="grid3">
+     <label class="fld">${tr("Beton markasi")}<select class="inp" id="c-${c.id}-grade" data-c="${c.id}" data-k="grade">${Object.keys(MIX).map(g=>`<option${g===c.grade?" selected":""}>${g}</option>`).join("")}</select></label>
+     <label class="fld">${tr("Sement markasi")}<select class="inp" id="c-${c.id}-cem" data-c="${c.id}" data-k="cem">${["M500","M400"].map(g=>`<option value="${g}"${g===c.cem?" selected":""}>PC ${g}</option>`).join("")}</select></label>
+     <label class="fld">${tr("Hajm")}<select class="inp" id="c-${c.id}-mode" data-c="${c.id}" data-k="mode" data-rerender="1"><option value="vol"${c.mode==="vol"?" selected":""}>${tr("m³ da kiritaman")}</option><option value="dims"${c.mode==="dims"?" selected":""}>${tr("o'lchamdan (U×E×Q)")}</option></select></label>
+    </div>
+    ${c.mode==="dims"?`<div class="grid3"><label class="fld">${tr("Uzunligi, m")}<input class="inp numin" id="c-${c.id}-L" data-c="${c.id}" data-k="L" inputmode="decimal" value="${esc(c.L)}"></label><label class="fld">${tr("Eni, m")}<input class="inp numin" id="c-${c.id}-W" data-c="${c.id}" data-k="W" inputmode="decimal" value="${esc(c.W)}"></label><label class="fld">${tr("Qalinligi, m")}<input class="inp numin" id="c-${c.id}-T" data-c="${c.id}" data-k="T" inputmode="decimal" value="${esc(c.T)}"></label></div>`
+     :`<div class="grid3"><label class="fld">${tr("Hajm, m³")}<input class="inp numin" id="c-${c.id}-V" data-c="${c.id}" data-k="V" inputmode="decimal" value="${esc(c.V)}"></label></div>`}
+    <label class="fld" style="max-width:260px">${tr("Zavod narxi, so'm/m³ (solishtirish uchun)")}<input class="inp numin" id="c-${c.id}-factory" data-c="${c.id}" data-k="factory" inputmode="decimal" value="${esc(c.factory)}" placeholder="${tr("ixtiyoriy")}"></label>
+    <div id="cd-${c.id}"></div></div>`).join("")||`<div class="panel empty">${tr("Hali beton ishi yo'q. «+ Yangi beton ishi» tugmasini bosing.")}</div>`}</div>
+  <p class="note">${tr("Retseptlar: СНиП 82-02-95 va ГОСТ 7473-2010 asosidagi ma'lumotnoma jadvali, 1 m³ uchun, portlandsement PC M500. PC M400 tanlansa sement sarfi 15% ga oshiriladi.")}</p></div>`;
+}
+function renderConcreteDerived(){S.concrete.forEach(c=>{const el=$("#cd-"+c.id);if(!el)return;const k=concreteCalc(c);const f=num(c.factory);
+  el.innerHTML=`<div class="mix"><div><span>${tr("Sement")}</span><b>${fmt(k.cem*k.vol)} ${U("kg")}</b><span>${tr("{0} qop × 50 kg",fd(k.cem*k.vol/50,1))}</span></div><div><span>${tr("Shag'al")}</span><b>${fd(k.lines[1].qty)} ${U("m³")}</b><span>${fmt(k.sheb*k.vol)} ${U("kg")}</span></div><div><span>${tr("Qum")}</span><b>${fd(k.lines[2].qty)} ${U("m³")}</b><span>${fmt(k.qum*k.vol)} ${U("kg")}</span></div><div><span>${tr("Suv")}</span><b>${fmt(k.suv*k.vol)} ${U("l")}</b><span>${tr("{0} m³ beton",fd(k.vol))}</span></div></div>
+  <div class="row" style="justify-content:space-between;align-items:end;margin-top:4px"><div><div class="eyebrow">${tr("1 m³ tannarxi (materiallar)")}</div><div class="big">${fmt(k.perM3)} ${SOM}</div></div><div style="text-align:right"><div class="eyebrow">${tr("Jami materiallar")}</div><div class="big">${fmt(k.mat)} ${SOM}</div></div></div>
+  ${f>0&&k.perM3>0?`<p class="note" style="margin:6px 0 0">${tr("Zavod narxi {0} so'm/m³ — o'zingiz qorishtirsangiz",fmt(f))} ${k.perM3<f?`<b style="color:var(--good)">${tr("{0} so'm arzon",fmt(f-k.perM3))}</b>`:`<b style="color:var(--danger)">${tr("{0} so'm qimmat",fmt(k.perM3-f))}</b>`} ${tr("(ish haqisiz).")}</p>`:""}`})}
+
+/* ---------- Excel: varaq modeli ----------
+ * Bitta model ikki joyda ishlatiladi: ekrandagi "Excel ko'rinishi" (viewSheet) va serverdagi .xlsx (smeta/excel.py).
+ * Katak: {v: qiymat, f: "money"|"dec2"|"int", s: "title"|"meta"|"head"|"group"|"sub"|"total"|"grand"|"b"} */
+const XC=(v,f,s)=>({v:v??"",f,s});
+const r2=x=>Math.round((x||0)*100)/100;
+const todayStr=()=>{const d=new Date(),p=x=>String(x).padStart(2,"0");return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()}`};
+const DL_ICON=`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>`;
+// butun qatorni bir uslubda to'ldirish (Excel'dagi rangli qator), berilgan ustunlarga qiymat
+const xlRow=(n,style,vals)=>Array.from({length:n},(_,i)=>vals[i]!==undefined?XC(vals[i][0],vals[i][1],style):XC("",null,style));
+function sheetSmeta(){const s=buildSmeta();const N=9;const R=[];let n=0;
+  R.push([XC(`${tr("SMETA")}: ${S.obj.name}`,null,"title")]);
+  R.push([XC(`${tr(S.obj.region)} · ${qLabel(S.obj.quarter)} · ${tr("Tuzilgan: {0}",todayStr())}`,null,"meta")]);
+  R.push([]);
+  const head=R.length;
+  R.push(["№",tr("Nomi"),tr("Tafsilot"),tr("Birlik"),tr("Miqdor"),tr("Narx, so'm"),tr("Material, so'm"),tr("Ish haqi, so'm"),tr("Jami, so'm")].map(h=>XC(h,null,"head")));
+  s.groups.forEach(g=>{
+    R.push(xlRow(N,"group",{1:[`${g.title}  (${g.sub})`]}));
+    g.lines.forEach(l=>{const t=lineTotals(l);n++;
+      R.push([XC(n,"int"),XC(l.name),XC(l.sub),XC(U(l.unit)),XC(r2(l.qty),"dec2"),XC(Math.round(l.price),"money"),XC(Math.round(t.mat),"money"),XC(Math.round(t.lab),"money"),XC(Math.round(t.tot),"money","b")])});
+    R.push(xlRow(N,"sub",{1:[tr("Jami: {0}",g.title)],6:[Math.round(g.mat),"money"],7:[Math.round(g.lab),"money"],8:[Math.round(g.mat+g.lab),"money"]}))});
+  const last=R.length-1;
+  R.push([]);
+  const tot=(label,v)=>xlRow(N,undefined,{1:[label],8:[Math.round(v),"money"]}).map((c,i)=>i===1||i===8?{...c,s:"total"}:null);
+  R.push(tot(tr("Materiallar"),s.mat),tot(tr("Ish haqi"),s.lab),tot(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency),s.cont));
+  if(S.settings.vat)R.push(tot(tr("QQS 12%"),s.vat));
+  R.push(xlRow(N,"grand",{1:[tr("JAMI, so'm")],8:[Math.round(s.grand),"money"]}));
+  return{name:tr("Smeta"),cols:[5,36,30,8,10,13,15,14,15],rows:R,freeze:head+1,table:[head,Math.max(head,last)]};
+}
+function sheetRooms(){const R=[];const N=16;let sumF=0,sumW=0,sumP=0,sumT=0;
+  R.push([XC(`${tr("Xonalar hisobi")}: ${S.obj.name}`,null,"title")]);
+  R.push([XC(`${tr(S.obj.region)} · ${qLabel(S.obj.quarter)} · ${tr("Tuzilgan: {0}",todayStr())}`,null,"meta")]);
+  R.push([]);
+  const head=R.length;
+  R.push(["№",tr("Xona"),tr("Xona turi"),tr("Uzunligi, m"),tr("Eni, m"),tr("Balandligi, m"),tr("Pol maydoni, m²"),tr("Perimetr, m"),tr("Devor (sof), m²"),tr("Plintus, m"),tr("Eshiklar"),tr("Derazalar"),tr("Pol"),tr("Devor"),tr("Shift"),tr("Jami, so'm")].map(h=>XC(h,null,"head")));
+  S.rooms.forEach((r,i)=>{const c=roomCalc(r);const tot=roomTotal(r);sumF+=c.floorA;sumW+=c.wallNet;sumP+=c.pl;sumT+=tot;
+    R.push([XC(i+1,"int"),XC(r.name),XC(rtLabel(r.type)),XC(r2(num(r.L)),"dec2"),XC(r2(num(r.W)),"dec2"),XC(r2(num(r.H)),"dec2"),XC(r2(c.floorA),"dec2"),XC(r2(c.perim),"dec2"),XC(r2(c.wallNet),"dec2"),XC(r2(c.pl),"dec2"),XC(sum(r.doors.map(doorQ)),"int"),XC(r.windows.length,"int"),XC(lab(FLOOR[r.floor])),XC(lab(WALL[r.wall])),XC(lab(CEIL[r.ceil])),XC(Math.round(tot),"money","b")])});
+  R.push(xlRow(N,"grand",{1:[tr("JAMI")],6:[r2(sumF),"dec2"],8:[r2(sumW),"dec2"],9:[r2(sumP),"dec2"],15:[Math.round(sumT),"money"]}));
+  return{name:tr("Xonalar"),cols:[5,24,18,11,9,12,14,12,14,11,10,11,14,24,18,16],rows:R,freeze:head+1,table:[head,R.length-1]};
+}
+const xlSheets=()=>[sheetSmeta(),sheetRooms()];
+// Excel ko'rinishi: ustun harflari, qator raqamlari, varaq yorliqlari
+function viewSheet(sheets,cur){const sh=sheets[cur]||sheets[0];const ncol=sh.cols.length;
+  const colName=i=>{let s="";i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
+  const filled=c=>!!c&&c.v!=="";
+  // Excel kabi: matn o'ngdagi katak bo'sh bo'lsa unga "oqib" o'tadi, bo'lmasa kesiladi
+  const cell=(x,next)=>{if(!x)return "<td></td>";const v=x.v;const isN=typeof v==="number";
+    const txt=v===""?"":isN?(x.f==="money"?fmt(v):x.f==="dec2"?fd(v):String(v)):esc(v);
+    const cls=[x.s?"x-"+x.s:"",isN?"x-n":"",!isN&&txt&&!filled(next)&&x.s!=="head"?"x-ov":""].filter(Boolean).join(" ");return `<td${cls?` class="${cls}"`:""}>${txt}</td>`};
+  const [t0,t1]=sh.table||[-1,-2];const pad=4;
+  const body=sh.rows.map((r,i)=>`<tr${i>=t0&&i<=t1?' class="x-t"':""}><th>${i+1}</th>${Array.from({length:ncol},(_,j)=>cell(r[j],r[j+1])).join("")}</tr>`).join("")
+    +Array.from({length:pad},(_,k)=>`<tr><th>${sh.rows.length+k+1}</th>${"<td></td>".repeat(ncol)}</tr>`).join("");
+  // Excel ustun kengligi (belgilarda) -> px; jadval kengligi aniq bo'lishi shart, aks holda brauzer kengliklarni o'zi tanlaydi
+  const px=sh.cols.map(w=>Math.round(w*7.5+10));const total=42+px.reduce((a,b)=>a+b,0);
+  return `<div class="xl"><div class="xl-scroll"><table class="xlgrid" style="width:${total}px"><colgroup><col style="width:42px">${px.map(w=>`<col style="width:${w}px">`).join("")}</colgroup>
+   <thead><tr><th class="xl-corner"></th>${sh.cols.map((_,i)=>`<th>${colName(i)}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>
+   <div class="xl-tabs">${sheets.map((x,i)=>`<button type="button" data-act="xlSheet" data-i="${i}" aria-pressed="${sh===x}">${esc(x.name)}</button>`).join("")}</div></div>`}
+const safeFile=s=>String(s).replace(/[\\/:*?"<>|\u0000-\u001f]+/g," ").replace(/\s+/g," ").trim().slice(0,120)||"Smeta";
+function downloadClientSpreadsheet(){
+  const s = buildSmeta();
+  let csv = "\uFEFF№\t" + tr("Nomi") + "\t" + tr("Tafsilot") + "\t" + tr("Birlik") + "\t" + tr("Miqdor") + "\t" + tr("Narx, so'm") + "\t" + tr("Material, so'm") + "\t" + tr("Ish haqi, so'm") + "\t" + tr("Jami, so'm") + "\n";
+  let n = 0;
+  s.groups.forEach(g => {
+    csv += `\t${g.title} (${g.sub})\t\t\t\t\t\t\t\n`;
+    g.lines.forEach(l => {
+      const t = lineTotals(l);
+      n++;
+      csv += `${n}\t${l.name}\t${l.sub || ""}\t${U(l.unit)}\t${fd(l.qty)}\t${Math.round(l.price)}\t${Math.round(t.mat)}\t${Math.round(t.lab)}\t${Math.round(t.tot)}\n`;
+    });
+    csv += `\t${tr("Jami: {0}", g.title)}\t\t\t\t\t${Math.round(g.mat)}\t${Math.round(g.lab)}\t${Math.round(g.mat + g.lab)}\n`;
+  });
+  csv += `\n\t${tr("Materiallar")}\t\t\t\t\t${Math.round(s.mat)}\n`;
+  csv += `\t${tr("Ish haqi")}\t\t\t\t\t\t${Math.round(s.lab)}\n`;
+  csv += `\t${tr("Kutilmagan xarajatlar {0}%", S.settings.contingency)}\t\t\t\t\t\t\t${Math.round(s.cont)}\n`;
+  if(S.settings.vat) csv += `\t${tr("QQS 12%")}\t\t\t\t\t\t\t${Math.round(s.vat)}\n`;
+  csv += `\t${tr("JAMI, so'm")}\t\t\t\t\t\t\t${Math.round(s.grand)}\n`;
+  const blob = new Blob([csv], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = safeFile(`${tr("Smeta")} - ${S.obj.name} - ${todayStr()}`) + ".xls";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  toast(tr("Excel fayl yuklab olindi"));
+}
+async function downloadXlsx(){
+  if(!XLSX){downloadClientSpreadsheet();return}
+  const btns=document.querySelectorAll('[data-act="xlsx"]');btns.forEach(b=>b.disabled=true);
+  try{
+    const r=await fetch(XLSX.url,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":XLSX.csrf},body:JSON.stringify({sheets:xlSheets()})});
+    if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status);
+    const blob=await r.blob();const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=safeFile(`${tr("Smeta")} - ${S.obj.name} - ${todayStr()}`)+".xlsx";document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);toast(tr("Excel fayl yuklab olindi"));
+  }catch(e){
+    downloadClientSpreadsheet();
+  }finally{btns.forEach(b=>b.disabled=false)}
+}
+
+function viewSmeta(){
+  const s=buildSmeta();let n=0;const mode=S.ui.smetaView==="table"?"table":"excel";
+  const rows=s.groups.map(g=>`<tr class="grp"><td colspan="9">${esc(g.title)} <span class="note" style="font-family:var(--f-mono);font-weight:400">${esc(g.sub)}</span></td></tr>`+
+   g.lines.map(l=>{const t=lineTotals(l);n++;return `<tr><td class="num hm">${n}</td><td><div class="itemname">${esc(l.name)}</div>${l.sub?`<div class="itemsub">${esc(l.sub)}</div>`:""}<div class="itemsub mobonly mono">${fmt(l.price)} ${SOM}/${esc(U(l.unit))}</div></td><td class="hm">${esc(U(l.unit))}</td><td class="num r">${fd(l.qty)}<span class="mobonly"> ${esc(U(l.unit))}</span></td><td class="num r hm">${fmt(l.price)}</td><td class="num r hm">${fmt(t.mat)}</td><td class="num r hm">${fmt(t.lab)}</td><td class="num r"><b>${fmt(t.tot)}</b></td><td class="hm"><span class="tag${l.kind==="auto"?" auto":l.kind==="own"?" own":""}">${esc(l.src)}</span></td></tr>`}).join("")+
+   `<tr class="sub"><td class="hm"></td><td colspan="2" class="colfix">${esc(tr("Jami: {0}",g.title))}</td><td class="hm" colspan="2"></td><td class="num r hm">${fmt(g.mat)}</td><td class="num r hm">${fmt(g.lab)}</td><td class="num r">${fmt(g.mat+g.lab)}</td><td class="hm"></td></tr>`).join("");
+  return `<div class="pagehead"><div><h2>${esc(tr("Smeta: {0}",S.obj.name))}</h2><p>${esc(tr("{0} · {1} narxlarida · soddalashtirilgan hisob",tr(S.obj.region),qLabel(S.obj.quarter)))}</p></div>
+   <div class="row"><button class="btn pri btn-new-smeta" data-act="xlsx">${DL_ICON} ${tr("Excel yuklab olish")}</button><button class="btn" data-act="copyTxt">${tr("Matn sifatida nusxa")}</button></div></div>
+  <div class="section"><div class="sumgrid"><div><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div><span>${esc(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency))}</span><b>${fmt(s.cont)}</b></div>${S.settings.vat?`<div><span>${tr("QQS 12%")}</span><b>${fmt(s.vat)}</b></div>`:""}<div class="g"><span>${tr("Jami, so'm")}</span><b>${fmt(s.grand)}</b></div></div>
+  <div class="panel pad" style="margin-bottom:16px;background:var(--surface);border:1px solid var(--border)">
+    <div style="font-weight:600;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚙️ <span>${tr("Smeta parametrlari va hisob stavkalari")}</span></div>
+    <div class="grid3 g-stack">
+      <label class="fld">${tr("Oylik ish haqi stavkasi, so'm")}<input class="inp numin" data-s="monthly" inputmode="decimal" value="${esc(S.settings.monthly)}"></label>
+      <label class="fld">${tr("Kutilmagan xarajatlar, %")}<input class="inp numin" data-s="contingency" inputmode="decimal" value="${esc(S.settings.contingency)}"></label>
+      <label class="fld" style="display:flex;align-items:center;gap:8px;padding-top:22px;cursor:pointer"><input type="checkbox" data-s="vat"${S.settings.vat?" checked":""}> <span>${tr("QQS (12%) hisoblansin")}</span></label>
+    </div>
+  </div>
+  <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:12px"><div class="seg" role="group" aria-label="${tr("Ko'rinish")}"><button type="button" data-act="smetaView" data-k="excel" aria-pressed="${mode==="excel"}">${tr("Excel ko'rinishi")}</button><button type="button" data-act="smetaView" data-k="table" aria-pressed="${mode==="table"}">${tr("Jadval")}</button></div>${mode==="excel"?`<span class="note">${tr("Yuklab olinadigan fayl aynan shunday bo'ladi")}</span>`:""}</div>
+  ${mode==="excel"?viewSheet(xlSheets(),+S.ui.xlSheet||0):`<div class="tscroll"><table><thead><tr><th class="hm">№</th><th>${tr("Nomi")}</th><th class="hm">${tr("Birlik")}</th><th class="r">${tr("Miqdor")}</th><th class="r hm">${tr("Narx")}</th><th class="r hm">${tr("Material")}</th><th class="r hm">${tr("Ish haqi")}</th><th class="r">${tr("Jami")}</th><th class="hm">${tr("Manba")}</th></tr></thead><tbody>${rows||`<tr><td colspan="9" class="empty">${tr("Smeta bo'sh.")}</td></tr>`}</tbody></table></div>`}
+  <div id="fallback"></div></div>`;
+}
+function smetaTxt(){const s=buildSmeta();let o=`${tr("SMETA")}: ${S.obj.name}\n${tr(S.obj.region)}, ${qLabel(S.obj.quarter)}\n\n`;let n=0;
+  s.groups.forEach(g=>{o+=`${g.title} (${g.sub})\n`;g.lines.forEach(l=>{n++;o+=`${n}. ${l.name} — ${fd(l.qty)} ${U(l.unit)} × ${fmt(l.price)} = ${fmt(lineTotals(l).tot)} ${SOM}\n`});o+=`   ${tr("Jami: {0}",fmt(g.mat+g.lab))} ${SOM}\n\n`});
+  o+=`${tr("Materiallar")}: ${fmt(s.mat)}\n${tr("Ish haqi")}: ${fmt(s.lab)}\n${tr("Kutilmagan xarajatlar")}: ${fmt(s.cont)}\n${S.settings.vat?tr("QQS 12%")+": "+fmt(s.vat)+"\n":""}${tr("JAMI")}: ${fmt(s.grand)} ${SOM}`;return o}
+function copy(text){const done=()=>toast(tr("Nusxa olindi — Excel yoki Telegramga joylang"));
+  const fb=()=>{const f=$("#fallback");if(f){f.innerHTML=`<p class="note">${tr("Avtomatik nusxa olinmadi. Matnni belgilab, nusxa oling:")}</p><textarea class="fallback inp" readonly>${esc(text)}</textarea>`;const t=f.querySelector("textarea");t.focus();t.select()}};
+  try{navigator.clipboard.writeText(text).then(done,fb)}catch(e){fb()}}
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2200)}
+
+/* ---------- modal: add item ---------- */
+let M=null;
+function openPick(cid){const c=CAT_INDEX[cid];M={cid,vi:0};
+  const v=c.v,u=esc(U(c.u));
+  $("#modal").innerHTML=`<div class="backdrop" data-act="closeBg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+   <div class="sh"><div><div class="eyebrow">${esc(c.g)}</div><h3 id="m-t" style="font-size:20px">${esc(c.n)}</h3></div><button class="btn ghost" data-act="close" aria-label="${tr("Yopish")}">×</button></div>
+   <div class="sb">
+    ${v?`<label class="fld">${tr("Turi")}<select class="inp" id="m-variant">${v.map((x,i)=>`<option value="${i}">${esc(x[0])} — ${fmt(x[1])} ${SOM}</option>`).join("")}</select></label>`:""}
+    <div class="grid3">
+     <label class="fld">${c.u==="dona"?tr("Soni"):tr("Miqdori")}, ${u}<input class="inp numin" id="m-qty" inputmode="decimal" value="1"></label>
+     <label class="fld">${tr("Narx, so'm/{0}",u)}<input class="inp numin" id="m-price" inputmode="decimal" value="${v?v[0][1]:c.p}"></label>
+     ${c.w?`<label class="fld">${tr("Quvvati, Vt")}<input class="inp numin" id="m-watt" inputmode="decimal" placeholder="36"></label>`:""}
+    </div>
+    ${c.dims?`<fieldset><legend class="eyebrow">${tr("O'lchami, sm (ixtiyoriy)")}</legend><div class="grid3"><label class="fld">${tr("Uzunligi / eni")}<input class="inp numin" id="m-l" inputmode="decimal"></label><label class="fld">${tr("Chuqurligi")}<input class="inp numin" id="m-w" inputmode="decimal"></label><label class="fld">${tr("Balandligi")}<input class="inp numin" id="m-h" inputmode="decimal"></label></div></fieldset>`:""}
+    <label class="fld">${tr("Izoh (holati, rangi, joyi)")}<input class="inp" id="m-note" placeholder="${tr("masalan: eski, almashtiriladi")}"></label>
+    <div class="preview"><span>${tr("O'rnatish: {0} soat/{1}",fd(v&&v[0][2]!=null?v[0][2]:c.h,1),u)}</span><b class="mono" id="m-sum"></b></div>
+   </div>
+   <div class="sf"><button class="btn" data-act="close">${tr("Bekor qilish")}</button><button class="btn pri" data-act="modalAdd">${tr("Xonaga qo'shish")}</button></div></div></div>`;
+  $("#modal").hidden=false;updModalSum();setTimeout(()=>$("#m-qty")?.select(),30);
+}
+function openCustom(p={}){M={custom:true};  // p: {name, unit, qty} — oldindan to'ldirish (masalan, qoplama m² bilan)
+  $("#modal").innerHTML=`<div class="backdrop" data-act="closeBg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
+   <div class="sh"><div><div class="eyebrow">${tr("O'z elementingiz")}</div><h3 id="m-t" style="font-size:20px">${tr("Ro'yxatda yo'q narsa")}</h3></div><button class="btn ghost" data-act="close" aria-label="${tr("Yopish")}">×</button></div>
+   <div class="sb">
+    <label class="fld">${tr("Nomi")}<input class="inp" id="m-name" value="${esc(p.name||"")}" placeholder="${tr("masalan: Oyna, Akvarium, Sport trenajyori")}"></label>
+    <div class="grid3">
+     <label class="fld">${tr("Birlik")}<select class="inp" id="m-unit">${["dona","m","m²","m³","kg","komplekt"].map(u=>`<option value="${u}"${u===p.unit?" selected":""}>${esc(U(u))}</option>`).join("")}</select></label>
+     <label class="fld">${tr("Miqdori")}<input class="inp numin" id="m-qty" inputmode="decimal" value="${esc(p.qty||"1")}"></label>
+     <label class="fld">${tr("Narx, so'm")}<input class="inp numin" id="m-price" inputmode="decimal" placeholder="0"></label>
+    </div>
+    <div class="grid3">
+     <label class="fld">${tr("O'lchami (erkin)")}<input class="inp" id="m-dims" placeholder="60×80 ${tr("sm")}"></label>
+     <label class="fld">${tr("O'rnatish, soat/birlik")}<input class="inp numin" id="m-hours" inputmode="decimal" value="0"></label>
+     <label class="fld">${tr("Izoh")}<input class="inp" id="m-note"></label>
+    </div>
+    <div class="preview"><span>${tr("Smetaga \"qo'lda\" belgisi bilan tushadi")}</span><b class="mono" id="m-sum"></b></div>
+    <p class="note" id="m-err" style="margin:0;color:var(--danger)" hidden>${tr("Nomini yozing.")}</p>
+   </div>
+   <div class="sf"><button class="btn" data-act="close">${tr("Bekor qilish")}</button><button class="btn pri" data-act="modalAdd">${tr("Xonaga qo'shish")}</button></div></div></div>`;
+  $("#modal").hidden=false;updModalSum();setTimeout(()=>{const n=$("#m-name");if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}},30);
+}
+function updModalSum(){const el=$("#m-sum");if(!el)return;el.textContent=fmt(num($("#m-qty")?.value)*num($("#m-price")?.value))+" "+SOM}
+function closeModal(){$("#modal").hidden=true;$("#modal").innerHTML="";M=null}
+function modalAdd(){const r=curRoom();if(!r||!M)return;
+  if(M.custom){const name=$("#m-name").value.trim();if(!name){$("#m-err").hidden=false;$("#m-name").focus();return}
+    r.items.push({uid:uid(),cid:null,name,variant:"",unit:$("#m-unit").value,qty:$("#m-qty").value||"1",price:$("#m-price").value||"0",h:$("#m-hours").value||"0",dims:$("#m-dims").value.trim(),watt:"",note:$("#m-note").value.trim(),custom:true})}
+  else{const c=CAT_INDEX[M.cid];const vi=$("#m-variant")?+$("#m-variant").value:0;const v=c.v&&c.v[vi];
+    const d=["#m-l","#m-w","#m-h"].map(s=>$(s)?.value.trim()).filter(Boolean);
+    r.items.push({uid:uid(),cid:c.id,name:c.n,variant:v?v[0]:"",unit:c.u,qty:$("#m-qty").value||"1",price:$("#m-price").value||"0",h:v&&v[2]!=null?v[2]:c.h,dims:d.length?d.join("×")+" "+tr("sm"):"",watt:$("#m-watt")?.value.trim()||"",note:$("#m-note").value.trim(),custom:false})}
+  const nm=M.custom?$("#m-name").value.trim():CAT_INDEX[M.cid].n;
+  closeModal();document.body.classList.remove("cat-open");S.sample=false;renderDerived();renderTotal();save();toast(tr("{0} qo'shildi",nm));
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;const r=curRoom();
+  if(a==="closeBg"&&e.target!==b)return;
+  switch(a){
+   case "tab":document.body.classList.remove("cat-open");S.ui.tab=b.dataset.k;S.ui.confirmSync=false;render();window.scrollTo(0,0);if(S.ui.tab==="beton")renderConcreteDerived();break;
+   case "room":S.ui.room=b.dataset.id;S.ui.confirmDel=null;render();break;
+   case "addRoom":{const t=$("#newType").value;const lbl=rtLabel(t);const n=S.rooms.filter(x=>x.type===t).length;const nr=mkRoom(t,n?`${lbl} ${n+1}`:lbl);S.rooms.push(nr);S.ui.room=nr.id;S.ui.grp="Tavsiya";render();$("#r-L")?.focus();break}
+   case "delRoom":if(S.ui.confirmDel!==r.id){S.ui.confirmDel=r.id;render();break}S.rooms=S.rooms.filter(x=>x.id!==r.id);S.ui.room=S.rooms[0]?.id;S.ui.confirmDel=null;render();break;
+   case "reset":if(!S.ui.confirmReset){S.ui.confirmReset=true;render();break}{S=blank(S);render();$("#r-L")?.focus()}break;
+   case "syncPrices":if(!S.ui.confirmSync){S.ui.confirmSync=true;render();break}
+    defaultPrices().forEach(np=>{const p=S.prices.find(x=>x.id===np.id);if(p)Object.assign(p,{n:np.n,u:np.u,g:np.g,src:np.src,s:np.s});else S.prices.push(np)});
+    S.ui.confirmSync=false;render();toast(tr("Manba narxlari yangilandi"));break;
+   case "addDoor":if(b.dataset.t==="__own"){r.doors.push({...mkDoor(""),own:true});render();$("#d-"+(r.doors.length-1)+"-t")?.focus();break}
+    r.doors.push(mkDoor(b.dataset.t));render();$("#d-"+(r.doors.length-1)+"-w")?.select();break;
+   case "ownFinish":{const c=roomCalc(r),k=b.dataset.k;  // ro'yxatda yo'q qoplama: nom + m² (xonaning maydoni bilan)
+    const q={pol:c.floorA,devor:c.wallNet,shift:c.ceilA}[k];
+    openCustom({name:{pol:tr("Pol"),devor:tr("Devor"),shift:tr("Shift")}[k]+": ",unit:"m²",qty:fd(q)});break}
+   case "hideGuide":S.ui.noGuide=true;render();break;
+   case "delDoor":r.doors.splice(+b.dataset.i,1);render();break;
+   case "addWin":r.windows.push({w:"1,2",h:"1,4"});render();$("#w-"+(r.windows.length-1)+"-w")?.select();break;
+   case "delWin":r.windows.splice(+b.dataset.i,1);render();break;
+   case "grp":S.ui.grp=b.dataset.g;S.ui.q="";$("#catq").value="";document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.g===S.ui.grp));renderCatItems();save();break;
+   case "openCat":document.body.classList.add("cat-open");break;
+   case "closeCat":document.body.classList.remove("cat-open");break;
+   case "pick":openPick(b.dataset.cid);break;
+   case "custom":openCustom({name:b.dataset.name||""});break;
+   case "close":case "closeBg":closeModal();break;
+   case "modalAdd":modalAdd();break;
+   case "delItem":r.items=r.items.filter(i=>i.uid!==b.dataset.uid);renderDerived();renderTotal();save();break;
+   case "addConc":S.concrete.push({id:uid(),name:tr("Yangi beton ishi"),grade:"M200",cem:"M500",mode:"vol",L:"",W:"",T:"",V:"1",factory:""});render();renderConcreteDerived();break;
+   case "delConc":S.concrete=S.concrete.filter(c=>c.id!==b.dataset.id);render();renderConcreteDerived();break;
+   case "xlsx":downloadXlsx();break;
+   case "smetaView":S.ui.smetaView=b.dataset.k;render();break;
+   case "xlSheet":S.ui.xlSheet=+b.dataset.i;render();break;
+   case "copyTxt":copy(smetaTxt());break;
+   case "step":stepInput(document.getElementById(b.dataset.for),+b.dataset.d);break;
+  }
+});
+document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
+  if(t.dataset.o){S.obj[t.dataset.o]=t.value;save();return}
+  if(t.id==="catq"){S.ui.q=t.value;renderCatItems();return}
+  if(t.closest("#modal")){if(t.id==="m-variant"){const c=CAT_INDEX[M.cid];$("#m-price").value=c.v[+t.value][1]}updModalSum();return}
+  if(t.dataset.f&&r){r[t.dataset.f]=t.value;S.sample=false;if(t.dataset.f==="name"){const b=document.querySelector(`.roombtn[data-id="${r.id}"] b`);if(b)b.textContent=t.value}
+    renderDerived();renderTotal();save();return}
+  if(t.dataset.door!=null){const d=r.doors[+t.dataset.door];
+    // "Boshqa (o'zim yozaman)…" — ro'yxat o'rniga matn maydoni chiqadi
+    if(t.dataset.k==="t"&&t.value==="__own"){d.t="";d.own=true;render();$("#"+t.id)?.focus();return}
+    d[t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
+  if(t.dataset.win!=null){r.windows[+t.dataset.win][t.dataset.k]=t.value;renderDerived();renderTotal();save();return}
+  if(t.dataset.it){const it=r.items.find(i=>i.uid===t.dataset.it);if(it){it[t.dataset.k]=t.value;const el=$("#is-"+it.uid);if(el)el.textContent=fmt(lineTotals(itemLine(it)).tot)}renderTotal();save();return}
+  if(t.dataset.c){const c=S.concrete.find(x=>x.id===t.dataset.c);c[t.dataset.k]=t.value;if(t.dataset.rerender){render();}renderConcreteDerived();renderTotal();save();return}
+  if(t.dataset.p){const p=S.prices.find(x=>x.id===t.dataset.p);if(t.dataset.i!=null)p.src[+t.dataset.i]=t.value;else p[t.dataset.k]=t.value;
+    if(t.dataset.k==="mode"){render();return}const el=$("#pr-"+p.id);if(el)el.innerHTML=`<b>${fmt(priceOf(p.id))}</b>`;renderTotal();save();return}
+  if(t.dataset.s){S.settings[t.dataset.s]=t.type==="checkbox"?t.checked:t.value;renderTotal();save();return}
+});
+// "Qo'shimcha sozlamalar" ochiq/yopiqligi obyektda eslab qolinadi
+document.addEventListener("toggle",e=>{if(e.target.id==="adv"){S.ui.adv=e.target.open;save()}},true);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
+
+// ?tab=smeta — kerakli bo'limni ochish (masalan, bosh sahifadagi "Namuna smetani ko'rish")
+{const q=new URLSearchParams(location.search).get("tab");if(TABS.some(([k])=>k===q))S.ui.tab=q}
+render();if(S.ui.tab==="beton")renderConcreteDerived();
+if(S.ui.draftApplied){delete S.ui.draftApplied;toast(tr("Bosh sahifada o'lchangan xona qo'shildi"))}

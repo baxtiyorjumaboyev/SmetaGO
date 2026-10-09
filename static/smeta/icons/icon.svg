@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Ilova ikonkasi (logo.svg bilan bir xil belgi): yashil fon, chizmachilik uchburchagi -->
+  <rect width="512" height="512" rx="112" fill="#15803d"/>
+  <path d="M136 104v304h304z" fill="#fff"/>
+  <path d="M200 259v85h85z" fill="#15803d"/>
+  <path d="M136 168h48M136 224h32M136 280h48" stroke="#15803d" stroke-width="24" stroke-linecap="round"/>
+</svg>

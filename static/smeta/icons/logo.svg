@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- SmetaGo belgisi: chizmachilik uchburchagi (o'lchov chiziqchalari bilan). rang saytning asosiy yashili (accent) -->
+  <rect width="32" height="32" rx="7" fill="#15803d"/>
+  <path d="M8.5 6.5v19h19z" fill="#fff"/>
+  <path d="M12.5 16.2v5.3h5.3z" fill="#15803d"/>
+  <path d="M8.5 10.5h3M8.5 14h2M8.5 17.5h3" stroke="#15803d" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
