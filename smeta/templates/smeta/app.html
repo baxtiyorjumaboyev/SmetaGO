@@ -2,7 +2,7 @@
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
 {% include "smeta/_head.html" %}
-<title>{% if o %}{{ o.name }}{% else %}{% t "Namuna smeta" %}{% endif %} · SmetaGo</title>
+  <title>{% if o %}{{ o.name }}{% else %}{% t "Smeta" %}{% endif %} · SmetaGo</title>
 </head>
 <body{% if o %} class="in"{% endif %} data-uid="{{ user.pk|default:'' }}">
 <header class="top">
@@ -10,9 +10,9 @@
     {% if o %}
     <a class="btn sm" href="{% url 'obyekt_list' %}" title="{% t 'Barcha obyektlar' %}">←<span class="deskonly"> {% t "Obyektlar" %}</span></a>
     {% else %}
-    <a class="btn sm" href="{% url 'obyekt_list' %}" title="{% t 'Bosh sahifa' %}">←<span class="deskonly"> {% t "Bosh sahifa" %}</span></a>
+    <a class="btn sm" href="{% url 'obyekt_list' %}" title="{% t 'Boshqaruv paneli' %}">←<span class="deskonly"> {% t "Boshqaruv paneli" %}</span></a>
     {% endif %}
-    <div class="brand"><div class="mark"><img class="logo-img" src="{% static 'smeta/icons/logo-mark.png' %}" alt="" width="40" height="40"></div><div>SmetaGo<small>{% t "o'lchang · tanlang · hisoblang" %}</small></div></div>
+    <div class="brand"><div class="mark"><img class="logo-img" src="{% static 'smeta/icons/logo.svg' %}" alt="" width="40" height="40"></div><div>SmetaGo</div></div>
     <div class="objmeta">
       <input class="inp" id="o-name" data-o="name" aria-label="{% t 'Obyekt nomi' %}" placeholder="{% t 'Obyekt nomi' %}">
       <select class="inp" id="o-region" data-o="region" aria-label="{% t 'Hudud' %}" style="width:auto"></select>
@@ -21,12 +21,6 @@
     {% include "smeta/_prefs.html" %}
   </div>
   <div class="ruler" aria-hidden="true"></div>
-  {% if not o %}
-  <div class="demobar"><div class="wrap">
-    <span>{% t "Bu namuna: o'zgarishlar faqat shu qurilmada saqlanadi." %}</span>
-    <a class="btn sm pri" href="{% url 'register' %}">{% t "Bepul ro'yxatdan o'tish" %}</a>
-  </div></div>
-  {% endif %}
   <nav class="wrap tabs" id="tabs" role="tablist"></nav>
 </header>
 <main class="wrap" id="app"></main>
@@ -47,13 +41,12 @@ window.SMETAGO = {
 };
 </script>
 {% else %}
-{# Namuna (demo): holat faqat brauzerda (localStorage), Excel umumiy endpoint orqali #}
+{# Holat brauzerda (localStorage), Excel umumiy endpoint orqali #}
 <script>window.SMETAGO_DEMO = {xlsxUrl: "{% url 'demo_excel' %}", csrf: "{{ csrf_token }}"};</script>
 {% endif %}
 <script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
 <script src="{% static 'smeta/js/calc.js' %}"></script>
-<script src="{% static 'smeta/js/room3d.js' %}"></script>
 <script src="{% static 'smeta/js/app.js' %}"></script>
 </body>
 </html>

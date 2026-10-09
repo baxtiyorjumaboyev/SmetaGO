@@ -363,6 +363,11 @@ RU = {
     "Hammasini ko'rsatish": "Показать все",
     "Barcha panellar yashirilgan — «Panellar» menyusidan keraklisini tanlang.":
         "Все панели скрыты — выберите нужные в меню «Панели».",
+    # tinch uslub (2026-10-07): qisqa, bezaksiz matnlar
+    "Smetani xona o'lchamlaridan tuzing": "Смета по размерам комнат",
+    "Material, ish haqi va jami summa o'zi hisoblanadi. Natijani Excel faylda olasiz.":
+        "Материалы, оплата труда и итог считаются сами. Результат — в файле Excel.",
+    "Obyektni o'lchang,": "Измерьте объект —",
     # hududlar (obyektda o'zbekcha saqlanadi)
     "Toshkent sh.": "г. Ташкент", "Toshkent vil.": "Ташкентская обл.", "Andijon": "Андижан",
     "Buxoro": "Бухара", "Farg'ona": "Фергана", "Jizzax": "Джизак", "Xorazm": "Хорезм",
@@ -372,13 +377,103 @@ RU = {
 }
 
 
+
+CYR_DICT = {
+    "Xonalar": "Хоналар", "Xona": "Хона", "Xonalar va o'lchov": "Хоналар ва ўлчов",
+    "Beton": "Бетон", "Beton ishi": "Бетон иши", "Beton ishlari": "Бетон ишлари",
+    "Beton qorishmasi": "Бетон қоришмаси", "Beton markasi": "Бетон маркаси",
+    "Sement": "Цемент", "Sement markasi": "Цемент маркаси", "Shag'al": "Шағал", "Shag'al (sheben)": "Шағал (щебень)",
+    "Qum": "Қум", "Suv": "Сув", "Qorishma": "Қоришма",
+    "Narx": "Нарх", "Narxlar": "Нархлар", "Narxi": "Нархи",
+    "Smeta": "Смета", "Smetalar": "Сметалар", "Smeta loyihalari": "Смета лойиҳалари",
+    "Yangi smeta": "Янги смета", "Yangi smeta yaratish": "Янги смета яратиш", "Yangi smeta loyihasi": "Янги смета лойиҳаси",
+    "Boshqaruv paneli": "Бошқарув панели", "Loyihalar": "Лойиҳалар",
+    "Materiallar": "Материаллар", "Ish haqi": "Иш ҳақи", "Jami": "Жами", "Jami smeta": "Жами смета",
+    "Obyekt": "Объект", "Obyektlar": "Объектлар", "Obyekt nomi": "Объект номи",
+    "Uzunligi": "Узунлиги", "Eni": "Эни", "Balandligi": "Баландлиги", "Qalinligi": "Қалинлиги",
+    "Uzunligi, m": "Узунлиги, м", "Eni, m": "Эни, м", "Balandligi, m": "Баландлиги, м",
+    "Eshik": "Эшик", "Eshiklar": "Эшиклар", "Deraza": "Дераза", "Derazalar": "Деразалар",
+    "Pol": "Пол", "Devor": "Девор", "Shift": "Шифт", "Plintus": "Плинтус", "Kafel": "Кафель",
+    "so'm": "сўм", "dona": "дона", "soat": "соат", "oy": "ой", "kun": "кун",
+    "Hajm": "Ҳажм", "Maydon": "Майдон", "Perimetr": "Периметр",
+    "Excel yuklab olish": "Excel юклаб олиш", "Oflayn": "Офлайн", "Onlayn": "Онлайн",
+    "Oflayn ishlash rejimi": "Офлайн ишлаш режими", "Aniqlik va ochiqlik": "Аниқлик ва очиқлик",
+    "Yordam": "Ёрдам", "Qo'llanma": "Қўлланма", "Maxfiylik": "Махфийлик",
+    "Ochish": "Очиш", "Nusxa": "Нусха", "O'chirish": "Ўчириш", "Saqlash": "Сақлаш",
+    "Qo'shish": "Қўшиш", "+ Xona qo'shish": "+ Хона қўшиш", "+ Beton ishi": "+ Бетон иши",
+    "Toshkent sh.": "Тошкент ш.", "Samarqand": "Самарқанд", "Farg'ona": "Фарғона", "Andijon": "Андижон",
+    "Buxoro": "Бухоро", "Namangan": "Наманган", "Navoiy": "Навоий", "Qashqadaryo": "Қашқадарё",
+    "Surxondaryo": "Сурхондарё", "Jizzax": "Жиззах", "Sirdaryo": "Сирдарё", "Xorazm": "Хоразм", "Qoraqalpog'iston": "Қорақалпоғистон"
+}
+
+import re
+
+
+def latin_to_cyrillic(text):
+    if not text or not isinstance(text, str):
+        return text
+    if text in CYR_DICT:
+        return CYR_DICT[text]
+    t = text
+    t = re.sub(r"[oO]['`ʻ’]", lambda m: "Ў" if m.group(0)[0].isupper() else "ў", t)
+    t = re.sub(r"[gG]['`ʻ’]", lambda m: "Ғ" if m.group(0)[0].isupper() else "ғ", t)
+    t = re.sub(r"Sh|SH", "Ш", t)
+    t = re.sub(r"sh", "ш", t)
+    t = re.sub(r"Ch|CH", "Ч", t)
+    t = re.sub(r"ch", "ч", t)
+    t = re.sub(r"Yo|YO", "Ё", t)
+    t = re.sub(r"yo", "ё", t)
+    t = re.sub(r"Yu|YU", "Ю", t)
+    t = re.sub(r"yu", "ю", t)
+    t = re.sub(r"Ya|YA", "Я", t)
+    t = re.sub(r"ya", "я", t)
+    t = re.sub(r"Ye|YE", "Е", t)
+    t = re.sub(r"ye", "е", t)
+    t = re.sub(r"Ts|TS", "Ц", t)
+    t = re.sub(r"ts", "ц", t)
+    charmap = {
+        'A': 'А', 'a': 'а', 'B': 'Б', 'b': 'б', 'D': 'Д', 'd': 'д',
+        'E': 'Э', 'e': 'э', 'F': 'Ф', 'f': 'ф', 'G': 'Г', 'g': 'г',
+        'H': 'Ҳ', 'h': 'ҳ', 'I': 'И', 'i': 'и', 'J': 'Ж', 'j': 'ж',
+        'K': 'К', 'k': 'к', 'L': 'Л', 'l': 'л', 'M': 'М', 'm': 'м',
+        'N': 'Н', 'n': 'н', 'O': 'О', 'o': 'о', 'P': 'П', 'p': 'п',
+        'Q': 'Қ', 'q': 'қ', 'R': 'Р', 'r': 'р', 'S': 'С', 's': 'с',
+        'T': 'Т', 't': 'т', 'U': 'У', 'u': 'у', 'V': 'В', 'v': 'в',
+        'X': 'Х', 'x': 'х', 'Y': 'Й', 'y': 'й', 'Z': 'З', 'z': 'з',
+        "'": 'ъ', 'ʻ': 'ъ', '’': 'ъ', '`': 'ъ'
+    }
+    res = []
+    prev_alpha = False
+    for ch in t:
+        if ch in charmap:
+            mapped = charmap[ch]
+            if ch in ('e', 'E') and prev_alpha:
+                mapped = 'Е' if ch == 'E' else 'е'
+            res.append(mapped)
+            prev_alpha = True
+        else:
+            res.append(ch)
+            prev_alpha = ch.isalpha()
+    return "".join(res)
+
+
 def current_lang():
-    return "ru" if translation.get_language() == "ru" else "uz"
+    lang = translation.get_language() or "uz"
+    if lang in ("uz-cyr", "uz_cyr"):
+        return "uz-cyr"
+    if lang.startswith("ru"):
+        return "ru"
+    return "uz"
 
 
 def tr(text, *args, lang=None):
     lang = lang or current_lang()
-    out = RU.get(text, text) if lang == "ru" else text
+    if lang == "ru":
+        out = RU.get(text, text)
+    elif lang in ("uz-cyr", "uz_cyr"):
+        out = latin_to_cyrillic(text)
+    else:
+        out = text
     for i, a in enumerate(args):
         out = out.replace("{%d}" % i, str(a))
     return out
@@ -400,3 +495,4 @@ class LanguageMiddleware:
         response = self.get_response(request)
         response.headers.setdefault("Content-Language", lang)
         return response
+

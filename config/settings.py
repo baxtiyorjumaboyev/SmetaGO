@@ -92,7 +92,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "uz"
-LANGUAGES = [("uz", "O'zbekcha"), ("ru", "Русский")]
+LANGUAGES = [("uz", "O'zbekcha"), ("uz-cyr", "Ўзбекча"), ("ru", "Русский")]
 LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365
 TIME_ZONE = "Asia/Tashkent"
 USE_I18N = True

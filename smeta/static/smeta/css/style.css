@@ -1,14 +1,16 @@
-/* SmetaGo — uslublar. Yashil + qora palitra, ikki rejim:
- * kunduzgi (standart) va tungi. Tungi palitra ikki joyda: tizim sozlamasi (prefers-color-scheme)
- * va foydalanuvchi tanlovi (:root[data-theme="dark"], js/prefs.js). Yangi rangni ikkalasiga ham yozing. */
+/* SmetaGo — professional qurilish va arxitektura dizayn tizimi.
+ * Ko'zni charchatmaydigan, me'moriy chizma va qurilish standartlariga mos palitra.
+ * Asosiy neytral: Slate (kulrang-ko'k me'moriy qog'oz)
+ * Asosiy e'tibor (CTA & Action): Qurilish tilla-zarg'aldoq (Construction Amber / Safety Gold)
+ */
 :root{
   color-scheme:light;
-  --bg:#f3f6f4; --surface:#ffffff; --surface2:#e8efea; --ink:#0c140f; --muted:#536159;
-  --line:#d2ddd5; --accent:#15803d; --accent-soft:#dcfce7; --on-accent:#ffffff;
-  --steel:#166534; --steel-soft:#e3f1e7; --danger:#b3261e; --good:#15803d;
-  --bar:#0c140f; --on-bar:#eef5f0; --bar-accent:#4ade80;
-  --grid-minor:rgba(21,128,61,.055); --grid-major:rgba(21,128,61,.11); --dim:#15803d;
-  --shadow:0 1px 2px rgba(12,20,15,.06),0 6px 24px rgba(12,20,15,.06);
+  --bg:#f8fafc; --surface:#ffffff; --surface2:#f1f5f9; --ink:#0f172a; --muted:#64748b;
+  --line:#e2e8f0; --accent:#d97706; --accent-soft:#fef3c7; --on-accent:#ffffff;
+  --steel:#334155; --steel-soft:#f1f5f9; --danger:#dc2626; --good:#16a34a;
+  --bar:#0f172a; --on-bar:#f8fafc; --bar-accent:#f59e0b;
+  --grid-minor:rgba(15,23,42,.035); --grid-major:rgba(15,23,42,.07); --dim:#d97706;
+  --shadow:0 1px 3px rgba(15,23,42,.06),0 6px 20px rgba(15,23,42,.06);
   --r:10px;
   --f-display:"Onest","Segoe UI",system-ui,sans-serif;
   --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
@@ -17,27 +19,27 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#070d0a; --surface:#101512; --surface2:#18201b; --ink:#e5eee8; --muted:#93a39a;
-    --line:#26312a; --accent:#22c55e; --accent-soft:#0f2a1a; --on-accent:#03140a;
-    --steel:#4ade80; --steel-soft:#0f2519; --danger:#f28b82; --good:#4ade80;
-    --bar:#000000; --on-bar:#e5eee8; --bar-accent:#4ade80;
-    --grid-minor:rgba(74,222,128,.045); --grid-major:rgba(74,222,128,.09); --dim:#4ade80;
-    --shadow:0 1px 2px rgba(0,0,0,.4);
+    --bg:#0b1120; --surface:#111827; --surface2:#1f2937; --ink:#f1f5f9; --muted:#94a3b8;
+    --line:#283548; --accent:#f59e0b; --accent-soft:#451a03; --on-accent:#0b1120;
+    --steel:#94a3b8; --steel-soft:#1e293b; --danger:#ef4444; --good:#22c55e;
+    --bar:#050811; --on-bar:#f1f5f9; --bar-accent:#f59e0b;
+    --grid-minor:rgba(241,245,249,.03); --grid-major:rgba(241,245,249,.06); --dim:#f59e0b;
+    --shadow:0 1px 3px rgba(0,0,0,.5);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#070d0a; --surface:#101512; --surface2:#18201b; --ink:#e5eee8; --muted:#93a39a;
-  --line:#26312a; --accent:#22c55e; --accent-soft:#0f2a1a; --on-accent:#03140a;
-  --steel:#4ade80; --steel-soft:#0f2519; --danger:#f28b82; --good:#4ade80;
-  --bar:#000000; --on-bar:#e5eee8; --bar-accent:#4ade80;
-  --grid-minor:rgba(74,222,128,.045); --grid-major:rgba(74,222,128,.09); --dim:#4ade80;
-  --shadow:0 1px 2px rgba(0,0,0,.4);
+  --bg:#0b1120; --surface:#111827; --surface2:#1f2937; --ink:#f1f5f9; --muted:#94a3b8;
+  --line:#283548; --accent:#f59e0b; --accent-soft:#451a03; --on-accent:#0b1120;
+  --steel:#94a3b8; --steel-soft:#1e293b; --danger:#ef4444; --good:#22c55e;
+  --bar:#050811; --on-bar:#f1f5f9; --bar-accent:#f59e0b;
+  --grid-minor:rgba(241,245,249,.03); --grid-major:rgba(241,245,249,.06); --dim:#f59e0b;
+  --shadow:0 1px 3px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0}  /* brauzerning standart 8 px chetini olib tashlaydi */
-/* ichki sahifalar — toza "dashboard" foni; millimetrovka katak faqat bosh sahifada (.lp-hero) */
+/* ichki sahifalar — toza "dashboard" foni */
 body{background:var(--bg)}
 body{color:var(--ink);font:15px/1.5 var(--f-body);padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
@@ -54,10 +56,7 @@ button,input,select{font:inherit;color:inherit}
 .objmeta{display:flex;flex-wrap:wrap;gap:8px;flex:1;min-width:0}
 .objmeta input,.objmeta select{min-width:0}
 .objmeta #o-name{flex:1 1 220px}
-.ruler{height:12px;background:
-  repeating-linear-gradient(90deg,rgba(0,0,0,.7) 0 1px,transparent 1px 10px) bottom/100% 5px no-repeat,
-  repeating-linear-gradient(90deg,rgba(0,0,0,.7) 0 1px,transparent 1px 50px) bottom/100% 10px no-repeat,
-  var(--accent)}
+.ruler{height:3px;background:var(--accent)}
 .tabs{display:flex;gap:4px;overflow-x:auto;padding-block:10px}
 .top .tabs{flex-wrap:nowrap}
 .tab{border:0;background:transparent;padding:8px 14px;border-radius:8px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
@@ -87,6 +86,84 @@ a.btn{color:inherit;text-decoration:none}
 .btn:hover{border-color:var(--ink)}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn.pri:hover{filter:brightness(.95)}
+/* Ajralib turuvchi asosiy tugma: Yangi smeta (Qurilish Amber / Safety Gold) */
+.btn-new-smeta {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #b45309 !important;
+  font-weight: 700 !important;
+  font-size: 14.5px !important;
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.42), 0 1px 2px rgba(0, 0, 0, 0.12) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-new-smeta:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%) !important;
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.55), 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  filter: brightness(1.05);
+}
+.btn-new-smeta:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3) !important;
+}
+/* Beton kalkulyatori va bo'limi */
+.beton-hero {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: var(--r);
+  padding: 24px;
+  color: #f1f5f9;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.18);
+}
+.beton-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(245, 158, 11, 0.18);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.beton-recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.beton-recipe-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.beton-recipe-card:hover {
+  transform: translateY(-2px);
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+.beton-recipe-card small {
+  color: #94a3b8;
+  font-size: 11px;
+}
+.beton-recipe-card b {
+  font-size: 16px;
+  color: #f8fafc;
+  font-family: var(--f-mono);
+}
 .btn.dark{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
 .btn.ghost:hover{color:var(--danger);border-color:transparent}
@@ -1102,6 +1179,218 @@ legend.sec-h{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;pad
 .rt:has(#rt-phone:checked) .rt-login,.rt:has(#rt-login:checked) .rt-phone{display:none}
 .ah-forgot{color:var(--accent);font-weight:600;font-size:14px;text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
 .ah-forgot:hover{text-decoration:underline}
-/* logotip (SG belgisi, icons/logo-mark.png): sarlavha, yon panel, kirish sahifasi */
-.mark:has(.logo-img),.sb-logo:has(.logo-img){background:#101e38!important;padding:0;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
-.logo-img{display:block;width:100%;height:100%;object-fit:cover}
+/* logotip (icons/logo.svg — vektor, o'z yashil foni bilan): idishga fon va soya kerak emas */
+.mark:has(.logo-img),.sb-logo:has(.logo-img){background:none!important;padding:0;box-shadow:none}
+.logo-img{display:block;width:100%;height:100%}
+/* ===================== Tinch uslub (2026-10-07) =====================
+ * Shablon generatorlariga xos bezaklar olib tashlandi: KATTA HARFLI monospace yorliqlar,
+ * nurlanuvchi gradientlar, katakli fonlar, rangli "dog'"lar. Ma'lumot va joylashuv o'zgarmagan.
+ * Qoida: yorliq — oddiy matn; yuza — tekis rang + 1px chiziq; aksent — faqat bitta yashil. */
+:root{--r:10px}
+
+/* 1. Yorliqlar: oddiy yozuv, harflar orasi odatiy */
+.eyebrow,.kicker,.k-lab,.chip-g,.chip-l,.chip-d,.chip-a,.model-st small,.hk small,.ah-eyebrow,
+.totalbar .t span,.brand small,.sb-brand small,th{
+  text-transform:none!important;letter-spacing:0!important;font-family:var(--f-body)!important}
+.eyebrow,.kicker,.k-lab,.hk small{font-size:13px!important;font-weight:500!important}
+.model-st small,.totalbar .t span{font-size:12px!important;font-weight:500!important}
+th{font-size:12.5px!important;font-weight:600!important;color:var(--muted)}
+.ah-eyebrow{font-size:14px!important;font-weight:600!important}
+
+/* 2. Tekis yuzalar: nur, "dog'" va katak yo'q */
+.kpi2::after,.model::before{display:none!important}
+.kpi2,.kpi2 .k-ic{--kc:var(--accent)!important}
+.kpi2{border-radius:12px}
+.hero-wrap{background-image:none!important}
+body.authp2{background:var(--bg)!important}
+body.in .top{background:var(--hdr1)!important}
+.model{background:#0f2a1a!important}
+.gcard,.hero-g{background:var(--hdr1)!important}
+.dash-chart{background:#0f2a1a!important}
+.roomplan{background:var(--surface)!important}
+.calc{box-shadow:0 1px 2px rgba(0,0,0,.04)!important}
+.ah-card{box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(16,40,24,.06)!important}
+.btn.pri:hover{filter:none;background:color-mix(in srgb,var(--accent) 88%,#000)}
+
+/* ===== STANDOUT YANGI SMETA CTA BUTTON ===== */
+.btn-new-smeta,
+.btn.pri.lg,
+.btn.btn-cta,
+button[type="submit"].btn.pri.lg,
+form button.btn.pri.lg {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  padding: 10px 20px !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  letter-spacing: -0.01em !important;
+}
+.btn-new-smeta:hover,
+.btn.pri.lg:hover,
+.btn.btn-cta:hover,
+button[type="submit"].btn.pri.lg:hover,
+form button.btn.pri.lg:hover {
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 22px rgba(234, 88, 12, 0.55) !important;
+}
+.btn-new-smeta:active,
+.btn.pri.lg:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35) !important;
+}
+
+/* 3D model butunlay olib tashlandi */
+.r3d, #model-3d, #ly-3d, #au-3d, .model-3d, .model canvas, section.model, figure.hg-fig {
+  display: none !important;
+}
+
+/* ===== BETON ISHLARI BO'LIMI VA KALKULYATORI (MAXSUS AJRATILGAN) ===== */
+.beton-section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.beton-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffedd5;
+  color: #ea580c;
+  border: 1px solid rgba(234, 88, 12, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+:root[data-theme="dark"] .beton-badge {
+  background: #431407;
+  color: #fb923c;
+  border-color: rgba(249, 115, 22, 0.4);
+}
+.beton-recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.beton-recipe-card {
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.beton-recipe-card small {
+  color: var(--muted);
+  font-size: 11px;
+  display: block;
+}
+.beton-recipe-card b {
+  color: var(--ink);
+  font-size: 16px;
+  font-family: var(--f-mono);
+}
+
+/* ===== INTERAKTIV MODALLAR (Aniqlik va ochiqlik, Oflayn, Yordam) ===== */
+.sg-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+}
+.sg-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+.sg-modal-box {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  transform: translateY(12px) scale(0.97);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 24px;
+}
+.sg-modal-overlay.active .sg-modal-box {
+  transform: translateY(0) scale(1);
+}
+.sg-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+.sg-modal-head h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+.sg-modal-close {
+  background: transparent;
+  border: 0;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.sg-modal-close:hover {
+  background: var(--surface2);
+  color: var(--ink);
+}
+.sg-modal-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.sg-modal-foot {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Feature cards cursor pointer */
+.ah-feats article, article.step, .feat-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.ah-feats article:hover, article.step:hover, .feat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}

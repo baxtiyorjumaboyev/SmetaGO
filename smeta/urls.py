@@ -7,6 +7,7 @@ from . import recovery, telegram, views
 urlpatterns = [
     # 1. Ommaviy sahifalar
     path("", views.obyekt_list, name="obyekt_list"),  # mehmonga — sayt, kirganga — boshqaruv paneli
+    path("app/", views.demo, name="app"),
     path("namuna/", views.demo, name="demo"),
     path("yordam/", views.help_page, name="help"),
     path("maxfiylik/", views.privacy_page, name="privacy"),

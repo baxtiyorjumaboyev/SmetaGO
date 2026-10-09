@@ -8,37 +8,20 @@
 <body class="authp2" data-uid="{{ user.pk|default:'' }}">
 <header class="ah">
   <div class="ah-in">
-    <a class="ah-brand" href="{% url 'obyekt_list' %}"><span class="mark"><img class="logo-img" src="{% static 'smeta/icons/logo-mark.png' %}" alt="" width="40" height="40"></span><span><b>SmetaGo</b><small>{% t "O'lchang • Tanlang • Hisoblang" %}</small></span></a>
-    <div class="ah-acts"><span class="tb-pill ok" data-online><i></i>{% t "Onlayn" %}</span>{% include "smeta/_prefs.html" %}</div>
+    <a class="ah-brand" href="{% url 'obyekt_list' %}"><span class="mark"><img class="logo-img" src="{% static 'smeta/icons/logo.svg' %}" alt="" width="40" height="40"></span><span><b>SmetaGo</b></span></a>
+    <div class="ah-acts">{% include "smeta/_prefs.html" %}</div>
   </div>
   <div class="ah-rule" aria-hidden="true"></div>
 </header>
 <main class="ahm">
   <section class="ah-left">
-    <p class="ah-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 6l-6 15M12 6l6 15M8.5 15h7"/></svg>{% t "Qurilish smetalarini avtomatlashtirish" %}</p>
-    <h1>{% t "Tezkor, aniq va ishonchli" %} <em>{% t "smeta loyihalari" %}</em></h1>
-    <p class="ah-lead">{% t "Xona o'lchamlari asosida avtomatlashtirilgan hisob-kitoblar, material va ish haqi jadvali hamda bir zumda Excel eksport." %}</p>
-    <div class="ah-stats">
-      <div><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M6 16V9M10 16V5M14 16v-6M18 16v-9"/></svg>{% t "3 manba" %}</b><span>{% t "Har bir material narxi uchun: eng arzon, o'rtacha, eng qimmat" %}</span></div>
-      <div><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9"/><path d="M18.5 3v4.2h-4.2M5.5 21v-4.2h4.2"/></svg>{% t "Oflayn" %}</b><span>{% t "Internetsiz ishlash va avtomatik sinxronlash" %}</span></div>
-    </div>
-    <div class="ah-proj" aria-label="{% t "Namuna hisob" %}">
-      <div class="ap-h"><span><i></i>{% t "Namuna: Mehmonxona 5 × 4 × 2,8 m" %}</span><span>1 {% t "eshik" %} · 1 {% t "deraza" %}</span></div>
-      <div class="ap-r"><span>{% t "Pol maydoni" %}</span><b>20,00 m²</b></div>
-      <span class="ap-bar"><i style="width:43%"></i></span>
-      <div class="ap-r ap-t"><span>{% t "Devor (sof, eshik va derazasiz)" %}</span><b>46,26 m²</b></div>
-    </div>
+    <h1>{% t "Smetani xona o'lchamlaridan tuzing" %}</h1>
+    <p class="ah-lead">{% t "Material, ish haqi va jami summa o'zi hisoblanadi. Natijani Excel faylda olasiz." %}</p>
   </section>
   <section class="ah-card">
     <div class="ah-body">{% if messages %}{% for m in messages %}<p class="au-msg">{{ m }}</p>{% endfor %}{% endif %}{% block form %}{% endblock %}</div>
-    <div class="ah-cf"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.3 2.3 4.7-4.8"/></svg>{% t "Aniq hisob" %}</span><i></i><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9"/></svg>{% t "Oflayn rejim" %}</span><i></i><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14"/></svg>{% t "Excel eksport" %}</span></div>
   </section>
 </main>
-<section class="ah-feats">
-  <article><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg></span><div><h3>{% t "Aniqlik va ochiqlik" %}</h3><p>{% t "Har bir qatorda o'lchov, zaxira va narx manbasi ko'rinadi — har raqamni tekshirish oson." %}</p></div></article>
-  <article><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="10" rx="1.5"/><rect x="17" y="8" width="4" height="10" rx="1"/><path d="M7 19h6"/></svg></span><div><h3>{% t "Oflayn ishlash rejimi" %}</h3><p>{% t "Internet uzilganda ham ma'lumotlar qurilmada saqlanadi va aloqa tiklanganda o'zi yuboriladi." %}</p></div></article>
-  <article><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span><div><h3>{% t "Namuna va yordam" %}</h3><p>{% t "Ro'yxatdan o'tmasdan namunaviy smetani ochib ko'ring; savollar uchun Yordam bo'limi." %}</p></div></article>
-</section>
 <footer class="ah-foot"><span>© 2026 SmetaGo. {% t "Barcha huquqlar himoyalangan." %}</span><nav><a href="{% url 'demo' %}">{% t "Namuna" %}</a><a href="{% url 'help' %}">{% t "Yordam" %}</a><a href="{% url 'privacy' %}">{% t "Maxfiylik" %}</a></nav></footer>
 <script src="{% static 'smeta/js/auth.js' %}"></script>
 </body>

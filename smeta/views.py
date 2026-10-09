@@ -66,14 +66,14 @@ def privacy_page(request):
 
 @login_required
 def loyihalar(request):
-    """Smeta loyihalari: barcha obyektlar jadvali, tezkor beton kalkulyatori, xarajat tarkibi."""
+    """Smeta loyihalari: barcha obyektlar jadvali va tezkor beton kalkulyatori."""
     return render(request, "smeta/loyihalar.html", _dash_context(request))
 
 
 def _dash_context(request):
     """Boshqaruv paneli va loyihalar sahifasi uchun obyektlar.
     Summalar brauzerda calc.js bilan hisoblanadi — ilovadagi bilan aynan bir xil."""
-    obyektlar = list(request.user.obyektlar.all())
+    obyektlar = list(request.user.obyektlar.all()) if request.user.is_authenticated else []
     ref = _ref()
     return {
         "obyektlar": obyektlar,
@@ -85,9 +85,10 @@ def _dash_context(request):
     }
 
 
-@login_required
 def obyekt_app(request, pk):
     """Obyekt muharriri: xonalar, beton, narxlar, smeta."""
+    if not request.user.is_authenticated:
+        return redirect("app")
     return render(request, "smeta/app.html", {"o": _my_obyekt(request, pk), "ref": _ref()})
 
 
@@ -96,11 +97,11 @@ def obyekt_app(request, pk):
 @login_required
 @require_POST
 def obyekt_create(request):
-    namuna = request.POST.get("namuna") == "1"
+    is_namuna = request.POST.get("namuna") == "1"
     o = Obyekt.objects.create(
         owner=request.user,
-        name=tr("Namunaviy obyekt") if namuna else tr("Yangi obyekt"),
-        state={"namuna": True} if namuna else {},
+        name=tr("Yangi obyekt"),
+        state={"namuna": True} if is_namuna else {},
     )
     return redirect("obyekt_app", pk=o.pk)
 

@@ -4,6 +4,7 @@
 (function(){
   var KEY="smetago-theme",root=document.documentElement,mq=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");
   try{var s=localStorage.getItem(KEY);if(s==="light"||s==="dark")root.setAttribute("data-theme",s)}catch(e){}
+  try{var l=localStorage.getItem("smetago-lang");if(l)root.lang=l.replace("_","-")}catch(e){}
   function cur(){return root.getAttribute("data-theme")||(mq&&mq.matches?"dark":"light")}
   function sync(){var dark=cur()==="dark";
     // o'rnatilgan ilovada holat paneli rangi sarlavhaga mos bo'lsin (foydalanuvchi tanlagan rejim bo'yicha)

@@ -12,34 +12,30 @@ const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
 /* ---------- state ---------- */
 function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
 function mkItem(cid,opt={}){const c=CAT_INDEX[cid];if(!c)return null;const v=c.v&&c.v[opt.vi??0];return{uid:uid(),cid,name:c.n,variant:v?v[0]:"",unit:c.u,qty:opt.qty??1,price:v?v[1]:c.p,h:v&&v[2]!=null?v[2]:c.h,dims:opt.dims||"",watt:opt.watt||"",note:opt.note||"",custom:false}}
-function sample(){const sm=" "+tr("sm");
-  const m=mkRoom("Mehmonxona",null,"5","4","2,8");m.doors=[mkDoor("MDF yog'och"),mkDoor("MDF yog'och"),mkDoor("Vitrajli eshik")];m.windows=[{w:"1,5",h:"1,5"}];
-  m.items=[mkItem("svetilnik",{vi:1,qty:4,watt:"12"}),mkItem("lyustra"),mkItem("vyklyuchatel",{vi:1}),mkItem("rozetka",{vi:1,qty:3}),mkItem("divan",{dims:"220×90×85"+sm}),mkItem("kreslo",{qty:2}),mkItem("konditsioner",{vi:1}),mkItem("radiator",{qty:10}),mkItem("vent_panjara")].filter(Boolean);
-  const o=mkRoom("Oshxona",null,"3,5","3","2,8");o.doors=[mkDoor("MDF yog'och","0,8")];o.windows=[{w:"1,2",h:"1,4"}];o.tileLen="3";o.tileH="0,6";
-  o.items=[mkItem("gaz_plita"),mkItem("vytyazhka",{vi:0,dims:"60×50×40"+sm}),mkItem("osh_rakovina"),mkItem("smesitel"),mkItem("garnitur",{qty:3}),mkItem("rozetka",{qty:4}),mkItem("vyklyuchatel"),mkItem("svetilnik",{qty:2,watt:"18"}),mkItem("vent_shaxta",{qty:2.8})].filter(Boolean);
-  const h=mkRoom("Hammom",null,"2","1,7","2,7");h.doors=[mkDoor("Akfa PVX","0,7")];
-  h.items=[mkItem("unitaz"),mkItem("rakovina"),mkItem("vanna",{dims:"170×70"+sm}),mkItem("smesitel",{qty:2}),mkItem("isitgich"),mkItem("ventilyator",{watt:"25"}),mkItem("svetilnik",{vi:2,qty:3,watt:"7"})].filter(Boolean);
-  const own={uid:uid(),cid:null,name:tr("Oyna (hammom uchun)"),variant:"",unit:"dona",qty:1,price:450000,h:.5,dims:"60×80"+sm,watt:"",note:"",custom:true};h.items.push(own);
+function sample(){
+  return blank(null, tr("Yangi smeta"));
+}
+function blank(base,name){
+  const nr=mkRoom("Mehmonxona",null,"5","4","2,8");
   return{
-    v:1,sample:true,
-    obj:{name:tr("Namuna: 2 xonali kvartira, Chilonzor"),region:"Toshkent sh.",quarter:QUARTERS[0]},
-    settings:{...DEFAULT_SETTINGS},
-    prices:defaultPrices(),
-    rooms:[m,o,h],
-    concrete:[{id:uid(),name:tr("Hovli yo'lagi"),grade:"M200",cem:"M500",mode:"dims",L:"10",W:"1",T:"0,1",V:"",factory:""},{id:uid(),name:tr("Ayvon poydevori"),grade:"M250",cem:"M400",mode:"vol",L:"",W:"",T:"",V:"3,2",factory:"1150000"}],
-    ui:{tab:"xonalar",room:m.id,grp:"Tavsiya",q:""}
+    v:1,sample:false,
+    obj:{name:name||tr("Yangi smeta"),region:(base&&base.obj&&base.obj.region)||"Toshkent sh.",quarter:(base&&base.obj&&base.obj.quarter)||QUARTERS[0]},
+    settings:(base&&base.settings)||{...DEFAULT_SETTINGS},
+    prices:(base&&base.prices)||defaultPrices(),
+    rooms:[nr],
+    concrete:[],
+    ui:{tab:"xonalar",room:nr.id,grp:"Tavsiya",q:""}
   };
 }
-function blank(base,name){const nr=mkRoom("Mehmonxona");return{v:1,sample:false,obj:{name:name||tr("Yangi obyekt"),region:base.obj.region,quarter:base.obj.quarter},settings:base.settings,prices:base.prices,rooms:[nr],concrete:[],ui:{tab:"xonalar",room:nr.id,grp:"Tavsiya",q:""}}}
 /* Django orqali ochilganda (window.SMETAGO bor) holat serverdan keladi va serverga saqlanadi.
  * Aks holda (index.html to'g'ridan-to'g'ri ochilsa) avvalgidek localStorage ishlatiladi. */
 const SERVER=window.SMETAGO||null;
 // namuna (demo) sahifasi: serversiz, holat faqat shu brauzerda; Excel — umumiy endpoint orqali
 const DEMO=window.SMETAGO_DEMO||null;
-const LKEY=DEMO?"smetago-namuna":"smetago-v1";
+const LKEY="smetago-v1";
 const XLSX=SERVER&&SERVER.xlsxUrl?{url:SERVER.xlsxUrl,csrf:SERVER.csrf}:DEMO?{url:DEMO.xlsxUrl,csrf:DEMO.csrf}:null;
 /* Bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js, "smetago-draft") yangi bo'sh obyektga
- * birinchi xona bo'lib tushadi — ro'yxatdan o'tgach ma'lumot yo'qolmasin. Bir marta ishlatiladi. */
+ * birinchi xona bo'lib tushadi. Bir marta ishlatiladi. */
 function applyDraft(st){let d=null;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
   if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return false;
   try{localStorage.removeItem("smetago-draft")}catch(e){}
@@ -48,8 +44,7 @@ function applyDraft(st){let d=null;try{d=JSON.parse(localStorage.getItem("smetag
   ["floor","wall","ceil"].forEach(k=>{if(x[k]&&({floor:FLOOR,wall:WALL,ceil:CEIL})[k][x[k]])r[k]=x[k]});
   st.ui.draftApplied=true;return true}
 /* Oflayn navbat: serverga yetib bormagan oxirgi holat qurilmada saqlanadi ({ts, state})
- * va aloqa tiklanganda yuboriladi. Serverdagi nusxa undan yangiroq bo'lsa (boshqa qurilmadan
- * o'zgartirilgan) — navbat e'tiborga olinmaydi. */
+ * va aloqa tiklanganda yuboriladi. */
 const PKEY=SERVER?"smetago-pending:"+SERVER.saveUrl:null;
 const readPending=()=>{try{const p=JSON.parse(localStorage.getItem(PKEY));return p&&p.state&&p.state.v===1?p:null}catch(e){return null}};
 let S;
@@ -59,17 +54,32 @@ if(SERVER){
   const pend=readPending();
   if(pend&&pend.ts>(Date.parse(SERVER.updated)||0))S=pend.state;
   else if(pend){try{localStorage.removeItem(PKEY)}catch(e){}}
-  if(!S){S=sample();if(!(st&&st.namuna)){S=blank(S,SERVER.name);applyDraft(S)}}
+  if(!S){S=blank(null,SERVER.name);applyDraft(S)}
 }else{
   try{const raw=localStorage.getItem(LKEY);S=raw?JSON.parse(raw):null}catch(e){S=null}
-  if(!S||S.v!==1)S=sample();
+  if(!S||S.v!==1)S=blank(null,tr("Yangi smeta"));
+  applyDraft(S);
 }
 normState(S);
+// URL param ?tab= orqali ochish
+const initTab = new URLSearchParams(location.search).get("tab");
+if (initTab === "beton" || initTab === "smeta" || initTab === "xonalar") S.ui.tab = initTab;
 // katalog guruhi nomi tilga bog'liq: til almashganda eski guruh topilmasa — "Tavsiya"
 if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
 let saveT=null,offlineNoted=false;
 function persist(){saveT=null;const body=JSON.stringify(S);
-  if(!SERVER){try{localStorage.setItem(LKEY,body)}catch(e){}return}
+  if(!SERVER){
+    try{
+      localStorage.setItem(LKEY,body);
+      let projs=JSON.parse(localStorage.getItem("smetago-guest-projects")||"[]");
+      const pid=S.obj.id||(S.obj.id="p_"+Date.now().toString(36));
+      const idx=projs.findIndex(p=>p.id===pid);
+      const entry={id:pid,name:S.obj.name,updated:new Date().toISOString(),state:S};
+      if(idx>=0)projs[idx]=entry;else projs.unshift(entry);
+      localStorage.setItem("smetago-guest-projects",JSON.stringify(projs));
+    }catch(e){}
+    return;
+  }
   const ts=Date.now();try{localStorage.setItem(PKEY,JSON.stringify({ts,state:S}))}catch(e){}
   fetch(SERVER.saveUrl,{method:"PUT",credentials:"same-origin",keepalive:body.length<60000,headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body})
    .then(r=>{if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status)})
@@ -86,7 +96,7 @@ if(SERVER)save();
 
 
 /* ---------- rendering ---------- */
-const TABS=[["xonalar",tr("Xonalar va o'lchov")],["beton",tr("Beton")],["narxlar",tr("Narxlar")],["smeta",tr("Smeta")]];
+const TABS=[["xonalar",tr("Xonalar va ta'mirlash")],["beton","🧱 " + tr("Beton ishlari")],["smeta",tr("Smeta va Excel")]];
 function renderHeader(){
   $("#o-name").value=S.obj.name;
   $("#o-region").innerHTML=REGIONS.map(r=>`<option value="${esc(r)}"${r===S.obj.region?" selected":""}>${esc(tr(r))}</option>`).join("");
@@ -96,16 +106,12 @@ function renderHeader(){
   const bn=$("#bnav");if(bn)bn.innerHTML=TABS.map(([k])=>`<button data-act="tab" data-k="${k}" aria-current="${S.ui.tab===k?"page":"false"}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICON[k]}</svg><span>${BNAV_L[k]}</span></button>`).join("");
 }
 const TAB_ICON={xonalar:'<path d="M3 4h18v16H3zM3 12h8v8M11 4v5"/>',beton:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
-  narxlar:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',smeta:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>'};
-const BNAV_L={xonalar:tr("Xonalar"),beton:tr("Beton"),narxlar:tr("Narxlar"),smeta:tr("Smeta")};
-// jonli 3D xona (room3d.js): Xonalar bo'limida doimiy canvas, har kiritishda set() bilan yangilanadi
-let R3=null;
-function room3d(r){if(!R3||!r)return;const q=d=>Array.from({length:Math.min(2,Math.max(1,Math.round(doorQ(d))))},()=>({w:num(d.w),h:num(d.h)}));
-  R3.set({L:num(r.L),W:num(r.W),H:num(r.H),doors:r.doors.flatMap(q),windows:r.windows.map(o=>({w:num(o.w),h:num(o.h)}))})}
+  smeta:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>'};
+const BNAV_L={xonalar:tr("Xonalar"),beton:tr("Beton"),smeta:tr("Smeta")};
+
 function render(){renderHeader();const t=S.ui.tab;
-  if(R3){R3.destroy();R3=null}
-  $("#app").innerHTML=t==="xonalar"?viewRooms():t==="beton"?viewConcrete():t==="narxlar"?viewPrices():viewSmeta();
-  if(t==="xonalar"){const cv=$("#room3d");if(cv&&window.Room3D)R3=Room3D(cv,{autoRotate:false});renderDerived();renderCatItems()}
+  $("#app").innerHTML=t==="xonalar"?viewRooms():t==="beton"?viewConcrete():viewSmeta();
+  if(t==="xonalar"){renderDerived();renderCatItems()}
   renderTotal();save();
 }
 function curRoom(){return S.rooms.find(r=>r.id===S.ui.room)||S.rooms[0]}
@@ -123,7 +129,6 @@ function viewRooms(){
   const sec=(n,t,h)=>`<legend class="sec-h"><span class="sec-n">${n}</span><span><b>${tr(t)}</b><small>${tr(h)}</small></span></legend>`;
   const plus=(kind)=>`<button type="button" class="plus" data-act="ownFinish" data-k="${kind}" title="${tr("Ro'yxatda yo'q bo'lsa — o'zingiz yozing")}">+ ${tr("O'zim yozaman")}</button>`;
   const edit=`<section class="stack">
-   ${S.sample?`<div class="hint">${tr("Bu namunaviy obyekt: 3 xona va 2 ta beton ishi bilan to'ldirilgan. O'zingiznikini boshlash uchun")} <button class="btn sm" data-act="reset">${S.ui.confirmReset?tr("Tasdiqlang: hammasi o'chadi"):tr("Yangi obyekt")}</button></div>`:""}
    ${guide(r)}
    <div class="panel pad stack">
     <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><span class="tag">${esc(rtLabel(r.type))}</span><button class="btn ghost sm" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
@@ -165,7 +170,7 @@ function viewRooms(){
      </details>
     </fieldset>
    </div>
-   <div class="panel roomplan"><canvas class="r3d" id="room3d" role="img" aria-label="${tr("Xonaning 3D ko'rinishi")}"></canvas></div>
+   <div class="panel roomplan pad" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface)"><div style="font-weight:600;font-size:13px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">📐 <span>${tr("Xona chizmasi (2D reja)")}</span></div><div id="room-plan-2d" style="width:100%;max-width:320px;display:flex;justify-content:center"></div></div>
    <div id="derived" class="stack"></div>
   </section>`;
   const cat=`<aside class="panel catalog" id="catalog" aria-label="${tr("Katalog")}"><div class="head"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:nowrap"><h3 style="font-size:16px">${tr("Xonada nima bor?")}</h3><span class="note deskonly">${tr("bosing → o'lchang")}</span><button class="btn sm mobonly" data-act="closeCat" aria-label="${tr("Katalogni yopish")}">${tr("Yopish ×")}</button></div>
@@ -212,9 +217,7 @@ function renderDerived(){
     <td class="num r c-qty" data-l="${tr("Miqdor")}">${stepper(`<input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}">`,`iq-${it.uid}`,1)} <span class="note">${esc(U(it.unit))}</span></td>
     <td class="r c-price" data-l="${tr("Narx, so'm")}"><input class="inp numin price" id="ip-${it.uid}" data-it="${it.uid}" data-k="price" inputmode="decimal" value="${esc(it.price)}" aria-label="${tr("Narx")}"></td>
     <td class="num r c-sum" data-l="${tr("Jami")}" id="is-${it.uid}">${fmt(t.tot)}</td><td class="c-del"><button class="btn ghost sm" data-act="delItem" data-uid="${it.uid}" aria-label="${tr("O'chirish")}">×</button></td></tr>`}).join("");
-  room3d(r);
   box.innerHTML=`
-   <div class="metrics">
     <div class="metric"><div class="v">${fd(c.floorA)}<small>${U("m²")}</small></div><div class="k">${tr("Pol maydoni")}</div></div>
     <div class="metric"><div class="v">${fd(c.perim)}<small>${U("m")}</small></div><div class="k">${tr("Perimetr")}</div></div>
     <div class="metric"><div class="v">${fd(c.wallNet)}<small>${U("m²")}</small></div><div class="k">${tr("Devor (sof)")}</div></div>
@@ -225,6 +228,8 @@ function renderDerived(){
      <span class="grp-b"><button class="btn sm pri mobonly" data-act="openCat">${tr("+ Katalogdan")}</button><button class="btn sm plus" data-act="custom">+ ${tr("O'zim qo'shaman")}</button></span></td></tr>
    ${itemRows||`<tr><td colspan="5" class="note">${tr("Mebel, rozetka, santexnika va boshqalar: katalogdan tanlang yoki ro'yxatda yo'q bo'lsa «+ O'zim qo'shaman» ni bosing.")}</td></tr>`}</tbody></table></div>
    <p class="note" style="margin:0">${tr("* Jami = material + ish haqi (soatlik stavka {0} so'm, o'rtacha oylikdan). Xona bo'yicha:",fmt(rate()))} <b class="mono">${fmt(roomTotal(r))} ${SOM}</b></p>`;
+  const p2d = $("#room-plan-2d");
+  if (p2d) p2d.innerHTML = planSvg(num(r.L), num(r.W));
 }
 function renderTotal(){const s=buildSmeta();
   $("#totalbar").innerHTML=`<div class="wrap"><div class="t"><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div class="t"><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div class="t"><span>${esc(tr("Kutilmagan {0}%",S.settings.contingency))}${S.settings.vat?" + "+tr("QQS"):""}</span><b>${fmt(s.cont+s.vat)}</b></div><div class="t grand"><span>${tr("Jami smeta, so'm")}</span><b>${fmt(s.grand)}</b></div><div class="spacer"></div><button class="btn xlbtn" data-act="xlsx" title="${tr("Excel yuklab olish")}" aria-label="${tr("Excel yuklab olish")}">${DL_ICON}<span>Excel</span></button>${S.ui.tab!=="smeta"?`<button class="btn" data-act="tab" data-k="smeta">${tr("Smetani ochish →")}</button>`:""}</div>`;
@@ -232,8 +237,17 @@ function renderTotal(){const s=buildSmeta();
 }
 
 function viewConcrete(){
-  return `<div class="pagehead"><div><h2>${tr("Beton qorishmasi")}</h2><p>${tr("Markani va hajmni kiriting — sement, shag'al va qum miqdori normativ bo'yicha, narxi esa \"Narxlar\" bo'limidagi tanlangan narxdan hisoblanadi.")}</p></div><button class="btn pri" data-act="addConc">${tr("+ Beton ishi")}</button></div>
-  <div class="section"><div class="cards">${S.concrete.map(c=>`<div class="panel pad ccard">
+  return `<div class="pagehead"><div><h2>🧱 ${tr("Beton ishlari va qorishma hisobi")}</h2><p>${tr("Marka va hajmni kiriting — sement, shag'al, qum va suv sarfi ГОСТ 7473-2010 va СНиП 82-02-95 bo'yicha hisoblanadi.")}</p></div><button class="btn pri btn-new-smeta" data-act="addConc">+ ${tr("Yangi beton ishi")}</button></div>
+  <div class="section">
+    <div class="beton-recipes-grid" style="margin-bottom:16px">
+      <div class="beton-recipe-card"><small>M100 (B7.5)</small><b>166 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M150 (B12.5)</small><b>205 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M200 (B15)</small><b>241 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M250 (B20)</small><b>300 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M300 (B22.5)</small><b>356 kg</b><small>${tr("Sement / m³")}</small></div>
+      <div class="beton-recipe-card"><small>M400 (B30)</small><b>440 kg</b><small>${tr("Sement / m³")}</small></div>
+    </div>
+    <div class="cards">${S.concrete.map(c=>`<div class="panel pad ccard">
     <div class="row" style="justify-content:space-between;align-items:center"><input class="inp" style="font-weight:600;flex:1" id="c-${c.id}-name" data-c="${c.id}" data-k="name" value="${esc(c.name)}" aria-label="${tr("Nomi")}"><button class="btn ghost sm" data-act="delConc" data-id="${c.id}">${tr("O'chirish")}</button></div>
     <div class="grid3">
      <label class="fld">${tr("Beton markasi")}<select class="inp" id="c-${c.id}-grade" data-c="${c.id}" data-k="grade">${Object.keys(MIX).map(g=>`<option${g===c.grade?" selected":""}>${g}</option>`).join("")}</select></label>
@@ -243,40 +257,13 @@ function viewConcrete(){
     ${c.mode==="dims"?`<div class="grid3"><label class="fld">${tr("Uzunligi, m")}<input class="inp numin" id="c-${c.id}-L" data-c="${c.id}" data-k="L" inputmode="decimal" value="${esc(c.L)}"></label><label class="fld">${tr("Eni, m")}<input class="inp numin" id="c-${c.id}-W" data-c="${c.id}" data-k="W" inputmode="decimal" value="${esc(c.W)}"></label><label class="fld">${tr("Qalinligi, m")}<input class="inp numin" id="c-${c.id}-T" data-c="${c.id}" data-k="T" inputmode="decimal" value="${esc(c.T)}"></label></div>`
      :`<div class="grid3"><label class="fld">${tr("Hajm, m³")}<input class="inp numin" id="c-${c.id}-V" data-c="${c.id}" data-k="V" inputmode="decimal" value="${esc(c.V)}"></label></div>`}
     <label class="fld" style="max-width:260px">${tr("Zavod narxi, so'm/m³ (solishtirish uchun)")}<input class="inp numin" id="c-${c.id}-factory" data-c="${c.id}" data-k="factory" inputmode="decimal" value="${esc(c.factory)}" placeholder="${tr("ixtiyoriy")}"></label>
-    <div id="cd-${c.id}"></div></div>`).join("")||`<div class="panel empty">${tr("Hali beton ishi yo'q.")}</div>`}</div>
-  <p class="note">${tr("Retseptlar: СНиП 82-02-95 va ГОСТ 7473-2010 asosidagi ma'lumotnoma jadvali, 1 m³ uchun, portlandsement PC M500. PC M400 tanlansa sement sarfi 15% ga oshiriladi. Zichlik: shag'al {0} kg/m³, qum {1} kg/m³ (Narxlar → Sozlamalar).",fmt(S.settings.rhoSheben),fmt(S.settings.rhoQum))}</p></div>`;
+    <div id="cd-${c.id}"></div></div>`).join("")||`<div class="panel empty">${tr("Hali beton ishi yo'q. «+ Yangi beton ishi» tugmasini bosing.")}</div>`}</div>
+  <p class="note">${tr("Retseptlar: СНиП 82-02-95 va ГОСТ 7473-2010 asosidagi ma'lumotnoma jadvali, 1 m³ uchun, portlandsement PC M500. PC M400 tanlansa sement sarfi 15% ga oshiriladi.")}</p></div>`;
 }
 function renderConcreteDerived(){S.concrete.forEach(c=>{const el=$("#cd-"+c.id);if(!el)return;const k=concreteCalc(c);const f=num(c.factory);
   el.innerHTML=`<div class="mix"><div><span>${tr("Sement")}</span><b>${fmt(k.cem*k.vol)} ${U("kg")}</b><span>${tr("{0} qop × 50 kg",fd(k.cem*k.vol/50,1))}</span></div><div><span>${tr("Shag'al")}</span><b>${fd(k.lines[1].qty)} ${U("m³")}</b><span>${fmt(k.sheb*k.vol)} ${U("kg")}</span></div><div><span>${tr("Qum")}</span><b>${fd(k.lines[2].qty)} ${U("m³")}</b><span>${fmt(k.qum*k.vol)} ${U("kg")}</span></div><div><span>${tr("Suv")}</span><b>${fmt(k.suv*k.vol)} ${U("l")}</b><span>${tr("{0} m³ beton",fd(k.vol))}</span></div></div>
   <div class="row" style="justify-content:space-between;align-items:end;margin-top:4px"><div><div class="eyebrow">${tr("1 m³ tannarxi (materiallar)")}</div><div class="big">${fmt(k.perM3)} ${SOM}</div></div><div style="text-align:right"><div class="eyebrow">${tr("Jami materiallar")}</div><div class="big">${fmt(k.mat)} ${SOM}</div></div></div>
   ${f>0&&k.perM3>0?`<p class="note" style="margin:6px 0 0">${tr("Zavod narxi {0} so'm/m³ — o'zingiz qorishtirsangiz",fmt(f))} ${k.perM3<f?`<b style="color:var(--good)">${tr("{0} so'm arzon",fmt(f-k.perM3))}</b>`:`<b style="color:var(--danger)">${tr("{0} so'm qimmat",fmt(k.perM3-f))}</b>`} ${tr("(ish haqisiz).")}</p>`:""}`})}
-
-function viewPrices(){
-  const groups=[...new Set(S.prices.map(p=>p.g))];const st=S.settings;
-  // nom va manbalar joriy tilda markaziy bazadan (bo'lmasa — obyektda saqlangani)
-  const PN={};(REF&&REF.prices||[]).forEach(p=>PN[p.id]=p);const pn=p=>(PN[p.id]||p).n,ps=p=>(PN[p.id]||p).s;
-  return `<div class="pagehead"><div><h2>${esc(tr("Narxlar bazasi — {0}",qLabel(S.obj.quarter)))}</h2><p>${tr("Har bir material uchun 3 ta manbadan narx kiriting (zavod, karyer, do'kon, birja). Dastur o'rtachasini hisoblaydi; kerakli narxni tanlang. Narxlar har chorakda yangilanadi.")}</p></div>
-   <div class="row"><button class="btn" data-act="syncPrices" title="${esc(SERVER?tr("Manba narxlari markaziy bazadan olinadi; tanlov (o'rtacha / qo'lda) saqlanadi"):tr("Manba narxlari standart qiymatlardan olinadi; tanlov (o'rtacha / qo'lda) saqlanadi"))}">${S.ui.confirmSync?tr("Tasdiqlang: manba narxlari almashadi"):SERVER?tr("Markaziy narxlarni yuklash"):tr("Standart narxlarga qaytarish")}</button>${REF&&REF.pricesUpdated?`<span class="note">${esc(tr("Markaziy baza: {0}",REF.pricesUpdated))}</span>`:""}</div></div>
-  <div class="section"><div class="tscroll"><table class="ptable"><thead><tr><th>${tr("Material")}</th><th>${tr("Birlik")}</th><th>${tr("1-manba")}</th><th>${tr("2-manba")}</th><th>${tr("3-manba")}</th><th>${tr("Tanlov")}</th><th class="r">${tr("Qo'llanadigan narx")}</th></tr></thead><tbody>
-  ${groups.map(g=>`<tr class="grp"><td colspan="7">${esc(tr(g))}</td></tr>`+S.prices.filter(p=>p.g===g).map(p=>`<tr><td class="p-name"><div class="itemname">${esc(pn(p))} <span class="mobonly note">/ ${esc(U(p.u))}</span></div>${ps(p)?`<div class="itemsub">${esc(ps(p))}</div>`:""}</td><td class="p-unit">${esc(U(p.u))}</td>
-   ${[0,1,2].map(i=>`<td class="p-src" data-l="${tr("{0}-manba",i+1)}"><input class="inp numin" id="p-${p.id}-${i}" data-p="${p.id}" data-i="${i}" inputmode="decimal" value="${esc(p.src[i])}" aria-label="${tr("{0}-manba narxi",i+1)}"></td>`).join("")}
-   <td class="p-mode"><div class="row" style="flex-wrap:nowrap;gap:6px"><select class="inp" style="width:auto" id="p-${p.id}-mode" data-p="${p.id}" data-k="mode">${Object.entries(MODE_L).map(([k,l])=>`<option value="${k}"${k===p.mode?" selected":""}>${l}</option>`).join("")}</select>${p.mode==="manual"?`<input class="inp numin" style="width:110px" id="p-${p.id}-manual" data-p="${p.id}" data-k="manual" inputmode="decimal" value="${esc(p.manual)}" aria-label="${tr("Qo'lda narx")}">`:""}</div></td>
-   <td class="num r p-res" data-l="${tr("Narx")}" id="pr-${p.id}"><b>${fmt(priceOf(p.id))}</b></td></tr>`).join("")).join("")}
-  </tbody></table></div>
-  <div class="panel pad stack"><h3 style="font-size:16px">${tr("Ish haqi va sozlamalar")}</h3>
-   <div class="grid4">
-    <label class="fld">${tr("O'rtacha oylik (qurilish), so'm")}<input class="inp numin" id="s-monthly" data-s="monthly" inputmode="decimal" value="${esc(st.monthly)}"></label>
-    <label class="fld">${tr("Oyiga ish soati")}<input class="inp numin" id="s-hoursMonth" data-s="hoursMonth" inputmode="decimal" value="${esc(st.hoursMonth)}"></label>
-    <label class="fld">${tr("Material zaxirasi, %")}<input class="inp numin" id="s-reserve" data-s="reserve" inputmode="decimal" value="${esc(st.reserve)}"></label>
-    <label class="fld">${tr("Kutilmagan xarajatlar, %")}<input class="inp numin" id="s-contingency" data-s="contingency" inputmode="decimal" value="${esc(st.contingency)}"></label>
-    <label class="fld">${tr("Plintus uzunligi (1 dona), m")}<input class="inp numin" id="s-piece" data-s="piece" inputmode="decimal" value="${esc(st.piece)}"></label>
-    <label class="fld">${tr("Shag'al zichligi, kg/m³")}<input class="inp numin" id="s-rhoSheben" data-s="rhoSheben" inputmode="decimal" value="${esc(st.rhoSheben)}"></label>
-    <label class="fld">${tr("Qum zichligi, kg/m³")}<input class="inp numin" id="s-rhoQum" data-s="rhoQum" inputmode="decimal" value="${esc(st.rhoQum)}"></label>
-    <label class="fld">${tr("Beton ishi, soat/m³")}<input class="inp numin" id="s-concreteHours" data-s="concreteHours" inputmode="decimal" value="${esc(st.concreteHours)}"></label>
-   </div>
-   <label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="s-vat" data-s="vat"${st.vat?" checked":""}> ${tr("QQS 12% qo'shilsin")}</label>
-  </div></div>`;
-}
 
 /* ---------- Excel: varaq modeli ----------
  * Bitta model ikki joyda ishlatiladi: ekrandagi "Excel ko'rinishi" (viewSheet) va serverdagi .xlsx (smeta/excel.py).
@@ -353,10 +340,18 @@ function viewSmeta(){
   const rows=s.groups.map(g=>`<tr class="grp"><td colspan="9">${esc(g.title)} <span class="note" style="font-family:var(--f-mono);font-weight:400">${esc(g.sub)}</span></td></tr>`+
    g.lines.map(l=>{const t=lineTotals(l);n++;return `<tr><td class="num hm">${n}</td><td><div class="itemname">${esc(l.name)}</div>${l.sub?`<div class="itemsub">${esc(l.sub)}</div>`:""}<div class="itemsub mobonly mono">${fmt(l.price)} ${SOM}/${esc(U(l.unit))}</div></td><td class="hm">${esc(U(l.unit))}</td><td class="num r">${fd(l.qty)}<span class="mobonly"> ${esc(U(l.unit))}</span></td><td class="num r hm">${fmt(l.price)}</td><td class="num r hm">${fmt(t.mat)}</td><td class="num r hm">${fmt(t.lab)}</td><td class="num r"><b>${fmt(t.tot)}</b></td><td class="hm"><span class="tag${l.kind==="auto"?" auto":l.kind==="own"?" own":""}">${esc(l.src)}</span></td></tr>`}).join("")+
    `<tr class="sub"><td class="hm"></td><td colspan="2" class="colfix">${esc(tr("Jami: {0}",g.title))}</td><td class="hm" colspan="2"></td><td class="num r hm">${fmt(g.mat)}</td><td class="num r hm">${fmt(g.lab)}</td><td class="num r">${fmt(g.mat+g.lab)}</td><td class="hm"></td></tr>`).join("");
-  return `<div class="pagehead"><div><h2>${esc(tr("Smeta: {0}",S.obj.name))}</h2><p>${esc(tr("{0} · {1} narxlarida · soddalashtirilgan hisob (davlat standarti formati keyingi versiyada)",tr(S.obj.region),qLabel(S.obj.quarter)))}</p></div>
-   <div class="row"><button class="btn pri" data-act="xlsx">${DL_ICON} ${tr("Excel yuklab olish")}</button><button class="btn" data-act="copyTxt">${tr("Matn sifatida nusxa")}</button></div></div>
+  return `<div class="pagehead"><div><h2>${esc(tr("Smeta: {0}",S.obj.name))}</h2><p>${esc(tr("{0} · {1} narxlarida · soddalashtirilgan hisob",tr(S.obj.region),qLabel(S.obj.quarter)))}</p></div>
+   <div class="row"><button class="btn pri btn-new-smeta" data-act="xlsx">${DL_ICON} ${tr("Excel yuklab olish")}</button><button class="btn" data-act="copyTxt">${tr("Matn sifatida nusxa")}</button></div></div>
   <div class="section"><div class="sumgrid"><div><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div><span>${esc(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency))}</span><b>${fmt(s.cont)}</b></div>${S.settings.vat?`<div><span>${tr("QQS 12%")}</span><b>${fmt(s.vat)}</b></div>`:""}<div class="g"><span>${tr("Jami, so'm")}</span><b>${fmt(s.grand)}</b></div></div>
-  <div class="row" style="align-items:center;justify-content:space-between"><div class="seg" role="group" aria-label="${tr("Ko'rinish")}"><button type="button" data-act="smetaView" data-k="excel" aria-pressed="${mode==="excel"}">${tr("Excel ko'rinishi")}</button><button type="button" data-act="smetaView" data-k="table" aria-pressed="${mode==="table"}">${tr("Jadval")}</button></div>${mode==="excel"?`<span class="note">${tr("Yuklab olinadigan fayl aynan shunday bo'ladi")}</span>`:""}</div>
+  <div class="panel pad" style="margin-bottom:16px;background:var(--surface);border:1px solid var(--border)">
+    <div style="font-weight:600;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚙️ <span>${tr("Smeta parametrlari va hisob stavkalari")}</span></div>
+    <div class="grid3 g-stack">
+      <label class="fld">${tr("Oylik ish haqi stavkasi, so'm")}<input class="inp numin" data-s="monthly" inputmode="decimal" value="${esc(S.settings.monthly)}"></label>
+      <label class="fld">${tr("Kutilmagan xarajatlar, %")}<input class="inp numin" data-s="contingency" inputmode="decimal" value="${esc(S.settings.contingency)}"></label>
+      <label class="fld" style="display:flex;align-items:center;gap:8px;padding-top:22px;cursor:pointer"><input type="checkbox" data-s="vat"${S.settings.vat?" checked":""}> <span>${tr("QQS (12%) hisoblansin")}</span></label>
+    </div>
+  </div>
+  <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:12px"><div class="seg" role="group" aria-label="${tr("Ko'rinish")}"><button type="button" data-act="smetaView" data-k="excel" aria-pressed="${mode==="excel"}">${tr("Excel ko'rinishi")}</button><button type="button" data-act="smetaView" data-k="table" aria-pressed="${mode==="table"}">${tr("Jadval")}</button></div>${mode==="excel"?`<span class="note">${tr("Yuklab olinadigan fayl aynan shunday bo'ladi")}</span>`:""}</div>
   ${mode==="excel"?viewSheet(xlSheets(),+S.ui.xlSheet||0):`<div class="tscroll"><table><thead><tr><th class="hm">№</th><th>${tr("Nomi")}</th><th class="hm">${tr("Birlik")}</th><th class="r">${tr("Miqdor")}</th><th class="r hm">${tr("Narx")}</th><th class="r hm">${tr("Material")}</th><th class="r hm">${tr("Ish haqi")}</th><th class="r">${tr("Jami")}</th><th class="hm">${tr("Manba")}</th></tr></thead><tbody>${rows||`<tr><td colspan="9" class="empty">${tr("Smeta bo'sh.")}</td></tr>`}</tbody></table></div>`}
   <div id="fallback"></div></div>`;
 }

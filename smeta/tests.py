@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
@@ -343,15 +344,23 @@ class SmetaTests(TestCase):
             self.assertContains(c.get(reverse(name)), ru)
 
     def test_dashboard_panels_menu(self):
-        """Boshqaruv paneli: har bir karta "Panellar" menyusidan tanlanadi (js/panels.js)."""
+        """Boshqaruv paneli: ortiqcha panellarsiz soddalashtirilgan (kpis, qc-section, dash-rows)."""
         html = self.c.get("/").content.decode()
-        self.assertIn("data-panels-menu", html)
-        self.assertIn("smeta/js/panels.js", html)
-        keys = ("start", "kpi", "model", "rooms", "top", "costs", "feed", "prices")
-        for k in keys:  # har bir panel uchun karta ham, menyuda belgi ham bor
-            self.assertIn(f'data-panel="{k}"', html)
-            self.assertIn(f'data-panel-toggle="{k}"', html)
-        self.assertEqual(html.count('data-panel-toggle="'), len(keys))
+        self.assertIn('id="kpis"', html)
+        self.assertIn('id="qc-section"', html)
+        self.assertIn('id="dash-rows"', html)
+        self.assertNotIn("smeta/js/room3d.js", html)
+
+    def test_svg_icons_are_valid_xml(self):
+        """Brauzer <img> dagi SVG'ni qat'iy XML sifatida o'qiydi: xato bo'lsa logotip ko'rinmaydi.
+        (Masalan, izoh ichida "--" bo'lishi mumkin emas — 2026-10-07 da shunday xato bo'lgan.)"""
+        from xml.dom import minidom
+
+        icons = Path(__file__).resolve().parent / "static" / "smeta" / "icons"
+        for f in sorted(icons.glob("*.svg")):
+            with self.subTest(f.name):
+                minidom.parse(str(f))
+        self.assertTrue((icons / "logo.svg").exists())
 
     def test_csrf_required_for_save(self):
         o = Obyekt.objects.create(owner=self.user)
@@ -483,7 +492,7 @@ class ShellPagesTests(TestCase):
             r = c.get(url)
             self.assertContains(r, 'class="sb"')          # yon panel
             self.assertContains(r, 'id="dash-data"')      # summalar brauzerda (calc.js)
-            self.assertContains(r, "smeta/js/room3d.js")
+            self.assertNotContains(r, "smeta/js/room3d.js")
         page = c.get(reverse("loyihalar")).content.decode()
         self.assertIn(f'data-id="{o.pk}"', page)
         self.assertIn('id="qc"', page)                    # tezkor kalkulyator
@@ -509,7 +518,7 @@ class SimpleEditorTests(TestCase):
         u = User.objects.create_user("ali", password="SmetaGo-2026!")
         c = Client()
         c.force_login(u)
-        self.assertContains(c.get("/"), 'data-panel="start"')
+        self.assertContains(c.get("/"), 'btn-new-smeta')
         js = finders.find("smeta/js/app.js")
         src = open(js, encoding="utf-8").read()
         for marker in ('data-act="ownFinish"', 'data-act="custom"', '"__own"', "function guide(", 'class="adv"'):

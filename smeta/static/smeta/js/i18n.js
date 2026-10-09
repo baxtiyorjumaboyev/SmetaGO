@@ -1,9 +1,21 @@
-/* SmetaGo — o'zbekcha / ruscha. data.js va app.js dan oldin yuklanadi.
- * Til <html lang="..."> dan olinadi (Django UZ / RU tugmalari cookie orqali o'rnatadi).
- * tr("o'zbekcha matn", ...qiymatlar) — kalit o'zbekcha matnning o'zi; {0}, {1} o'rniga qiymatlar qo'yiladi.
- * Yangi matn qo'shsangiz, RU ga ham tarjimasini yozing (yo'q bo'lsa o'zbekchasi chiqadi).
+/* SmetaGo — o'zbekcha / ruscha / kirillcha. data.js va app.js dan oldin yuklanadi.
+ * Til localStorage, cookie yoki <html lang="..."> dan olinadi.
+ * tr("o'zbekcha matn", ...qiymatlar) — matnni joriy tilda qaytaradi.
  */
-const LANG=/^ru/i.test(document.documentElement.lang||"")?"ru":"uz";
+function getInitialLang() {
+  try {
+    const l = localStorage.getItem("smetago-lang");
+    if (l === "ru" || l === "uz_cyr" || l === "uz-cyr" || l === "uz") return l.replace("-", "_");
+  } catch(e) {}
+  const m = document.cookie.match(/django_language=([^;]+)/);
+  if (m) {
+    const l = decodeURIComponent(m[1]).trim();
+    if (l === "ru" || l === "uz_cyr" || l === "uz-cyr" || l === "uz") return l.replace("-", "_");
+  }
+  return /^ru/i.test(document.documentElement.lang || "") ? "ru" : "uz";
+}
+let LANG = getInitialLang();
+
 const RU={
  // soddalashtirish: qadamlar, "+ O'zim qo'shaman"
  "+ Katalogdan":"+ Из каталога","Boshqa (o'zim yozaman)…":"Другое (впишу сам)…","Boshqa eshik":"Другая дверь",
@@ -27,7 +39,7 @@ const RU={
  "Ko'rsatilgan: {0} ta pozitsiya (jami {1} tadan)":"Показано позиций: {0} (всего {1})","Ko'rsatilmoqda: {0} ta / {1} ta":"Показано: {0} из {1}",
  "Kutilmagan":"Непредвиденные","Kutilmagan xarajatlar zaxirasi":"Резерв на непредвиденные","Maydon":"Площадь","Navbatda":"В очереди",
  "Obyekt qo'shing — 3D ko'rinish va summalar shu yerda chiqadi.":"Добавьте объект — здесь появятся 3D-вид и суммы.","Oxirgi o'zgarish":"Последнее изменение",
- "Oxirgi saqlash":"Последнее сохранение","Qo'shilgan qiymat solig'i (12%)":"НДС (12%)","Sinxronizatsiya":"Синхронизация","TANNARX":"СЕБЕСТОИМОСТЬ",
+ "Yuborilmagan o'zgarishlar":"Неотправленные изменения","Oxirgi saqlash":"Последнее сохранение","Qo'shilgan qiymat solig'i (12%)":"НДС (12%)","Sinxronizatsiya":"Синхронизация","TANNARX":"СЕБЕСТОИМОСТЬ",
  "Tayyor":"Готово","To'g'ridan-to'g'ri xarajatlar":"Прямые затраты","Umumiy pol maydoni":"Общая площадь пола","Umumiy portfel":"Общий портфель",
  "Umumiy smeta":"Итого по смете","Xonalar hali kiritilmagan.":"Комнаты ещё не добавлены.","bu oy":"в этом месяце",
  "hisoblangan obyektlar bo'yicha":"по рассчитанным объектам","kutmoqda":"ожидают","mat.":"мат.","pol maydoni":"площадь пола","saqlangan":"сохранено",
@@ -166,11 +178,196 @@ const RU={
  "Smetaga \"qo'lda\" belgisi bilan tushadi":"Попадёт в смету с отметкой «вручную»","Nomini yozing.":"Укажите название.",
  "{0} qo'shildi":"Добавлено: {0}"
 };
-function tr(s,...a){let o=LANG==="ru"&&Object.prototype.hasOwnProperty.call(RU,s)?RU[s]:s;a.forEach((v,i)=>{o=o.split("{"+i+"}").join(String(v))});return o}
-// birliklar: holatda o'zbekcha saqlanadi ("dona", "m²"), faqat ko'rsatishda tarjima
-const UNITS_RU={dona:"шт.",m:"м","m²":"м²","m³":"м³",kg:"кг",l:"л",seksiya:"секц.",komplekt:"компл."};
-const U=u=>LANG==="ru"&&UNITS_RU[u]?UNITS_RU[u]:u;
-// {l:"o'zbekcha", ru:"ruscha"} ko'rinishidagi nomlar (FLOOR, WALL, CEIL, PLINTH_LABEL)
-const lab=o=>o?(LANG==="ru"&&o.ru?o.ru:o.l):"";
-// "2026-yil III chorak" → "III квартал 2026 г."
-const qLabel=q=>{if(LANG!=="ru")return q;const m=/^(\d{4})-yil (\S+) chorak$/.exec(q||"");return m?`${m[2]} квартал ${m[1]} г.`:q};
+
+const CYR_DICT = {
+  "Xonalar": "Хоналар", "Xona": "Хона", "Xonalar va o'lchov": "Хоналар ва ўлчов",
+  "Beton": "Бетон", "Beton ishi": "Бетон иши", "Beton ishlari": "Бетон ишлари",
+  "Beton qorishmasi": "Бетон қоришмаси", "Beton markasi": "Бетон маркаси",
+  "Sement": "Цемент", "Sement markasi": "Цемент маркаси", "Shag'al": "Шағал", "Shag'al (sheben)": "Шағал (щебень)",
+  "Qum": "Қум", "Suv": "Сув", "Qorishma": "Қоришма",
+  "Narx": "Нарх", "Narxlar": "Нархлар", "Narxi": "Нархи",
+  "Smeta": "Смета", "Smetalar": "Сметалар", "Smeta loyihalari": "Смета лойиҳалари",
+  "Yangi smeta": "Янги смета", "Yangi smeta yaratish": "Янги смета яратиш", "Yangi smeta loyihasi": "Янги смета лойиҳаси",
+  "Boshqaruv paneli": "Бошқарув панели", "Loyihalar": "Лойиҳалар",
+  "Materiallar": "Материаллар", "Ish haqi": "Иш ҳақи", "Jami": "Жами", "Jami smeta": "Жами смета",
+  "Obyekt": "Объект", "Obyektlar": "Объектлар", "Obyekt nomi": "Объект номи",
+  "Uzunligi": "Узунлиги", "Eni": "Эни", "Balandligi": "Баландлиги", "Qalinligi": "Қалинлиги",
+  "Uzunligi, m": "Узунлиги, м", "Eni, m": "Эни, м", "Balandligi, m": "Баландлиги, м",
+  "Eshik": "Эшик", "Eshiklar": "Эшиклар", "Deraza": "Дераза", "Derazalar": "Деразалар",
+  "Pol": "Пол", "Devor": "Девор", "Shift": "Шифт", "Plintus": "Плинтус", "Kafel": "Кафель",
+  "so'm": "сўм", "dona": "дона", "soat": "соат", "oy": "ой", "kun": "кун",
+  "Hajm": "Ҳажм", "Maydon": "Майдон", "Perimetr": "Периметр",
+  "Excel yuklab olish": "Excel юклаб олиш", "Oflayn": "Офлайн", "Onlayn": "Онлайн",
+  "Oflayn ishlash rejimi": "Офлайн ишлаш режими", "Aniqlik va ochiqlik": "Аниқлик ва очиқлик",
+  "Yordam": "Ёрдам", "Qo'llanma": "Қўлланма", "Maxfiylik": "Махфийлик",
+  "Ochish": "Очиш", "Nusxa": "Нусха", "O'chirish": "Ўчириш", "Saqlash": "Сақлаш",
+  "Qo'shish": "Қўшиш", "+ Xona qo'shish": "+ Хона қўшиш", "+ Beton ishi": "+ Бетон иши",
+  "Toshkent sh.": "Тошкент ш.", "Samarqand": "Самарқанд", "Farg'ona": "Фарғона", "Andijon": "Андижон",
+  "Buxoro": "Бухоро", "Namangan": "Наманган", "Navoiy": "Навоий", "Qashqadaryo": "Қашқадарё",
+  "Surxondaryo": "Сурхондарё", "Jizzax": "Жиззах", "Sirdaryo": "Сирдарё", "Xorazm": "Хоразм", "Qoraqalpog'iston": "Қорақалпоғистон"
+};
+
+function latinToCyrillic(text) {
+  if (!text || typeof text !== "string") return text;
+  if (CYR_DICT[text]) return CYR_DICT[text];
+  let t = text;
+  t = t.replace(/[oO]['`ʻ’]/g, m => m[0] === m[0].toUpperCase() ? "Ў" : "ў");
+  t = t.replace(/[gG]['`ʻ’]/g, m => m[0] === m[0].toUpperCase() ? "Ғ" : "ғ");
+  t = t.replace(/Sh|SH/g, "Ш").replace(/sh/g, "ш");
+  t = t.replace(/Ch|CH/g, "Ч").replace(/ch/g, "ч");
+  t = t.replace(/Yo|YO/g, "Ё").replace(/yo/g, "ё");
+  t = t.replace(/Yu|YU/g, "Ю").replace(/yu/g, "ю");
+  t = t.replace(/Ya|YA/g, "Я").replace(/ya/g, "я");
+  t = t.replace(/Ye|YE/g, "Е").replace(/ye/g, "е");
+  t = t.replace(/Ts|TS/g, "Ц").replace(/ts/g, "ц");
+  const charmap = {
+    'A':'А','a':'а','B':'Б','b':'б','D':'Д','d':'д','E':'Э','e':'э',
+    'F':'Ф','f':'ф','G':'Г','g':'г','H':'Ҳ','h':'ҳ','I':'И','i':'и',
+    'J':'Ж','j':'ж','K':'К','k':'к','L':'Л','l':'л','M':'М','m':'м',
+    'N':'Н','n':'н','O':'О','o':'о','P':'П','p':'п','Q':'Қ','q':'қ',
+    'R':'Р','r':'р','S':'С','s':'с','T':'Т','t':'т','U':'У','u':'у',
+    'V':'В','v':'в','X':'Х','x':'х','Y':'Й','y':'й','Z':'З','z':'з',
+    "'":'ъ','ʻ':'ъ','’':'ъ','`':'ъ'
+  };
+  let res = "", prevAlpha = false;
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (charmap[ch]) {
+      let m = charmap[ch];
+      if ((ch === 'e' || ch === 'E') && prevAlpha) {
+        m = ch === 'E' ? 'Е' : 'е';
+      }
+      res += m;
+      prevAlpha = true;
+    } else {
+      res += ch;
+      prevAlpha = /[a-zA-Zа-яА-ЯёЁ]/.test(ch);
+    }
+  }
+  return res;
+}
+
+function tr(s, ...a) {
+  let o = s;
+  if (LANG === "ru") {
+    o = Object.prototype.hasOwnProperty.call(RU, s) ? RU[s] : s;
+  } else if (LANG === "uz_cyr" || LANG === "uz-cyr") {
+    o = latinToCyrillic(s);
+  }
+  a.forEach((v, i) => { o = o.split("{" + i + "}").join(String(v)); });
+  return o;
+}
+
+const UNITS_RU = {dona:"шт.",m:"м","m²":"м²","m³":"м³",kg:"кг",l:"л",seksiya:"секц.",komplekt:"компл."};
+const UNITS_CYR = {dona:"дона",m:"м","m²":"м²","m³":"м³",kg:"кг",l:"л",seksiya:"секция",komplekt:"комплект"};
+const U = u => {
+  if (LANG === "ru") return UNITS_RU[u] || u;
+  if (LANG === "uz_cyr" || LANG === "uz-cyr") return UNITS_CYR[u] || latinToCyrillic(u);
+  return u;
+};
+
+const lab = o => {
+  if (!o) return "";
+  if (LANG === "ru" && o.ru) return o.ru;
+  if ((LANG === "uz_cyr" || LANG === "uz-cyr")) return latinToCyrillic(o.l || "");
+  return o.l || "";
+};
+
+const qLabel = q => {
+  if (LANG === "ru") {
+    const m = /^(\d{4})-yil (\S+) chorak$/.exec(q || "");
+    return m ? `${m[2]} квартал ${m[1]} г.` : q;
+  }
+  if (LANG === "uz_cyr" || LANG === "uz-cyr") {
+    return latinToCyrillic(q || "");
+  }
+  return q;
+};
+
+function translatePageDOM(lang) {
+  try {
+    const candidates = document.querySelectorAll("h1, h2, h3, h4, p, span, a, button, label, th, td, dt, dd, small, b, strong, em");
+    candidates.forEach(el => {
+      if (el.closest(".seg, script, style, code, pre, #calc-plan, svg, select")) return;
+      // Only process leaf nodes with text
+      if (el.children.length === 0 && el.textContent.trim().length > 0) {
+        if (!el.dataset.origText) {
+          el.dataset.origText = el.textContent.trim();
+        }
+        const orig = el.dataset.origText;
+        el.textContent = tr(orig);
+      }
+    });
+    // Translate placeholders
+    document.querySelectorAll("input[placeholder], textarea[placeholder]").forEach(inp => {
+      if (!inp.dataset.origPh) {
+        inp.dataset.origPh = inp.placeholder;
+      }
+      inp.placeholder = tr(inp.dataset.origPh);
+    });
+  } catch(e) {}
+}
+
+function setAppLanguage(newLang) {
+  if (!newLang) return;
+  const normalized = newLang.replace("-", "_");
+  LANG = normalized;
+  try {
+    localStorage.setItem("smetago-lang", normalized);
+  } catch(e) {}
+  document.cookie = `django_language=${normalized === "uz_cyr" ? "uz-cyr" : normalized};path=/;max-age=31536000;SameSite=Lax`;
+  document.documentElement.lang = normalized === "ru" ? "ru" : (normalized === "uz_cyr" ? "uz-cyr" : "uz");
+
+  // Update active state on any language switch buttons
+  document.querySelectorAll("[data-lang]").forEach(btn => {
+    const bl = btn.getAttribute("data-lang").replace("-", "_");
+    btn.setAttribute("aria-pressed", bl === normalized ? "true" : "false");
+  });
+
+  // Instant DOM translation without page reload!
+  translatePageDOM(normalized);
+
+  // Re-render UI components if they exist
+  window.dispatchEvent(new CustomEvent("languagechange", { detail: { lang: normalized } }));
+
+  // Background notify server without reload
+  try {
+    fetch("/i18n/setlang/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `language=${encodeURIComponent(normalized === "uz_cyr" ? "uz-cyr" : normalized)}`
+    }).catch(() => {});
+  } catch(e) {}
+}
+
+window.tr = tr;
+window.U = U;
+window.lab = lab;
+window.latinToCyrillic = latinToCyrillic;
+window.setAppLanguage = setAppLanguage;
+window.translatePageDOM = translatePageDOM;
+
+// Global event listener for language clicks - prevent page reload!
+document.addEventListener("click", function(e) {
+  const btn = e.target.closest && e.target.closest("[data-lang]");
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  setAppLanguage(btn.getAttribute("data-lang"));
+});
+
+// Prevent form submission on language switcher
+document.addEventListener("submit", function(e) {
+  if (e.target.closest && e.target.closest("[data-lang-switcher]")) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+});
+
+// If initial language is uz_cyr or ru, apply initial translation on DOM load
+document.addEventListener("DOMContentLoaded", function() {
+  if (LANG === "uz_cyr" || LANG === "uz-cyr" || LANG === "ru") {
+    translatePageDOM(LANG);
+  }
+});
+

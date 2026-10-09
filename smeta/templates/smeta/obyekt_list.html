@@ -3,122 +3,162 @@
 {% block content %}
 <div class="pg-head">
   <div>
-    <p class="pg-chips"><span class="chip-g">{% t "{0} ta obyekt" obyektlar|length %}</span><span class="chip-l"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.3 2.3 4.7-4.8"/></svg>{% now "d.m.Y" %}</span></p>
-    <h1>{% t "Smeta monitoringi" %}</h1>
-    <p class="pg-sub">{% t "Obyektlaringizning 3D ko'rinishi, xarajatlar tahlili va eng qimmat pozitsiyalar — bitta sahifada." %}</p>
+    <h1>{% t "Boshqaruv paneli" %}</h1>
+    <p class="ometa" style="margin:4px 0 0">{% t "Smeta loyihalari va tezkor hisob-kitoblar boshqaruvi" %}</p>
   </div>
   <div class="pg-acts">
-    {# Panellar: foydalanuvchi qaysi kartalarni ko'rishini o'zi tanlaydi (js/panels.js, tanlov shu brauzerda saqlanadi) #}
-    <details class="pnl" data-panels-menu>
-      <summary class="btn ol" title="{% t "Panellarni tanlash" %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>{% t "Panellar" %} <span class="pnl-n" data-panels-count></span></summary>
-      <div class="pnl-pop">
-        <p class="eyebrow">{% t "Ko'rsatiladigan panellar" %}</p>
-        <label><input type="checkbox" data-panel-toggle="start" checked> {% t "Qanday ishlaydi (3 qadam)" %}</label>
-        <label><input type="checkbox" data-panel-toggle="kpi" checked> {% t "Asosiy ko'rsatkichlar" %}</label>
-        <label><input type="checkbox" data-panel-toggle="model" checked> {% t "3D model va jami smeta" %}</label>
-        <label><input type="checkbox" data-panel-toggle="rooms" checked> {% t "Xonalar va xarajat ulushi" %}</label>
-        <label><input type="checkbox" data-panel-toggle="top" checked> {% t "Eng qimmat pozitsiyalar" %}</label>
-        <label><input type="checkbox" data-panel-toggle="costs" checked> {% t "Xarajatlar tarkibi" %}</label>
-        <label><input type="checkbox" data-panel-toggle="feed" checked> {% t "So'nggi o'zgarishlar" %}</label>
-        <label><input type="checkbox" data-panel-toggle="prices" checked> {% t "Narxlar bazasi" %}</label>
-        <button type="button" class="btn sm block" data-panels-reset>{% t "Hammasini ko'rsatish" %}</button>
-      </div>
-    </details>
-    {% if tg_bot and not user.telegram %}<div class="tg-link" title="{% t "Telegram'ni ulasangiz, keyingi safar parolsiz kirasiz" %}">{% include "smeta/_telegram.html" %}</div>{% endif %}
-    <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<input type="hidden" name="namuna" value="1"><button class="btn ol">{% t "Namunaviy obyekt" %}</button></form>
-    <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn pri lg">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>{% t "Yangi smeta loyihasi" %}</button></form>
+    <a href="{% url 'app' %}?tab=beton" class="btn ol" style="font-weight:600">🧱 {% t "Beton kalkulyatori" %}</a>
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'obyekt_create' %}" style="margin:0">{% csrf_token %}
+      <button type="submit" class="btn pri lg btn-new-smeta">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        {% t "Yangi smeta loyihasi" %}
+      </button>
+    </form>
+    {% else %}
+    <a href="{% url 'app' %}" class="btn pri lg btn-new-smeta" style="text-decoration:none">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      {% t "Yangi smeta loyihasi" %}
+    </a>
+    {% endif %}
   </div>
 </div>
 
-{# bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js) — yangi obyektga o'tkazish taklifi #}
-<div class="hint row" id="draft-bar" hidden style="justify-content:space-between">
-  <span>{% t "Bosh sahifada o'lchangan xona saqlanmagan:" %} <b id="draft-text"></b></span>
+{% if tg_bot and not user.telegram %}<div class="tg-link" style="margin-bottom:16px" title="{% t "Telegram'ni ulasangiz, keyingi safar parolsiz kirasiz" %}"><span class="ometa">{% t "Telegram'ni ulash:" %}</span>{% include "smeta/_telegram.html" %}</div>{% endif %}
+
+{# Bosh sahifadagi kalkulyatorda o'lchangan xona taklifi #}
+<div class="hint row" id="draft-bar" hidden style="justify-content:space-between;background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px;padding:12px 16px;margin-bottom:16px">
+  <span>{% t "Bosh sahifada o'lchangan xona:" %} <b id="draft-text"></b></span>
   <span class="row">
-    <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn sm pri">{% t "Yangi obyekt sifatida saqlash" %}</button></form>
+    <a href="{% url 'app' %}" class="btn sm pri btn-new-smeta" style="text-decoration:none">{% t "Smetaga o'tkazish" %}</a>
     <button type="button" class="btn sm ghost" id="draft-drop">{% t "Kerak emas" %}</button>
   </span>
 </div>
 
-<p class="hint" data-panels-empty hidden>{% t "Barcha panellar yashirilgan — «Panellar» menyusidan keraklisini tanlang." %}</p>
+{# Asosiy KPI ko'rsatkichlar #}
+<div class="kpi4" id="kpis" style="margin-bottom:24px"></div>
 
-{# yangi foydalanuvchi uchun: sayt nima qiladi va qanday ishlaydi — 3 qadam #}
-<section class="start" data-panel="start" aria-labelledby="start-h">
-  <h2 id="start-h">{% t "SmetaGo 3 qadamda smeta tuzadi" %}</h2>
-  <ol>
-    <li><span class="sn">1</span><div><b>{% t "Yangi smeta oching" %}</b><p>{% t "Obyekt — bu kvartira, uy yoki ofis. Unga nom bering." %}</p>
-      <form method="post" action="{% url 'obyekt_create' %}">{% csrf_token %}<button class="btn sm pri">+ {% t "Yangi smeta" %}</button></form></div></li>
-    <li><span class="sn">2</span><div><b>{% t "Xonalarni o'lchang va to'ldiring" %}</b><p>{% t "Uzunlik, en, balandlik; eshik va derazalar; pol, devor, shift va xonadagi narsalar. Ro'yxatda yo'q narsani «+ O'zim qo'shaman» bilan yozasiz." %}</p></div></li>
-    <li><span class="sn">3</span><div><b>{% t "Tayyor smetani oling" %}</b><p>{% t "Material, ish haqi va jami narx o'zi hisoblanadi. Excel'ga yuklab olib, buyurtmachiga yuborasiz." %}</p>
-      <a class="lnk" href="{% url 'demo' %}">{% t "Namunani ko'rish" %} →</a></div></li>
-  </ol>
+{# 1. Tezkor va ajratilgan Beton Ishlari Kalkulyatori #}
+<section class="beton-hero" id="qc-section" style="margin-bottom:24px">
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px">
+    <div>
+      <span class="beton-badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg> {% t "Tezkor kalkulyator" %}</span>
+      <h2 style="font-size:20px;margin:4px 0;color:#ffffff">🧱 {% t "Beton ishlari va qorishma tarkibi" %}</h2>
+      <p style="color:#94a3b8;margin:0;font-size:13px">{% t "GOST 7473-2010 va SNiP 82-02-95 bo'yicha sement, qum, shag'al va suv sarfi" %}</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <a class="btn pri sm btn-new-smeta" href="{% url 'app' %}?tab=beton" style="text-decoration:none">{% t "To'liq beton bo'limiga o'tish" %} →</a>
+    </div>
+  </div>
+
+  <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:16px;border:1px solid rgba(255,255,255,0.1)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px">
+      <label class="fld" style="color:#cbd5e1">{% t "Beton markasi" %}
+        <select class="inp" id="qc-grade" style="background:#0f172a;color:#ffffff;border-color:#334155"></select>
+      </label>
+      <label class="fld" style="color:#cbd5e1">{% t "Sement markasi" %}
+        <select class="inp" id="qc-cem" style="background:#0f172a;color:#ffffff;border-color:#334155">
+          <option value="M500">PC M500 (Portlandsement)</option>
+          <option value="M400">PC M400 (+15% sarf)</option>
+        </select>
+      </label>
+      <label class="fld" style="color:#cbd5e1">{% t "Hajm, m³" %}
+        <span class="stp qc-stp" style="display:flex">
+          <button type="button" class="stp-b" data-act="step" data-for="qc-v" data-d="-1" aria-label="−">−</button>
+          <input class="inp numin" id="qc-v" inputmode="decimal" value="10" style="background:#0f172a;color:#ffffff;border-color:#334155">
+          <button type="button" class="stp-b" data-act="step" data-for="qc-v" data-d="1" aria-label="+">+</button>
+        </span>
+      </label>
+      <div style="display:flex;align-items:flex-end">
+        <label style="display:flex;align-items:center;gap:6px;color:#cbd5e1;font-size:13px;cursor:pointer;margin-bottom:8px">
+          <input type="checkbox" id="qc-vat"> {% t "QQS (12%) qo'shish" %}
+        </label>
+      </div>
+    </div>
+    <div id="qc-lines" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
+      <div id="qc-sum" style="font-size:18px;font-weight:700;color:#f97316"></div>
+      <a href="{% url 'app' %}?tab=beton" class="btn sm pri btn-new-smeta" style="text-decoration:none">+ {% t "Smetaga qo'shish" %}</a>
+    </div>
+  </div>
 </section>
 
-<div class="kpi4" id="kpis" data-panel="kpi"></div>
-
-<div class="dgrid">
-  <div class="dcol">
-    <section class="model" id="model" data-panel="model">
-      <canvas class="r3d model-3d" id="model-3d" role="img" aria-label="{% t "Xonaning 3D ko'rinishi" %}"></canvas>
-      <div class="model-top">
-        <p class="pg-chips"><span class="chip-d">3D {% t "model" %}</span><span class="chip-a" id="model-room"></span></p>
-        <h2 id="model-name">{% t "Hali obyekt yo'q" %}</h2>
-        <p class="model-loc" id="model-loc"></p>
-      </div>
-      <span class="model-st" id="model-st"></span>
-      <div class="model-bar" id="model-bar"></div>
-    </section>
-
-    <section class="panel card" data-panel="rooms">
-      <div class="card-h"><h2>{% t "Xonalar va xarajat ulushi" %}</h2><span class="ometa" id="rooms-note"></span></div>
-      <div class="stages" id="stages"></div>
-    </section>
-
-    <section class="panel card" data-panel="top">
-      <div class="card-h"><div><h2>{% t "Eng qimmat pozitsiyalar" %}</h2><p class="ometa" style="margin:2px 0 0">{% t "Oxirgi obyekt bo'yicha: material + ish haqi" %}</p></div>
-        <span class="legend-i"><i class="lg-m"></i>{% t "Materiallar" %}<i class="lg-l"></i>{% t "Ish haqi" %}</span></div>
-      <div class="tscroll dtable"><table><thead><tr><th>№</th><th>{% t "Ish turi va resurs tavsifi" %}</th><th>{% t "O'lchov" %}</th><th class="r">{% t "Miqdor" %}</th><th class="r">{% t "Birlik narxi" %}</th><th class="r">{% t "Jami summa" %}</th></tr></thead>
-        <tbody id="lines"></tbody></table></div>
-      <div class="card-f"><span class="ometa" id="lines-note"></span><a id="lines-open" class="lnk" href="{% url 'loyihalar' %}">{% t "To'liq hisob-kitobni ochish" %} →</a></div>
-    </section>
+{# 2. Obyektlar va Smeta Loyihalari Jadvali #}
+<section class="panel card flush" style="margin-bottom:24px">
+  <div class="card-h pad2" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h2>{% t "Obyektlar" %}</h2>
+      <p class="ometa" style="margin:2px 0 0">{% t "Smeta loyihalari ro'yxati va ularning jami hisobi" %}</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <label class="ly-search" style="margin:0">
+        <input id="dash-search" placeholder="{% t "Qidirish…" %}" aria-label="{% t "Qidirish" %}" class="inp sm" style="width:180px">
+      </label>
+    </div>
   </div>
 
-  <div class="dcol side">
-    <section class="panel card" data-panel="costs">
-      <div class="card-h"><h2>{% t "Xarajatlar tarkibi" %}</h2><span class="chip-g">{% t "Tahlil" %}</span></div>
-      <div class="hl" id="hl"></div>
-      <p class="eyebrow" style="margin:16px 0 8px">{% t "Bo'limlar bo'yicha" %}</p>
-      <div class="cats" id="cats"></div>
-    </section>
-    <section class="panel card" data-panel="feed">
-      <div class="card-h"><h2>{% t "So'nggi o'zgarishlar" %}</h2><span class="ometa">{% now "d.m" %}</span></div>
-      <ul class="feed" id="feed"></ul>
-      <a class="btn ol block" href="{% url 'loyihalar' %}">{% t "Barcha loyihalar" %}</a>
-    </section>
-    <section class="gcard" data-panel="prices">
-      <p class="gcard-h"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6M5 12v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6"/></svg>{% t "Narxlar bazasi" %}</p>
-      <p>{% t "Materiallar narxi 3 manbadan olinadi; har obyektda o'z narxingizni ham kiritishingiz mumkin." %}</p>
-      <div class="gcard-f"><span>{% if prices_updated %}{% t "Yangilangan" %}: {{ prices_updated }}{% endif %}</span><a href="{% url 'help' %}">{% t "Batafsil" %} →</a></div>
-    </section>
+  <div class="tscroll dtable">
+    <table>
+      <thead>
+        <tr>
+          <th>{% t "Obyekt nomi va hudud" %}</th>
+          <th class="r">{% t "Xonalar" %}</th>
+          <th class="r">{% t "Maydon" %}</th>
+          <th class="r">{% t "Smeta (jami / material)" %}</th>
+          <th class="r">{% t "Amallar" %}</th>
+        </tr>
+      </thead>
+      <tbody id="dash-rows">
+        {% if obyektlar %}
+        {% for o in obyektlar %}
+        <tr data-id="{{ o.pk }}" data-name="{{ o.name|lower }}">
+          <td>
+            <a class="oname" href="{% url 'obyekt_app' o.pk %}" style="font-weight:600;color:var(--ink);text-decoration:none">{{ o.name }}</a>
+            <small style="display:block;color:var(--muted)">{% if o.region %}<span class="tag">{{ o.region }}</span> {% endif %}{% t "O'zgartirilgan" %}: {{ o.updated|date:"d.m.Y H:i" }}</small>
+          </td>
+          <td class="r c-rooms"><small>{% t "{0} xona" o.rooms_count %}</small></td>
+          <td class="r c-area">—</td>
+          <td class="r c-sum" style="font-weight:600">—</td>
+          <td class="r">
+            <div class="oacts" style="display:inline-flex;gap:6px">
+              <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">{% t "Ochish" %}</a>
+              <form method="post" action="{% url 'obyekt_copy' o.pk %}" style="margin:0">{% csrf_token %}<button class="btn sm">{% t "Nusxa" %}</button></form>
+              <form method="post" action="{% url 'obyekt_delete' o.pk %}" onsubmit="return confirm('Ochirilsinmi?')" style="margin:0">{% csrf_token %}<button class="btn sm ghost" aria-label="{% t "O'chirish" %}">×</button></form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr id="empty-row">
+          <td colspan="5" style="text-align:center;padding:32px 16px;color:var(--muted)">
+            <p style="margin:0 0 12px;font-size:15px">{% t "Hali obyektlar yo'q. Birinchi smetangizni hoziroq yarating." %}</p>
+            <a href="{% url 'app' %}" class="btn pri btn-new-smeta" style="text-decoration:none">+ {% t "Yangi smeta loyihasi" %}</a>
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
   </div>
-</div>
+</section>
 
 <script>
-(function(){var d;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
+(function(){
+  var d;try{d=JSON.parse(localStorage.getItem("smetago-draft"))}catch(e){}
   if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return;
-  var bar=document.getElementById("draft-bar");bar.hidden=false;
-  document.getElementById("draft-text").textContent=[d.room.L,d.room.W,d.room.H].join(" × ")+" m";
-  document.getElementById("draft-drop").onclick=function(){try{localStorage.removeItem("smetago-draft")}catch(e){}bar.hidden=true};
+  var bar=document.getElementById("draft-bar");if(bar){bar.hidden=false;}
+  var txt=document.getElementById("draft-text");if(txt)txt.textContent=[d.room.L,d.room.W,d.room.H].join(" × ")+" m";
+  var btn=document.getElementById("draft-drop");
+  if(btn)btn.onclick=function(){try{localStorage.removeItem("smetago-draft")}catch(e){}if(bar)bar.hidden=true};
 })();
 </script>
+
 {{ dash|json_script:"dash-data" }}
 {{ ref|json_script:"smeta-ref" }}
 {% endblock %}
+
 {% block scripts %}
 <script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
 <script src="{% static 'smeta/js/calc.js' %}"></script>
-<script src="{% static 'smeta/js/room3d.js' %}"></script>
 <script src="{% static 'smeta/js/dashboard.js' %}"></script>
-<script src="{% static 'smeta/js/panels.js' %}"></script>
 {% endblock %}

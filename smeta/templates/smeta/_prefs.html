@@ -1,10 +1,11 @@
 {% load smeta_i18n %}<div class="prefs">
   <span class="netbadge" data-netbadge hidden>{% t "Oflayn" %}</span>
   <span id="pwa-l10n" hidden data-offline="{% t "Internet yo'q. Bu amal uchun aloqa kerak." %}" data-ios="{% t "iPhone / iPad: Safari'da «Ulashish» tugmasini bosing, so'ng «Bosh ekranga qo'shish»." %}"></span>
-  <form class="seg" method="post" action="{% url 'set_language' %}" aria-label="{% t 'Til' %}">{% csrf_token %}
+  <form class="seg" method="post" action="{% url 'set_language' %}" aria-label="{% t 'Til' %}" data-lang-switcher>{% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-    <button name="language" value="uz" lang="uz" title="O'zbekcha" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}false{% else %}true{% endif %}">UZ</button>
-    <button name="language" value="ru" lang="ru" title="Русский" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}true{% else %}false{% endif %}">RU</button>
+    <button name="language" value="uz" data-lang="uz" lang="uz" title="O'zbekcha (Lotin)" aria-pressed="{% if LANGUAGE_CODE == 'uz' %}true{% else %}false{% endif %}">UZ</button>
+    <button name="language" value="uz-cyr" data-lang="uz_cyr" lang="uz-cyr" title="Ўзбекча (Кирилл)" aria-pressed="{% if LANGUAGE_CODE == 'uz-cyr' %}true{% else %}false{% endif %}">ЎЗ</button>
+    <button name="language" value="ru" data-lang="ru" lang="ru" title="Русский" aria-pressed="{% if LANGUAGE_CODE == 'ru' %}true{% else %}false{% endif %}">RU</button>
   </form>
   <button type="button" class="themebtn" data-theme-toggle aria-pressed="false"
           data-l-night="{% t 'Tungi rejim' %}" data-l-day="{% t 'Kunduzgi rejim' %}" title="{% t 'Tungi rejim' %}" aria-label="{% t 'Tungi rejim' %}">

@@ -35,7 +35,14 @@ LIMIT_PER_HOUR = 3
 
 def normalize_phone(value):
     """'+998 90 123-45-67', '998901234567', '901234567' -> '998901234567'; noto'g'ri bo'lsa None."""
-    digits = re.sub(r"\D", "", str(value or ""))
+    s = str(value or "").strip()
+    if not s:
+        return None
+    if re.search(r"[a-zA-Zа-яА-ЯёЁ]", s):
+        return None
+    if not re.fullmatch(r"^\+?[\d\s\-\(\)\.]+$", s):
+        return None
+    digits = re.sub(r"\D", "", s)
     if len(digits) == 9:
         digits = "998" + digits
     return digits if len(digits) == 12 and digits.startswith("998") else None
