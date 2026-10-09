@@ -322,8 +322,35 @@ function viewSheet(sheets,cur){const sh=sheets[cur]||sheets[0];const ncol=sh.col
    <thead><tr><th class="xl-corner"></th>${sh.cols.map((_,i)=>`<th>${colName(i)}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>
    <div class="xl-tabs">${sheets.map((x,i)=>`<button type="button" data-act="xlSheet" data-i="${i}" aria-pressed="${sh===x}">${esc(x.name)}</button>`).join("")}</div></div>`}
 const safeFile=s=>String(s).replace(/[\\/:*?"<>|\u0000-\u001f]+/g," ").replace(/\s+/g," ").trim().slice(0,120)||"Smeta";
+function downloadClientSpreadsheet(){
+  const s = buildSmeta();
+  let csv = "\uFEFF№\t" + tr("Nomi") + "\t" + tr("Tafsilot") + "\t" + tr("Birlik") + "\t" + tr("Miqdor") + "\t" + tr("Narx, so'm") + "\t" + tr("Material, so'm") + "\t" + tr("Ish haqi, so'm") + "\t" + tr("Jami, so'm") + "\n";
+  let n = 0;
+  s.groups.forEach(g => {
+    csv += `\t${g.title} (${g.sub})\t\t\t\t\t\t\t\n`;
+    g.lines.forEach(l => {
+      const t = lineTotals(l);
+      n++;
+      csv += `${n}\t${l.name}\t${l.sub || ""}\t${U(l.unit)}\t${fd(l.qty)}\t${Math.round(l.price)}\t${Math.round(t.mat)}\t${Math.round(t.lab)}\t${Math.round(t.tot)}\n`;
+    });
+    csv += `\t${tr("Jami: {0}", g.title)}\t\t\t\t\t${Math.round(g.mat)}\t${Math.round(g.lab)}\t${Math.round(g.mat + g.lab)}\n`;
+  });
+  csv += `\n\t${tr("Materiallar")}\t\t\t\t\t${Math.round(s.mat)}\n`;
+  csv += `\t${tr("Ish haqi")}\t\t\t\t\t\t${Math.round(s.lab)}\n`;
+  csv += `\t${tr("Kutilmagan xarajatlar {0}%", S.settings.contingency)}\t\t\t\t\t\t\t${Math.round(s.cont)}\n`;
+  if(S.settings.vat) csv += `\t${tr("QQS 12%")}\t\t\t\t\t\t\t${Math.round(s.vat)}\n`;
+  csv += `\t${tr("JAMI, so'm")}\t\t\t\t\t\t\t${Math.round(s.grand)}\n`;
+  const blob = new Blob([csv], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = safeFile(`${tr("Smeta")} - ${S.obj.name} - ${todayStr()}`) + ".xls";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  toast(tr("Excel fayl yuklab olindi"));
+}
 async function downloadXlsx(){
-  if(!XLSX){toast(tr("Excel fayl uchun internet kerak"));return}
+  if(!XLSX){downloadClientSpreadsheet();return}
   const btns=document.querySelectorAll('[data-act="xlsx"]');btns.forEach(b=>b.disabled=true);
   try{
     const r=await fetch(XLSX.url,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":XLSX.csrf},body:JSON.stringify({sheets:xlSheets()})});
@@ -331,8 +358,9 @@ async function downloadXlsx(){
     const blob=await r.blob();const a=document.createElement("a");a.href=URL.createObjectURL(blob);
     a.download=safeFile(`${tr("Smeta")} - ${S.obj.name} - ${todayStr()}`)+".xlsx";document.body.appendChild(a);a.click();
     setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);toast(tr("Excel fayl yuklab olindi"));
-  }catch(e){toast(e.message==="auth"?tr("Sessiya tugagan — qayta kiring"):(!navigator.onLine||e instanceof TypeError)?tr("Excel fayl uchun internet kerak"):tr("Excel faylni yaratib bo'lmadi, qayta urinib ko'ring"))}
-  finally{btns.forEach(b=>b.disabled=false)}
+  }catch(e){
+    downloadClientSpreadsheet();
+  }finally{btns.forEach(b=>b.disabled=false)}
 }
 
 function viewSmeta(){
