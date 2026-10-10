@@ -87,7 +87,7 @@ const RU={
  "Xona qo'shing — o'lchamlarni kiritgach, hisob avtomatik chiqadi.":"Добавьте комнату — после ввода размеров расчёт появится автоматически.",
  "Bu namunaviy obyekt: 3 xona va 2 ta beton ishi bilan to'ldirilgan. O'zingiznikini boshlash uchun":"Это пример объекта: 3 комнаты и 2 бетонные работы. Чтобы начать свой, нажмите",
  "Tasdiqlang: hammasi o'chadi":"Подтвердите: всё будет удалено",
- "Xona nomi":"Название комнаты","O'chirishni tasdiqlang":"Подтвердите удаление","Xonani o'chirish":"Удалить комнату",
+ "Xona nomi":"Название комнаты","Xona nomini yozing":"Введите название комнаты","{0}-xona":"Комната {0}","«{0}» xonasi o'chirilsinmi?":"Удалить комнату «{0}»?","Xona o'chirildi":"Комната удалена","O'chirishni tasdiqlang":"Подтвердите удаление","Xonani o'chirish":"Удалить комнату",
  "O'lchamlar, metr":"Размеры, метры","Uzunligi":"Длина","Eni":"Ширина","Balandligi":"Высота",
  "Eshiklar — turi, eni × bo'yi, m (eni plintusdan ayiriladi)":"Двери — тип, ширина × высота, м (ширина вычитается из плинтуса)",
  "Soni":"Количество","Jami: {0} ta eshik, {1} m²":"Итого: дверей {0}, {1} м²","Jami: {0} ta deraza, {1} m²":"Итого: окон {0}, {1} м²",

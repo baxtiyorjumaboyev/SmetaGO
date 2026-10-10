@@ -8,6 +8,11 @@ const $=(s,r=document)=>r.querySelector(s);
 const uid=()=>Math.random().toString(36).slice(2,9);
 const SOM=tr("so'm");
 const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
+/* Xona nomini quruvchi o'zi yozadi; tur (standart qoplama va tavsiyalar uchun) nomdan taxmin qilinadi,
+ * topilmasa — umumiy "Boshqa". */
+const GEN_TYPE=ROOM_TYPES.Boshqa?"Boshqa":Object.keys(ROOM_TYPES)[0];
+function guessType(name){const n=String(name||"").toLowerCase();
+  return Object.keys(ROOM_TYPES).find(k=>n.includes(k.toLowerCase())||n.includes(rtLabel(k).toLowerCase()))||GEN_TYPE}
 
 /* ---------- state ---------- */
 function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
@@ -16,7 +21,7 @@ function sample(){
   return blank(null, tr("Yangi smeta"));
 }
 function blank(base,name){
-  const nr=mkRoom("Mehmonxona",null,"5","4","2,8");
+  const nr=mkRoom(GEN_TYPE,tr("{0}-xona",1),"5","4","2,8");
   return{
     v:1,sample:false,
     obj:{name:name||tr("Yangi smeta"),region:(base&&base.obj&&base.obj.region)||"Toshkent sh.",quarter:(base&&base.obj&&base.obj.quarter)||QUARTERS[0]},
@@ -40,7 +45,7 @@ function applyDraft(st){let d=null;try{d=JSON.parse(localStorage.getItem("smetag
   if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return false;
   try{localStorage.removeItem("smetago-draft")}catch(e){}
   const x=d.room,r=st.rooms[0],type=ROOM_TYPES[x.type]?x.type:r.type;
-  Object.assign(r,{type,name:rtLabel(type),L:String(x.L||""),W:String(x.W||""),H:String(x.H||r.H)});
+  Object.assign(r,{type,L:String(x.L||""),W:String(x.W||""),H:String(x.H||r.H)});
   ["floor","wall","ceil"].forEach(k=>{if(x[k]&&({floor:FLOOR,wall:WALL,ceil:CEIL})[k][x[k]])r[k]=x[k]});
   st.ui.draftApplied=true;return true}
 /* Oflayn navbat: serverga yetib bormagan oxirgi holat qurilmada saqlanadi ({ts, state})
@@ -119,8 +124,8 @@ function roomTotal(r){const c=roomCalc(r);return sum([...c.lines,...r.items.map(
 
 function viewRooms(){
   const r=curRoom();
-  const list=`<aside class="panel roomlist"><ul>${S.rooms.map(x=>`<li><button class="roombtn" data-act="room" data-id="${x.id}" aria-current="${r&&x.id===r.id}"><b>${esc(x.name)}</b><span id="rl-${x.id}">${fmt(roomTotal(x))} ${SOM}</span></button></li>`).join("")}</ul>
-   <div class="addroom"><select class="inp" id="newType" aria-label="${tr("Xona turi")}">${Object.keys(ROOM_TYPES).map(k=>`<option value="${esc(k)}">${esc(rtLabel(k))}</option>`).join("")}</select><button class="btn pri" data-act="addRoom">${tr("+ Xona qo'shish")}</button></div></aside>`;
+  const list=`<aside class="panel roomlist"><ul>${S.rooms.map(x=>`<li><button class="roombtn" data-act="room" data-id="${x.id}" aria-current="${r&&x.id===r.id}"><b>${esc(x.name)}</b><span id="rl-${x.id}">${fmt(roomTotal(x))} ${SOM}</span></button><button class="roomdel" data-act="delRoomId" data-id="${x.id}" title="${tr("Xonani o'chirish")}" aria-label="${tr("Xonani o'chirish")}">×</button></li>`).join("")}</ul>
+   <div class="addroom"><input class="inp" id="newName" aria-label="${tr("Xona nomi")}" placeholder="${tr("Xona nomini yozing")}" maxlength="60"><button class="btn pri" data-act="addRoom">${tr("+ Xona qo'shish")}</button></div></aside>`;
   if(!r)return `<div class="layout">${list}<section class="panel pad empty">${tr("Xona qo'shing — o'lchamlarni kiritgach, hisob avtomatik chiqadi.")}</section></div>`;
   const opt=(o,cur)=>Object.entries(o).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${esc(lab(v))}</option>`).join("");
   // qoplama o'lchami: placeholder — xonaning o'lchami (renderDerived yangilab turadi)
@@ -131,7 +136,7 @@ function viewRooms(){
   const edit=`<section class="stack">
    ${guide(r)}
    <div class="panel pad stack">
-    <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><span class="tag">${esc(rtLabel(r.type))}</span><button class="btn ghost sm" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
+    <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><button class="btn sm btn-del" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
     <fieldset>${sec(1,"Xona o'lchami","Lenta bilan uzunligi, eni va balandligini o'lchang (metrda, masalan 4,5).")}
      <div class="grid3">
       <label class="fld">${tr("Uzunligi")}${stepper(`<input class="inp numin" id="r-L" data-f="L" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00">`,"r-L",.1)}</label>
@@ -192,7 +197,7 @@ function renderCatItems(){
   const card=(it,s)=>`<button class="cat-item${s?" sugg":""}" data-act="pick" data-cid="${it.id}"><b>${esc(it.n)}</b><span>${it.v?tr("dan")+" ":""}${fmt(it.v?Math.min(...it.v.map(v=>v[1])):it.p)} / ${esc(U(it.u))}</span></button>`;
   // har ro'yxatning boshida: ro'yxatda yo'q narsani o'zi qo'shish
   const own=(name="")=>`<button class="cat-item own-card" data-act="custom" data-name="${esc(name)}"><b>+ ${tr("O'zim qo'shaman")}</b><span>${tr("ro'yxatda yo'q bo'lsa")}</span></button>`;
-  const sugg=()=>{const t=ROOM_TYPES[r?.type]||ROOM_DEFAULT;return `<p class="eyebrow" style="margin:0">${esc(tr("{0} uchun odatiy",r?rtLabel(r.type):""))}</p><div class="catgrid">${own()}${t.s.map(id=>CAT_INDEX[id]).filter(Boolean).map(it=>card(it,1)).join("")}</div>`};
+  const sugg=()=>{const t=ROOM_TYPES[r?.type]||ROOM_DEFAULT;return `<p class="eyebrow" style="margin:0">${esc(tr("{0} uchun odatiy",r?r.name:""))}</p><div class="catgrid">${own()}${t.s.map(id=>CAT_INDEX[id]).filter(Boolean).map(it=>card(it,1)).join("")}</div>`};
   let html="";
   if(q){const res=Object.values(CAT_INDEX).filter(it=>(it.n+" "+(it.v||[]).map(v=>v[0]).join(" ")+" "+it.g).toLowerCase().includes(q));
     html=res.length?`<div class="catgrid">${own(S.ui.q.trim())}${res.map(it=>card(it)).join("")}</div>`:`<p class="note">${esc(tr("\"{0}\" topilmadi — o'zingiz qo'shing:",S.ui.q))}</p><div class="catgrid">${own(S.ui.q.trim())}</div>`}
@@ -450,7 +455,9 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
   switch(a){
    case "tab":document.body.classList.remove("cat-open");S.ui.tab=b.dataset.k;S.ui.confirmSync=false;render();window.scrollTo(0,0);if(S.ui.tab==="beton")renderConcreteDerived();break;
    case "room":S.ui.room=b.dataset.id;S.ui.confirmDel=null;render();break;
-   case "addRoom":{const t=$("#newType").value;const lbl=rtLabel(t);const n=S.rooms.filter(x=>x.type===t).length;const nr=mkRoom(t,n?`${lbl} ${n+1}`:lbl);S.rooms.push(nr);S.ui.room=nr.id;S.ui.grp="Tavsiya";render();$("#r-L")?.focus();break}
+   case "addRoom":addRoom();break;
+   case "delRoomId":{const x=S.rooms.find(y=>y.id===b.dataset.id);if(!x||!confirm(tr("«{0}» xonasi o'chirilsinmi?",x.name)))break;
+     S.rooms=S.rooms.filter(y=>y.id!==x.id);if(S.ui.room===x.id)S.ui.room=S.rooms[0]?.id;S.ui.confirmDel=null;render();toast(tr("Xona o'chirildi"));break}
    case "delRoom":if(S.ui.confirmDel!==r.id){S.ui.confirmDel=r.id;render();break}S.rooms=S.rooms.filter(x=>x.id!==r.id);S.ui.room=S.rooms[0]?.id;S.ui.confirmDel=null;render();break;
    case "reset":if(!S.ui.confirmReset){S.ui.confirmReset=true;render();break}{S=blank(S);render();$("#r-L")?.focus()}break;
    case "syncPrices":if(!S.ui.confirmSync){S.ui.confirmSync=true;render();break}
@@ -501,7 +508,9 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
 });
 // "Qo'shimcha sozlamalar" ochiq/yopiqligi obyektda eslab qolinadi
 document.addEventListener("toggle",e=>{if(e.target.id==="adv"){S.ui.adv=e.target.open;save()}},true);
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
+function addRoom(){const name=($("#newName")?.value||"").trim()||tr("{0}-xona",S.rooms.length+1);
+  const nr=mkRoom(guessType(name),name);S.rooms.push(nr);S.ui.room=nr.id;S.ui.grp="Tavsiya";S.ui.confirmDel=null;render();$("#r-L")?.focus()}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="newName"){e.preventDefault();addRoom();return}if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
 
 // ?tab=smeta — kerakli bo'limni ochish (masalan, bosh sahifadagi "Namuna smetani ko'rish")
 {const q=new URLSearchParams(location.search).get("tab");if(TABS.some(([k])=>k===q))S.ui.tab=q}
