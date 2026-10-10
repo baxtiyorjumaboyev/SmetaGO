@@ -38,8 +38,8 @@ PRECACHE_STATIC = [
 ]
 
 THEME_LIGHT = "#ffffff"
-THEME_DARK = "#101512"
-BACKGROUND = "#0c140f"
+THEME_DARK = "#111827"
+BACKGROUND = "#0f172a"
 
 
 def _version():

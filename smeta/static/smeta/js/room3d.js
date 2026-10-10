@@ -29,7 +29,7 @@
         return {x:ox+x1*s*f,y:oy-(y*cp-z1*sp)*s*f,d:dep}};
       const poly=(pts,fill,stroke,lw)=>{ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();
         if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke()}};
-      const hx=L/2,hz=W/2,lime=css("--dim")||"#b5e86a",ink=css("--ink")||"#e9f0eb";
+      const hx=L/2,hz=W/2,lime=css("--dim")||"#fbbf24",ink=css("--ink")||"#e9f0eb";
 
       // yaqin tomonlar (kamera tomonidagi devorlar kesiladi, o'lchamlar shu tomonda)
       const nearZ=(P(0,0,hz).d>P(0,0,-hz).d)?hz:-hz, nearX=(P(hx,0,0).d>P(-hx,0,0).d)?hx:-hx;
@@ -84,7 +84,7 @@
       const label=(p,t)=>{ctx.font=`600 ${Math.round(11.5*d)}px "JetBrains Mono",ui-monospace,monospace`;const tw=ctx.measureText(t).width+10*d,th=18*d;
         ctx.fillStyle="rgba(10,14,10,.78)";ctx.beginPath();ctx.roundRect?ctx.roundRect(p.x-tw/2,p.y-th/2,tw,th,5*d):ctx.rect(p.x-tw/2,p.y-th/2,tw,th);ctx.fill();
         // yozuv to'q "tabletka"da — har doim ochiq lime (kunduzgi rejimdagi to'q --dim bu fonda o'qilmasdi)
-        ctx.fillStyle="#d9f99d";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(t,p.x,p.y+.5*d);ctx.fillStyle=lime};
+        ctx.fillStyle="#fde68a";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(t,p.x,p.y+.5*d);ctx.fillStyle=lime};
       const sz=Math.sign(nearZ),sx=Math.sign(nearX);
       const a1=P(-hx,0,nearZ+sz*off),b1=P(hx,0,nearZ+sz*off);line(P(-hx,0,nearZ),a1);line(P(hx,0,nearZ),b1);line(a1,b1);tick(a1);tick(b1);
       const a2=P(nearX+sx*off,0,-hz),b2=P(nearX+sx*off,0,hz);line(P(nearX,0,-hz),a2);line(P(nearX,0,hz),b2);line(a2,b2);tick(a2);tick(b2);

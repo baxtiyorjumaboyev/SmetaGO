@@ -124,7 +124,7 @@
   function renderConcrete() {
     const grade = $id("qc-grade");
     if (!grade) return;
-    if (!grade.children.length && window.MIX) {
+    if (!grade.children.length && typeof MIX !== "undefined") {
       grade.innerHTML = Object.keys(MIX).map(k => `<option value="${k}"${k === "M250" ? " selected" : ""}>${k}</option>`).join("");
     }
 

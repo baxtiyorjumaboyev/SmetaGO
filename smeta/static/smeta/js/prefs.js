@@ -8,7 +8,7 @@
   function cur(){return root.getAttribute("data-theme")||(mq&&mq.matches?"dark":"light")}
   function sync(){var dark=cur()==="dark";
     // o'rnatilgan ilovada holat paneli rangi sarlavhaga mos bo'lsin (foydalanuvchi tanlagan rejim bo'yicha)
-    if(root.hasAttribute("data-theme"))document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=dark?"#101512":"#ffffff"});
+    if(root.hasAttribute("data-theme"))document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=dark?"#111827":"#ffffff"});
     document.querySelectorAll("[data-theme-toggle]").forEach(function(b){
       var l=b.getAttribute(dark?"data-l-day":"data-l-night");b.setAttribute("aria-pressed",dark);b.title=l;b.setAttribute("aria-label",l)})}
   document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-theme-toggle]");if(!b)return;

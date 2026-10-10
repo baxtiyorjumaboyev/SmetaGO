@@ -7,7 +7,7 @@
     <p class="ometa" style="margin:4px 0 0">{% t "Smeta loyihalari va tezkor hisob-kitoblar boshqaruvi" %}</p>
   </div>
   <div class="pg-acts">
-    <a href="{% url 'app' %}?tab=beton" class="btn ol" style="font-weight:600">🧱 {% t "Beton kalkulyatori" %}</a>
+    <a href="{% url 'app' %}?tab=beton" class="btn ol" style="font-weight:600">{% t "Beton kalkulyatori" %}</a>
     {% if user.is_authenticated %}
     <form method="post" action="{% url 'obyekt_create' %}" style="margin:0">{% csrf_token %}
       <button type="submit" class="btn pri lg btn-new-smeta">
@@ -43,7 +43,7 @@
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px">
     <div>
       <span class="beton-badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg> {% t "Tezkor kalkulyator" %}</span>
-      <h2 style="font-size:20px;margin:4px 0;color:#ffffff">🧱 {% t "Beton ishlari va qorishma tarkibi" %}</h2>
+      <h2 style="font-size:20px;margin:4px 0;color:#ffffff">{% t "Beton ishlari va qorishma tarkibi" %}</h2>
       <p style="color:#94a3b8;margin:0;font-size:13px">{% t "GOST 7473-2010 va SNiP 82-02-95 bo'yicha sement, qum, shag'al va suv sarfi" %}</p>
     </div>
     <div style="display:flex;gap:8px">
@@ -157,7 +157,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
 <script src="{% static 'smeta/js/calc.js' %}"></script>
 <script src="{% static 'smeta/js/dashboard.js' %}"></script>

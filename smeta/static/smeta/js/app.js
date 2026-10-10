@@ -96,7 +96,7 @@ if(SERVER)save();
 
 
 /* ---------- rendering ---------- */
-const TABS=[["xonalar",tr("Xonalar va ta'mirlash")],["beton","🧱 " + tr("Beton ishlari")],["smeta",tr("Smeta va Excel")]];
+const TABS=[["xonalar",tr("Xonalar va ta'mirlash")],["beton",tr("Beton ishlari")],["smeta",tr("Smeta va Excel")]];
 function renderHeader(){
   $("#o-name").value=S.obj.name;
   $("#o-region").innerHTML=REGIONS.map(r=>`<option value="${esc(r)}"${r===S.obj.region?" selected":""}>${esc(tr(r))}</option>`).join("");
@@ -170,7 +170,7 @@ function viewRooms(){
      </details>
     </fieldset>
    </div>
-   <div class="panel roomplan pad" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface)"><div style="font-weight:600;font-size:13px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">📐 <span>${tr("Xona chizmasi (2D reja)")}</span></div><div id="room-plan-2d" style="width:100%;max-width:320px;display:flex;justify-content:center"></div></div>
+   <div class="panel roomplan pad" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface)"><div style="font-weight:600;font-size:13px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px"><span>${tr("Xona chizmasi (2D reja)")}</span></div><div id="room-plan-2d" style="width:100%;max-width:320px;display:flex;justify-content:center"></div></div>
    <div id="derived" class="stack"></div>
   </section>`;
   const cat=`<aside class="panel catalog" id="catalog" aria-label="${tr("Katalog")}"><div class="head"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:nowrap"><h3 style="font-size:16px">${tr("Xonada nima bor?")}</h3><span class="note deskonly">${tr("bosing → o'lchang")}</span><button class="btn sm mobonly" data-act="closeCat" aria-label="${tr("Katalogni yopish")}">${tr("Yopish ×")}</button></div>
@@ -237,7 +237,7 @@ function renderTotal(){const s=buildSmeta();
 }
 
 function viewConcrete(){
-  return `<div class="pagehead"><div><h2>🧱 ${tr("Beton ishlari va qorishma hisobi")}</h2><p>${tr("Marka va hajmni kiriting — sement, shag'al, qum va suv sarfi ГОСТ 7473-2010 va СНиП 82-02-95 bo'yicha hisoblanadi.")}</p></div><button class="btn pri btn-new-smeta" data-act="addConc">+ ${tr("Yangi beton ishi")}</button></div>
+  return `<div class="pagehead"><div><h2>${tr("Beton ishlari va qorishma hisobi")}</h2><p>${tr("Marka va hajmni kiriting — sement, shag'al, qum va suv sarfi ГОСТ 7473-2010 va СНиП 82-02-95 bo'yicha hisoblanadi.")}</p></div><button class="btn pri btn-new-smeta" data-act="addConc">+ ${tr("Yangi beton ishi")}</button></div>
   <div class="section">
     <div class="beton-recipes-grid" style="margin-bottom:16px">
       <div class="beton-recipe-card"><small>M100 (B7.5)</small><b>166 kg</b><small>${tr("Sement / m³")}</small></div>
@@ -372,7 +372,7 @@ function viewSmeta(){
    <div class="row"><button class="btn pri btn-new-smeta" data-act="xlsx">${DL_ICON} ${tr("Excel yuklab olish")}</button><button class="btn" data-act="copyTxt">${tr("Matn sifatida nusxa")}</button></div></div>
   <div class="section"><div class="sumgrid"><div><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div><span>${esc(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency))}</span><b>${fmt(s.cont)}</b></div>${S.settings.vat?`<div><span>${tr("QQS 12%")}</span><b>${fmt(s.vat)}</b></div>`:""}<div class="g"><span>${tr("Jami, so'm")}</span><b>${fmt(s.grand)}</b></div></div>
   <div class="panel pad" style="margin-bottom:16px;background:var(--surface);border:1px solid var(--border)">
-    <div style="font-weight:600;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚙️ <span>${tr("Smeta parametrlari va hisob stavkalari")}</span></div>
+    <div style="font-weight:600;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span>${tr("Smeta parametrlari va hisob stavkalari")}</span></div>
     <div class="grid3 g-stack">
       <label class="fld">${tr("Oylik ish haqi stavkasi, so'm")}<input class="inp numin" data-s="monthly" inputmode="decimal" value="${esc(S.settings.monthly)}"></label>
       <label class="fld">${tr("Kutilmagan xarajatlar, %")}<input class="inp numin" data-s="contingency" inputmode="decimal" value="${esc(S.settings.contingency)}"></label>

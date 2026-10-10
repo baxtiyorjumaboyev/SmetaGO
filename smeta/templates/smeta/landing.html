@@ -3,7 +3,7 @@
 {% block nav %}
 <nav class="sitenav deskonly" aria-label="{% t "Sahifa bo'limlari" %}">
   <a href="#qanday">{% t "Qanday ishlaydi" %}</a>
-  <a href="#beton-sec">🧱 {% t "Beton ishlari" %}</a>
+  <a href="#beton-sec">{% t "Beton ishlari" %}</a>
   <a href="#imkoniyatlar">{% t "Imkoniyatlar" %}</a>
   <a href="#kim">{% t "Kim uchun" %}</a>
 </nav>
@@ -14,12 +14,11 @@
   <section class="hero-wrap">
     <div class="wrap hero">
       <div class="hero-text">
-        <span class="beton-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> {% t "Qurilish smetalarini avtomatlashtirish" %}</span>
         <h1>{% t "Obyektni o'lchang," %} <em>{% t "smeta o'zi" %}</em> {% t "tayyor bo'ladi" %}</h1>
         <p class="lead">{% t "Xona o'lchamlarini kiriting, materiallarni katalogdan tanlang. SmetaGo hajm, narx va ish haqini hisoblab, tayyor smetani Excel'da beradi." %}</p>
         <div class="hero-cta">
           <a class="btn pri lg btn-new-smeta" href="{% url 'app' %}">{% t "Bepul boshlash" %} <span aria-hidden="true">→</span></a>
-          <a class="btn lg ol" href="#beton-sec">🧱 {% t "Beton kalkulyatori" %}</a>
+          <a class="btn lg ol" href="#beton-sec">{% t "Beton kalkulyatori" %}</a>
         </div>
         <ul class="checks">
           <li>{% t "Login va karta talab qilinmaydi" %}</li>
@@ -69,7 +68,7 @@
       <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px">
         <div>
           <span class="beton-badge">ГОСТ 7473-2010 · СНиП 82-02-95</span>
-          <h2 style="font-size:24px;margin:4px 0;color:#ffffff">🧱 {% t "Beton ishlari va qorishma kalkulyatori" %}</h2>
+          <h2 style="font-size:24px;margin:4px 0;color:#ffffff">{% t "Beton ishlari va qorishma kalkulyatori" %}</h2>
           <p style="color:#94a3b8;margin:0;max-width:680px">{% t "Poydevor, pol styajkasi, ustun va yopma plitalar uchun sement, shag'al, qum va suv sarfini bir zumda aniq me'yorda hisoblang." %}</p>
         </div>
         <a class="btn pri lg btn-new-smeta" href="{% url 'app' %}?tab=beton">{% t "Beton hisobini ochish" %} →</a>
@@ -87,7 +86,7 @@
 
   {# 3. Interaktiv Asosiy Imkoniyatlar (Aniqlik, Oflayn, Yo'riqnoma) #}
   <section class="wrap block" id="imkoniyatlar">
-    <h2 class="sec-title">{% t "Ishonchli va shaffof smeta tizimi" %}</h2>
+    <h2 class="sec-title">{% t "Imkoniyatlar" %}</h2>
     <div class="steps3">
       <article class="step feat-card" data-feat-aniqlik>
         <span class="fi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg></span>
@@ -112,7 +111,7 @@
 
   {# 4. Qanday ishlaydi #}
   <section class="wrap block" id="qanday">
-    <h2 class="sec-title">{% t "Uch qadam — obyektdan tayyor smetagacha" %}</h2>
+    <h2 class="sec-title">{% t "Qanday ishlaydi" %}</h2>
     <div class="steps3">
       <article class="step">
         <h3>1. {% t "Xonalarni kiriting" %}</h3>
@@ -154,7 +153,6 @@
   </section>
 </main>
 {{ ref|json_script:"smeta-ref" }}
-<script src="{% static 'smeta/js/i18n.js' %}" defer></script>
 <script src="{% static 'smeta/js/data.js' %}" defer></script>
 <script src="{% static 'smeta/js/calc.js' %}" defer></script>
 <script src="{% static 'smeta/js/landing.js' %}" defer></script>

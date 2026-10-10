@@ -282,3 +282,13 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
 
 - GitHub: `baxtiyorjumaboyev`. Repo commit muallifi repo-local `git config` da sozlangan. Yangi muhitda `git config user.name` / `user.email` ni qayta sozlang (foydalanuvchidan so'rang).
 - Parollar, tokenlar va `SECRET_KEY` bu faylda **yo'q va bo'lmasligi kerak** — repo public.
+
+---
+
+## Dizayn qoidalari (2026-10-10)
+
+- **Palitra:** slate (to'q ko'k-kulrang) + amber (to'q sariq). Aksent `--accent` (`#d97706`, tungi rejimda `#f59e0b`). Yashil ranglar butunlay olib tashlangan — yangi rang qo'shsangiz, shu ikki oiladan oling.
+- **Logotip:** `icons/logo.svg` — vektor (chizmachilik uchburchagi), fon `#d97706`. PNG ikonkalar (favicon, apple-touch, 192/512, maskable) `icon.svg` / `maskable.svg` dan yaratiladi. SVG izohida `--` yozmang (XML xatosi — logotip ko'rinmay qoladi; `test_svg_icons_are_valid_xml`).
+- **"AI ko'rinishi"dan qochish** (foydalanuvchi talabi): emoji yo'q; KATTA HARFLI monospace yorliqlar yo'q; tugmalarda rangli nur (glow) yo'q; gradient/katakli bezak fonlar yo'q; reklama sarlavhalari o'rniga qisqa nomlar ("Imkoniyatlar", "Qanday ishlaydi"). Uslub bloki: `style.css` oxiridagi "Tinch uslub".
+- `i18n.js` faqat `_head.html` da ulanadi — sahifada qayta ulamang (`LANG already declared` xatosi).
+- Top-level `const` (masalan `MIX`) `window` da bo'lmaydi: `typeof MIX !== "undefined"` bilan tekshiring.
