@@ -273,6 +273,7 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
    && sudo -u smetago bash -c 'set -a; . ./.env; set +a; .venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py collectstatic --noinput' \
    && systemctl restart smetago
   ```
+- **Deploydan oldin:** bazani nusxalang (`cp -p db.sqlite3 db.sqlite3.bak-$(date +%Y%m%d-%H%M%S)`) va `/dev/null` ruxsati `666` ekanini tekshiring (`stat -c %a /dev/null`). 2026-10-10 da u `644` bo'lib qolgan va `sudo -u smetago git` ishlamagan — `chmod 666 /dev/null` bilan tiklandi.
 - Admin: `cd /opt/smetago && sudo -u smetago bash -c 'set -a; . ./.env; set +a; .venv/bin/python manage.py createsuperuser'`.
 - Zaxira: `db.sqlite3` ni vaqti-vaqti bilan nusxalang (hali avtomatlashtirilmagan).
 
