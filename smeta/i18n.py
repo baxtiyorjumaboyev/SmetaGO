@@ -119,6 +119,8 @@ RU = {
     "Eng katta obyektlar": "Крупнейшие объекты",
     "Jami smeta bo'yicha": "По итоговой сумме",
     "Foydalanuvchi": "Пользователь",
+    "Mehmon": "Гость",
+    "Login shart emas": "Без входа",
     "Admin": "Админ",
     # obyektlar ro'yxati
     "Obyektlar": "Объекты",

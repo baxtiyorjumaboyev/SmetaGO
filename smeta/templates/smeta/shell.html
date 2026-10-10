@@ -35,9 +35,14 @@
     {% include "smeta/_prefs.html" %}
     <div class="tb-user">
       {% if user.is_authenticated %}
+      {% if is_guest %}
+      <span class="deskonly"><b>{% t "Mehmon" %}</b><small>{% t "Login shart emas" %}</small></span>
+      <span class="tb-avatar" aria-hidden="true">SG</span>
+      {% else %}
       <span class="deskonly"><b>{{ user.get_full_name|default:user.username }}</b><small>{% if user.is_superuser %}{% t "Admin" %}{% else %}{% t "Foydalanuvchi" %}{% endif %}</small></span>
       <span class="tb-avatar" aria-hidden="true">{{ user.username|slice:":2"|upper }}</span>
       <form method="post" action="{% url 'logout' %}" data-logout>{% csrf_token %}<button class="btn sm" title="{% t "Chiqish" %}">{% t "Chiqish" %}</button></form>
+      {% endif %}
       {% else %}
       <a class="btn sm pri btn-new-smeta" href="{% url 'app' %}">+ {% t "Yangi smeta" %}</a>
       {% endif %}

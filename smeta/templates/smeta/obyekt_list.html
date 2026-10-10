@@ -8,19 +8,12 @@
   </div>
   <div class="pg-acts">
     <a href="{% url 'app' %}?tab=beton" class="btn ol" style="font-weight:600">{% t "Beton kalkulyatori" %}</a>
-    {% if user.is_authenticated %}
     <form method="post" action="{% url 'obyekt_create' %}" style="margin:0">{% csrf_token %}
       <button type="submit" class="btn pri lg btn-new-smeta">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         {% t "Yangi smeta loyihasi" %}
       </button>
     </form>
-    {% else %}
-    <a href="{% url 'app' %}" class="btn pri lg btn-new-smeta" style="text-decoration:none">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-      {% t "Yangi smeta loyihasi" %}
-    </a>
-    {% endif %}
   </div>
 </div>
 

@@ -25,9 +25,8 @@ class SmetaTests(TestCase):
         anon = Client()
         landing = anon.get("/")  # mehmonga — sayt (bosh sahifa)
         self.assertEqual(landing.status_code, 200)
-        self.assertContains(landing, reverse("register"))
+        self.assertNotContains(landing, reverse("register"))  # loginsiz: kirish/ro'yxat havolalari ko'rsatilmaydi
         self.assertContains(landing, 'rel="manifest"')
-        self.assertRedirects(anon.get(reverse("obyekt_create")), "/kirish/?next=/obyekt/yangi/")
         self.assertContains(anon.get(reverse("login")), reverse("password_reset"))  # "Parolni unutdingizmi?" doim
         form = {"username": "vali", "password1": "Qurilish-2026!", "password2": "Qurilish-2026!"}
         self.assertNotContains(anon.get(reverse("register")), 'name="email"')  # email so'ralmaydi
@@ -496,7 +495,7 @@ class ShellPagesTests(TestCase):
         page = c.get(reverse("loyihalar")).content.decode()
         self.assertIn(f'data-id="{o.pk}"', page)
         self.assertIn('id="qc"', page)                    # tezkor kalkulyator
-        self.assertRedirects(Client().get(reverse("loyihalar")), "/kirish/?next=/loyihalar/")
+        self.assertEqual(Client().get(reverse("loyihalar")).status_code, 200)  # login shart emas
         other = User.objects.create_user("vali", password="SmetaGo-2026!")
         c2 = Client()
         c2.force_login(other)
@@ -523,3 +522,36 @@ class SimpleEditorTests(TestCase):
         src = open(js, encoding="utf-8").read()
         for marker in ('data-act="ownFinish"', 'data-act="custom"', '"__own"', "function guide(", 'class="adv"'):
             self.assertIn(marker, src)
+
+
+class GuestModeTests(TestCase):
+    """Loginsiz ishlash: obyekt yaratilganda mehmon hisobi avtomatik ochiladi."""
+
+    def test_guest_account_created_on_first_object(self):
+        c = Client()
+        self.assertEqual(c.get("/").status_code, 200)
+        self.assertEqual(User.objects.count(), 0)  # sahifa ko'rish hisob ochmaydi
+        r = c.post(reverse("obyekt_create"))
+        o = Obyekt.objects.get()
+        self.assertRedirects(r, reverse("obyekt_app", args=[o.pk]))
+        self.assertTrue(o.owner.username.startswith("mehmon-"))
+        self.assertFalse(o.owner.has_usable_password())
+        self.assertFalse(c.session.get_expire_at_browser_close())  # brauzer yopilsa ham saqlanadi
+        page = c.get(reverse("obyekt_app", args=[o.pk]))
+        self.assertContains(page, "saveUrl")
+        r = c.put(reverse("obyekt_state", args=[o.pk]), json.dumps(STATE), content_type="application/json")
+        self.assertEqual(r.status_code, 200)
+        dash = c.get("/").content.decode()
+        self.assertIn("Mehmon", dash)
+        self.assertNotIn('action="/chiqish/"', dash)  # chiqsa obyektlari yo'qoladi — tugma yo'q
+        c.post(reverse("obyekt_create"))
+        self.assertEqual(User.objects.count(), 1)  # ikkinchi obyekt — o'sha hisobga
+
+    def test_other_guest_cannot_see_object(self):
+        a = Client()
+        a.post(reverse("obyekt_create"))
+        o = Obyekt.objects.get()
+        b = Client()
+        self.assertEqual(b.get(reverse("obyekt_state", args=[o.pk])).status_code, 404)
+        b.post(reverse("obyekt_create"))
+        self.assertEqual(b.get(reverse("obyekt_state", args=[o.pk])).status_code, 404)
