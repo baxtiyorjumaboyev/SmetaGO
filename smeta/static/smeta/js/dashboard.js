@@ -210,17 +210,36 @@
     updateRows("dash-rows");
     updateRows("ly-rows");
 
-    // Search filter
+    // Qidiruv + filtr ("Barchasi / Bu oy / Ochilmagan"); ?q= (yuqori paneldagi qidiruv) ochilishda qo'llanadi
     const searchInp = $id("dash-search") || $id("ly-q");
-    if (searchInp) {
-      searchInp.addEventListener("input", function() {
-        const q = this.value.trim().toLowerCase();
-        document.querySelectorAll("#dash-rows tr[data-id], #ly-rows tr[data-id]").forEach(tr_ => {
-          const name = tr_.dataset.name || "";
-          tr_.hidden = q && !name.includes(q);
-        });
+    const seg = $id("ly-filter");
+    const byId = Object.fromEntries(rows.map(r => [String(r.id), r]));
+    const test = {all: () => true, new: r => thisMonth(r.created), wait: r => !r.ok};
+    const apply = () => {
+      const q = searchInp ? searchInp.value.trim().toLowerCase() : "";
+      const f = (seg && seg.querySelector("[aria-pressed=true]")?.dataset.f) || "all";
+      document.querySelectorAll("#dash-rows tr[data-id], #ly-rows tr[data-id]").forEach(tr_ => {
+        const r = byId[tr_.dataset.id];
+        tr_.hidden = !!(q && !(tr_.dataset.name || "").includes(q)) || !(r && test[f](r));
       });
+    };
+    if (seg) {
+      seg.querySelectorAll("[data-cnt]").forEach(el => { el.textContent = rows.filter(test[el.dataset.cnt] || test.all).length; });
+      if (!seg.dataset.bound) {
+        seg.dataset.bound = "1";
+        seg.addEventListener("click", e => {
+          const b = e.target.closest("[data-f]");
+          if (!b) return;
+          seg.querySelectorAll("[data-f]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+          apply();
+        });
+      }
     }
+    if (searchInp && !searchInp.dataset.bound) {
+      searchInp.dataset.bound = "1";
+      searchInp.addEventListener("input", apply);
+    }
+    apply();
   }
 
   function init() {

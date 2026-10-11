@@ -5,7 +5,7 @@ Bo'limlar:
   2. Kabinet            — boshqaruv paneli, smeta loyihalari, obyekt muharriri
   3. Obyekt amallari    — yaratish, nusxa, o'chirish
   4. API                — holatni saqlash (PUT), Excel fayl
-  5. Hisob              — kirish, ro'yxatdan o'tish
+  5. Hisob              — kirish, ro'yxatdan o'tish (ixtiyoriy; mehmon hisobi avtomatik — smeta/guest.py)
 
 Hisob-kitob brauzerda (static/smeta/js/calc.js); server faqat saqlaydi va Excel faylni formatlaydi.
 """
@@ -13,8 +13,7 @@ import json
 
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import content_disposition_header
@@ -22,6 +21,7 @@ from django.views.decorators.http import require_POST
 
 from .excel import DEMO_LIMITS, build_workbook
 from .forms import RegisterForm
+from .guest import ensure_user
 from .i18n import current_lang, tr
 from .malumotnoma import cached_reference
 from .models import Obyekt
@@ -36,7 +36,9 @@ def _ref():
 
 
 def _my_obyekt(request, pk):
-    """Faqat egasining obyekti; begonasiga 404."""
+    """Faqat egasining obyekti; begonasiga va hisobsiz mehmonga 404."""
+    if not request.user.is_authenticated:
+        raise Http404
     return get_object_or_404(Obyekt, pk=pk, owner=request.user)
 
 
@@ -64,7 +66,6 @@ def privacy_page(request):
 
 # ---------- 2. Kabinet ----------
 
-@login_required
 def loyihalar(request):
     """Smeta loyihalari: barcha obyektlar jadvali va tezkor beton kalkulyatori."""
     return render(request, "smeta/loyihalar.html", _dash_context(request))
@@ -94,19 +95,18 @@ def obyekt_app(request, pk):
 
 # ---------- 3. Obyekt amallari ----------
 
-@login_required
 @require_POST
 def obyekt_create(request):
+    """Login shart emas: mehmonga shu yerda hisob ochiladi (smeta/guest.py)."""
     is_namuna = request.POST.get("namuna") == "1"
     o = Obyekt.objects.create(
-        owner=request.user,
+        owner=ensure_user(request),
         name=tr("Yangi obyekt"),
         state={"namuna": True} if is_namuna else {},
     )
     return redirect("obyekt_app", pk=o.pk)
 
 
-@login_required
 @require_POST
 def obyekt_copy(request, pk):
     o = _my_obyekt(request, pk)
@@ -118,7 +118,6 @@ def obyekt_copy(request, pk):
     return redirect("obyekt_list")
 
 
-@login_required
 @require_POST
 def obyekt_delete(request, pk):
     _my_obyekt(request, pk).delete()
@@ -127,7 +126,6 @@ def obyekt_delete(request, pk):
 
 # ---------- 4. API ----------
 
-@login_required
 def obyekt_state(request, pk):
     """Brauzerdagi `S` holatini o'qish (GET) va saqlash (PUT)."""
     o = _my_obyekt(request, pk)
@@ -158,7 +156,6 @@ def _xlsx_response(request, filename, **limits):
     return resp
 
 
-@login_required
 @require_POST
 def obyekt_excel(request, pk):
     o = _my_obyekt(request, pk)

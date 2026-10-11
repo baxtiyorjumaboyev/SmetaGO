@@ -8,6 +8,11 @@ const $=(s,r=document)=>r.querySelector(s);
 const uid=()=>Math.random().toString(36).slice(2,9);
 const SOM=tr("so'm");
 const rtLabel=k=>(ROOM_TYPES[k]&&ROOM_TYPES[k].l)||tr(k);
+/* Xona nomini quruvchi o'zi yozadi; tur (standart qoplama va tavsiyalar uchun) nomdan taxmin qilinadi,
+ * topilmasa — umumiy "Boshqa". */
+const GEN_TYPE=ROOM_TYPES.Boshqa?"Boshqa":Object.keys(ROOM_TYPES)[0];
+function guessType(name){const n=String(name||"").toLowerCase();
+  return Object.keys(ROOM_TYPES).find(k=>n.includes(k.toLowerCase())||n.includes(rtLabel(k).toLowerCase()))||GEN_TYPE}
 
 /* ---------- state ---------- */
 function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
@@ -16,7 +21,7 @@ function sample(){
   return blank(null, tr("Yangi smeta"));
 }
 function blank(base,name){
-  const nr=mkRoom("Mehmonxona",null,"5","4","2,8");
+  const nr=mkRoom(GEN_TYPE,tr("{0}-xona",1),"5","4","2,8");
   return{
     v:1,sample:false,
     obj:{name:name||tr("Yangi smeta"),region:(base&&base.obj&&base.obj.region)||"Toshkent sh.",quarter:(base&&base.obj&&base.obj.quarter)||QUARTERS[0]},
@@ -40,7 +45,7 @@ function applyDraft(st){let d=null;try{d=JSON.parse(localStorage.getItem("smetag
   if(!d||!d.room||Date.now()-(d.ts||0)>7*864e5)return false;
   try{localStorage.removeItem("smetago-draft")}catch(e){}
   const x=d.room,r=st.rooms[0],type=ROOM_TYPES[x.type]?x.type:r.type;
-  Object.assign(r,{type,name:rtLabel(type),L:String(x.L||""),W:String(x.W||""),H:String(x.H||r.H)});
+  Object.assign(r,{type,L:String(x.L||""),W:String(x.W||""),H:String(x.H||r.H)});
   ["floor","wall","ceil"].forEach(k=>{if(x[k]&&({floor:FLOOR,wall:WALL,ceil:CEIL})[k][x[k]])r[k]=x[k]});
   st.ui.draftApplied=true;return true}
 /* Oflayn navbat: serverga yetib bormagan oxirgi holat qurilmada saqlanadi ({ts, state})
@@ -100,7 +105,7 @@ if(SERVER)save();
 
 
 /* ---------- rendering ---------- */
-const TABS=[["xonalar",tr("Xonalar va ta'mirlash")],["beton","🧱 " + tr("Beton ishlari")],["smeta",tr("Smeta va Excel")]];
+const TABS=[["xonalar",tr("Xonalar va ta'mirlash")],["beton",tr("Beton ishlari")],["smeta",tr("Smeta va Excel")]];
 function renderHeader(){
   $("#o-name").value=S.obj.name;
   $("#o-region").innerHTML=REGIONS.map(r=>`<option value="${esc(r)}"${r===S.obj.region?" selected":""}>${esc(tr(r))}</option>`).join("");
@@ -123,8 +128,8 @@ function roomTotal(r){const c=roomCalc(r);return sum([...c.lines,...r.items.map(
 
 function viewRooms(){
   const r=curRoom();
-  const list=`<aside class="panel roomlist"><ul>${S.rooms.map(x=>`<li><button class="roombtn" data-act="room" data-id="${x.id}" aria-current="${r&&x.id===r.id}"><b>${esc(x.name)}</b><span id="rl-${x.id}">${fmt(roomTotal(x))} ${SOM}</span></button></li>`).join("")}</ul>
-   <div class="addroom"><select class="inp" id="newType" aria-label="${tr("Xona turi")}">${Object.keys(ROOM_TYPES).map(k=>`<option value="${esc(k)}">${esc(rtLabel(k))}</option>`).join("")}</select><button class="btn pri" data-act="addRoom">${tr("+ Xona qo'shish")}</button></div></aside>`;
+  const list=`<aside class="panel roomlist"><ul>${S.rooms.map(x=>`<li><button class="roombtn" data-act="room" data-id="${x.id}" aria-current="${r&&x.id===r.id}"><b>${esc(x.name)}</b><span id="rl-${x.id}">${fmt(roomTotal(x))} ${SOM}</span></button><button class="roomdel" data-act="delRoomId" data-id="${x.id}" title="${tr("Xonani o'chirish")}" aria-label="${tr("Xonani o'chirish")}">×</button></li>`).join("")}</ul>
+   <div class="addroom"><input class="inp" id="newName" aria-label="${tr("Xona nomi")}" placeholder="${tr("Xona nomini yozing")}" maxlength="60"><button class="btn pri" data-act="addRoom">${tr("+ Xona qo'shish")}</button></div></aside>`;
   if(!r)return `<div class="layout">${list}<section class="panel pad empty">${tr("Xona qo'shing — o'lchamlarni kiritgach, hisob avtomatik chiqadi.")}</section></div>`;
   const opt=(o,cur)=>Object.entries(o).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${esc(lab(v))}</option>`).join("");
   // qoplama o'lchami: placeholder — xonaning o'lchami (renderDerived yangilab turadi)
@@ -135,7 +140,7 @@ function viewRooms(){
   const edit=`<section class="stack">
    ${guide(r)}
    <div class="panel pad stack">
-    <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><span class="tag">${esc(rtLabel(r.type))}</span><button class="btn ghost sm" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
+    <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><button class="btn sm btn-del" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
     <fieldset>${sec(1,"Xona o'lchami","Lenta bilan uzunligi, eni va balandligini o'lchang (metrda, masalan 4,5).")}
      <div class="grid3">
       <label class="fld">${tr("Uzunligi")}${stepper(`<input class="inp numin" id="r-L" data-f="L" aria-label="${tr("Uzunligi")}" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00">`,"r-L",.1)}</label>
@@ -174,7 +179,7 @@ function viewRooms(){
      </details>
     </fieldset>
    </div>
-   <div class="panel roomplan pad" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface)"><div style="font-weight:600;font-size:13px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">📐 <span>${tr("Xona chizmasi (2D reja)")}</span></div><div id="room-plan-2d" style="width:100%;max-width:320px;display:flex;justify-content:center"></div></div>
+   <div class="panel roomplan pad" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface)"><div style="font-weight:600;font-size:13px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px"><span>${tr("Xona chizmasi (2D reja)")}</span></div><div id="room-plan-2d" style="width:100%;max-width:320px;display:flex;justify-content:center"></div></div>
    <div id="derived" class="stack"></div>
   </section>`;
   const cat=`<aside class="panel catalog" id="catalog" aria-label="${tr("Katalog")}"><div class="head"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:nowrap"><h3 style="font-size:16px">${tr("Xonada nima bor?")}</h3><span class="note deskonly">${tr("bosing → o'lchang")}</span><button class="btn sm mobonly" data-act="closeCat" aria-label="${tr("Katalogni yopish")}">${tr("Yopish ×")}</button></div>
@@ -196,7 +201,7 @@ function renderCatItems(){
   const card=(it,s)=>`<button class="cat-item${s?" sugg":""}" data-act="pick" data-cid="${it.id}"><b>${esc(it.n)}</b><span>${it.v?tr("dan")+" ":""}${fmt(it.v?Math.min(...it.v.map(v=>v[1])):it.p)} / ${esc(U(it.u))}</span></button>`;
   // har ro'yxatning boshida: ro'yxatda yo'q narsani o'zi qo'shish
   const own=(name="")=>`<button class="cat-item own-card" data-act="custom" data-name="${esc(name)}"><b>+ ${tr("O'zim qo'shaman")}</b><span>${tr("ro'yxatda yo'q bo'lsa")}</span></button>`;
-  const sugg=()=>{const t=ROOM_TYPES[r?.type]||ROOM_DEFAULT;return `<p class="eyebrow" style="margin:0">${esc(tr("{0} uchun odatiy",r?rtLabel(r.type):""))}</p><div class="catgrid">${own()}${t.s.map(id=>CAT_INDEX[id]).filter(Boolean).map(it=>card(it,1)).join("")}</div>`};
+  const sugg=()=>{const t=ROOM_TYPES[r?.type]||ROOM_DEFAULT;return `<p class="eyebrow" style="margin:0">${esc(tr("{0} uchun odatiy",r?r.name:""))}</p><div class="catgrid">${own()}${t.s.map(id=>CAT_INDEX[id]).filter(Boolean).map(it=>card(it,1)).join("")}</div>`};
   let html="";
   if(q){const res=Object.values(CAT_INDEX).filter(it=>(it.n+" "+(it.v||[]).map(v=>v[0]).join(" ")+" "+it.g).toLowerCase().includes(q));
     html=res.length?`<div class="catgrid">${own(S.ui.q.trim())}${res.map(it=>card(it)).join("")}</div>`:`<p class="note">${esc(tr("\"{0}\" topilmadi — o'zingiz qo'shing:",S.ui.q))}</p><div class="catgrid">${own(S.ui.q.trim())}</div>`}
@@ -242,7 +247,7 @@ function renderTotal(){const s=buildSmeta();
 }
 
 function viewConcrete(){
-  return `<div class="pagehead"><div><h2>🧱 ${tr("Beton ishlari va qorishma hisobi")}</h2><p>${tr("Marka va hajmni kiriting — sement, shag'al, qum va suv sarfi ГОСТ 7473-2010 va СНиП 82-02-95 bo'yicha hisoblanadi.")}</p></div><button class="btn pri btn-new-smeta" data-act="addConc">+ ${tr("Yangi beton ishi")}</button></div>
+  return `<div class="pagehead"><div><h2>${tr("Beton ishlari va qorishma hisobi")}</h2><p>${tr("Marka va hajmni kiriting — sement, shag'al, qum va suv sarfi ГОСТ 7473-2010 va СНиП 82-02-95 bo'yicha hisoblanadi.")}</p></div><button class="btn pri btn-new-smeta" data-act="addConc">+ ${tr("Yangi beton ishi")}</button></div>
   <div class="section">
     <div class="beton-recipes-grid" style="margin-bottom:16px">
       <div class="beton-recipe-card"><small>M100 (B7.5)</small><b>166 kg</b><small>${tr("Sement / m³")}</small></div>
@@ -377,7 +382,7 @@ function viewSmeta(){
    <div class="row"><button class="btn pri btn-new-smeta" data-act="xlsx">${DL_ICON} ${tr("Excel yuklab olish")}</button><button class="btn" data-act="copyTxt">${tr("Matn sifatida nusxa")}</button></div></div>
   <div class="section"><div class="sumgrid"><div><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div><span>${esc(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency))}</span><b>${fmt(s.cont)}</b></div>${S.settings.vat?`<div><span>${tr("QQS 12%")}</span><b>${fmt(s.vat)}</b></div>`:""}<div class="g"><span>${tr("Jami, so'm")}</span><b>${fmt(s.grand)}</b></div></div>
   <div class="panel pad" style="margin-bottom:16px;background:var(--surface);border:1px solid var(--border)">
-    <div style="font-weight:600;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px">⚙️ <span>${tr("Smeta parametrlari va hisob stavkalari")}</span></div>
+    <div style="font-weight:600;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span>${tr("Smeta parametrlari va hisob stavkalari")}</span></div>
     <div class="grid3 g-stack">
       <label class="fld">${tr("Oylik ish haqi stavkasi, so'm")}<input class="inp numin" data-s="monthly" inputmode="decimal" value="${esc(S.settings.monthly)}"></label>
       <label class="fld">${tr("Kutilmagan xarajatlar, %")}<input class="inp numin" data-s="contingency" inputmode="decimal" value="${esc(S.settings.contingency)}"></label>
@@ -455,7 +460,9 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
   switch(a){
    case "tab":document.body.classList.remove("cat-open");S.ui.tab=b.dataset.k;S.ui.confirmSync=false;render();window.scrollTo(0,0);if(S.ui.tab==="beton")renderConcreteDerived();break;
    case "room":S.ui.room=b.dataset.id;S.ui.confirmDel=null;render();break;
-   case "addRoom":{const t=$("#newType").value;const lbl=rtLabel(t);const n=S.rooms.filter(x=>x.type===t).length;const nr=mkRoom(t,n?`${lbl} ${n+1}`:lbl);S.rooms.push(nr);S.ui.room=nr.id;S.ui.grp="Tavsiya";render();$("#r-L")?.focus();break}
+   case "addRoom":addRoom();break;
+   case "delRoomId":{const x=S.rooms.find(y=>y.id===b.dataset.id);if(!x||!confirm(tr("«{0}» xonasi o'chirilsinmi?",x.name)))break;
+     S.rooms=S.rooms.filter(y=>y.id!==x.id);if(S.ui.room===x.id)S.ui.room=S.rooms[0]?.id;S.ui.confirmDel=null;render();toast(tr("Xona o'chirildi"));break}
    case "delRoom":if(S.ui.confirmDel!==r.id){S.ui.confirmDel=r.id;render();break}S.rooms=S.rooms.filter(x=>x.id!==r.id);S.ui.room=S.rooms[0]?.id;S.ui.confirmDel=null;render();break;
    case "reset":if(!S.ui.confirmReset){S.ui.confirmReset=true;render();break}{S=blank(S);render();$("#r-L")?.focus()}break;
    case "syncPrices":if(!S.ui.confirmSync){S.ui.confirmSync=true;render();break}
@@ -506,7 +513,9 @@ document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
 });
 // "Qo'shimcha sozlamalar" ochiq/yopiqligi obyektda eslab qolinadi
 document.addEventListener("toggle",e=>{if(e.target.id==="adv"){S.ui.adv=e.target.open;save()}},true);
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
+function addRoom(){const name=($("#newName")?.value||"").trim()||tr("{0}-xona",S.rooms.length+1);
+  const nr=mkRoom(guessType(name),name);S.rooms.push(nr);S.ui.room=nr.id;S.ui.grp="Tavsiya";S.ui.confirmDel=null;render();$("#r-L")?.focus()}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="newName"){e.preventDefault();addRoom();return}if(e.key==="Escape"&&!$("#modal").hidden)closeModal();if(e.key==="Enter"&&!$("#modal").hidden&&e.target.tagName==="INPUT"){e.preventDefault();modalAdd()}});
 
 // ?tab=smeta — kerakli bo'limni ochish (masalan, bosh sahifadagi "Namuna smetani ko'rish")
 {const q=new URLSearchParams(location.search).get("tab");if(TABS.some(([k])=>k===q))S.ui.tab=q}

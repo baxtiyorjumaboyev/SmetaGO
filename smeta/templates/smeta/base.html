@@ -32,8 +32,8 @@
     {% include "smeta/_prefs.html" %}
     {% if user.is_authenticated %}
     <div class="userbar">
-      <span class="uchip"><span class="avatar" aria-hidden="true">{{ user.username|slice:":2"|upper }}</span><span class="deskonly"><b>{{ user.username }}</b><small>{% if user.is_superuser %}{% t "Admin" %}{% else %}{% t "Foydalanuvchi" %}{% endif %}</small></span></span>
-      <form method="post" action="{% url 'logout' %}" data-logout>{% csrf_token %}<button class="btn sm">{% t "Chiqish" %}</button></form>
+      <span class="uchip"><span class="avatar" aria-hidden="true">{% if is_guest %}SG{% else %}{{ user.username|slice:":2"|upper }}{% endif %}</span><span class="deskonly"><b>{% if is_guest %}{% t "Mehmon" %}{% else %}{{ user.username }}{% endif %}</b><small>{% if user.is_superuser %}{% t "Admin" %}{% else %}{% t "Foydalanuvchi" %}{% endif %}</small></span></span>
+      {% if not is_guest %}<form method="post" action="{% url 'logout' %}" data-logout>{% csrf_token %}<button class="btn sm">{% t "Chiqish" %}</button></form>{% endif %}
     </div>
     {% else %}
     <div class="userbar">
@@ -54,7 +54,6 @@
       <a href="{% url 'demo' %}">{% t "Smeta kalkulyatori" %}</a>
       <a href="{% url 'help' %}">{% t "Yordam" %}</a>
       <a href="{% url 'privacy' %}">{% t "Maxfiylik" %}</a>
-      <a href="{% url 'register' %}">{% t "Ro'yxatdan o'tish" %}</a>
     </nav>
   </div>
 </footer>

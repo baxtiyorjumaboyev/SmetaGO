@@ -136,6 +136,7 @@ Hisob formulalari: `smetago-project/smetago-project/docs/HISOB-QOIDALARI.md`. Fr
    - **Formulalar faqat `calc.js` da.** Bosh sahifa kalkulyatori ham shu funksiyalarni chaqiradi — saytdagi summa ilovadagi bilan aynan bir xil (e2e sinovda tekshiriladi). Formulani boshqa joyga nusxalamang.
    - **Namuna** (`/namuna/`, `o=None`): `window.SMETAGO` yo'q, `SMETAGO_DEMO` bor → holat `localStorage["smetago-namuna"]`, Excel `POST /api/excel/` (anonim, CSRF bilan, hech narsa saqlanmaydi). `?tab=smeta` bo'limni ochadi.
    - **Qoralama:** `landing.js` "Saqlash" da `localStorage["smetago-draft"]` ({ts, room}) yozadi → obyektlar ro'yxatida banner → yangi **bo'sh** obyekt ochilganda `applyDraft()` birinchi xonaga qo'yadi va o'chiradi (7 kun amal qiladi).
+   - **Loginsiz ishlash (2026-10-10, foydalanuvchi talabi):** saytga kirish uchun login/parol shart emas. Mehmon birinchi obyektni yaratganda (`POST /obyekt/yangi/`) `smeta/guest.py` `ensure_user()` parolsiz `mehmon-<hex>` hisobini ochib, sessiyaga kiritadi (sessiya 1 yil). Oddiy sahifa ko'rish hisob ochmaydi (botlar bazani to'ldirmasin). Mehmonga "Chiqish" va "Ro'yxatdan o'tish" ko'rsatilmaydi (`is_guest` — `context.py`); chiqsa obyektlariga qaytolmaydi. Views'da `login_required` yo'q: begona/hisobsiz so'rovga `_my_obyekt()` 404 beradi. `/kirish/` va `/royxatdan-otish/` ishlaydi, lekin havolalari olib tashlangan (eski hisoblar va admin uchun).
    - **Ro'yxatdan o'tish** — faqat login va parol, email **so'ralmaydi** (foydalanuvchi talabi, 2026-09-29). Parolni unutgan: Telegram orqali kirish yoki admin panelda parolni yangilash; email orqali tiklash faqat emaili bor (admin qo'shgan) hisoblar uchun.
    - **Telegram orqali kirish** (`smeta/telegram.py`, `TelegramAccount`): Login Widget → `GET /kirish/telegram/?id=…&hash=…`; imzo `HMAC-SHA256(SHA256(token))` bilan tekshiriladi, 24 soatdan eski ma'lumot rad etiladi. Birinchi kirish — yangi hisob (parolsiz), kirgan foydalanuvchi uchun — hisobga ulash ("Asosiy"da tugma). Sozlama: `.env` da `DJANGO_TELEGRAM_BOT_TOKEN`, `DJANGO_TELEGRAM_BOT_NAME`; BotFather'da `/setdomain` = sayt domeni. Token bo'lmasa tugma ko'rinmaydi.
    - **Ma'lumotnoma keshi:** `cached_reference(lang)` (5 daqiqa); admin'da saqlash/o'chirish signal bilan darhol tozalaydi. `QuerySet.update()` signal bermaydi — ma'lumotnomani shunday o'zgartirsangiz `invalidate_reference()` ni chaqiring.
@@ -261,7 +262,7 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
 
 ## 9. Server (production)
 
-- **Manzil:** https://smetago.169-58-130-201.nip.io — server `169.58.130.201` (Ubuntu 24.04). **Server umumiy**: unda 30+ boshqa loyiha ishlaydi — faqat SmetaGO'ga tegishli narsalarni o'zgartiring.
+- **Manzil:** https://smetago.169-58-130-201.nip.io — server `169.58.130.201` (Ubuntu 24.04). **Server umumiy**: unda 30+ boshqa loyiha ishlaydi — **boshqa loyihalarga umuman tegmang** (foydalanuvchining qat'iy talabi); faqat `/opt/smetago`, `smetago.service` va Caddyfile'dagi SmetaGO bloki.
 - **Ilova:** `/opt/smetago` (git clone, egasi `smetago` tizim foydalanuvchisi), `.venv`, baza `db.sqlite3`, sozlamalar `.env` (chmod 600: `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`, `DJANGO_BEHIND_PROXY=1`).
 - **Xizmat:** `smetago.service` (systemd) — gunicorn `172.18.0.1:8510`, 2 worker. Log: `journalctl -u smetago -f`.
 - **Proksi:** umumiy Caddy konteyneri `coach-caddy-1`, fayl `/opt/coach/deploy/Caddyfile` (oxirida SmetaGO bloki). Faylni faqat `>>` bilan yoki joyida tahrirlang — u konteynerga bind-mount qilingan, `sed -i` inode'ni almashtirib, bog'lanishni uzadi. Tekshirish va qo'llash: `docker exec coach-caddy-1 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`, keyin `caddy reload`.
@@ -273,6 +274,7 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
    && sudo -u smetago bash -c 'set -a; . ./.env; set +a; .venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py collectstatic --noinput' \
    && systemctl restart smetago
   ```
+- **Deploydan oldin:** bazani nusxalang (`cp -p db.sqlite3 db.sqlite3.bak-$(date +%Y%m%d-%H%M%S)`) va `/dev/null` ruxsati `666` ekanini tekshiring (`stat -c %a /dev/null`). 2026-10-10 da u `644` bo'lib qolgan va `sudo -u smetago git` ishlamagan — `chmod 666 /dev/null` bilan tiklandi.
 - Admin: `cd /opt/smetago && sudo -u smetago bash -c 'set -a; . ./.env; set +a; .venv/bin/python manage.py createsuperuser'`.
 - Zaxira: `db.sqlite3` ni vaqti-vaqti bilan nusxalang (hali avtomatlashtirilmagan).
 
@@ -282,3 +284,13 @@ Playwright bilan (`pip install playwright`, o'rnatilgan Chrome: `p.chromium.laun
 
 - GitHub: `baxtiyorjumaboyev`. Repo commit muallifi repo-local `git config` da sozlangan. Yangi muhitda `git config user.name` / `user.email` ni qayta sozlang (foydalanuvchidan so'rang).
 - Parollar, tokenlar va `SECRET_KEY` bu faylda **yo'q va bo'lmasligi kerak** — repo public.
+
+---
+
+## Dizayn qoidalari (2026-10-10)
+
+- **Palitra:** slate (to'q ko'k-kulrang) + amber (to'q sariq). Aksent `--accent` (`#d97706`, tungi rejimda `#f59e0b`). Yashil ranglar butunlay olib tashlangan — yangi rang qo'shsangiz, shu ikki oiladan oling.
+- **Logotip:** `icons/logo.svg` — vektor (chizmachilik uchburchagi), fon `#d97706`. PNG ikonkalar (favicon, apple-touch, 192/512, maskable) `icon.svg` / `maskable.svg` dan yaratiladi. SVG izohida `--` yozmang (XML xatosi — logotip ko'rinmay qoladi; `test_svg_icons_are_valid_xml`).
+- **"AI ko'rinishi"dan qochish** (foydalanuvchi talabi): emoji yo'q; KATTA HARFLI monospace yorliqlar yo'q; tugmalarda rangli nur (glow) yo'q; gradient/katakli bezak fonlar yo'q; reklama sarlavhalari o'rniga qisqa nomlar ("Imkoniyatlar", "Qanday ishlaydi"). Uslub bloki: `style.css` oxiridagi "Tinch uslub".
+- `i18n.js` faqat `_head.html` da ulanadi — sahifada qayta ulamang (`LANG already declared` xatosi).
+- Top-level `const` (masalan `MIX`) `window` da bo'lmaydi: `typeof MIX !== "undefined"` bilan tekshiring.
