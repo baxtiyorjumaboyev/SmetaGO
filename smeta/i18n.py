@@ -10,6 +10,8 @@ RU = {
     # umumiy
     "o'lchang · tanlang · hisoblang": "измеряйте · выбирайте · считайте",
     "Chiqish": "Выйти",
+    "Saqlandi": "Сохранено",
+    "Hali obyekt yo'q. «Yangi smeta» tugmasi bilan boshlang.": "Объектов пока нет. Начните с кнопки «Новая смета».",
     "Til": "Язык",
     "Tungi rejim": "Ночной режим",
     "Kunduzgi rejim": "Дневной режим",

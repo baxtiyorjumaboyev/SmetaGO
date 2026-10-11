@@ -200,7 +200,7 @@ class SmetaTests(TestCase):
         page = self.c.get("/")
         self.assertContains(page, '<html lang="ru">')
         self.assertContains(page, "Панель управления")
-        self.assertContains(self.c.get(reverse("loyihalar")), "Создать смету")
+        self.assertContains(self.c.get(reverse("loyihalar")), "Новая смета")
         self.c.post(reverse("obyekt_create"))
         self.assertEqual(Obyekt.objects.get().name, "Новый объект")
 

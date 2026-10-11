@@ -12,9 +12,6 @@
     <span class="sb-logo" aria-hidden="true"><img class="logo-img" src="{% static 'smeta/icons/logo.svg' %}" alt="" width="40" height="40"></span>
     <span><b>SmetaGo</b></span>
   </a>
-  <div style="padding:10px 14px">
-    <a href="{% url 'app' %}" class="btn pri block btn-new-smeta" style="text-decoration:none">+ {% t "Yangi smeta" %}</a>
-  </div>
   <nav class="sb-nav">
     <a href="{% url 'obyekt_list' %}"{% if un == "obyekt_list" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>{% t "Boshqaruv paneli" %}</a>
     <a href="{% url 'loyihalar' %}"{% if un == "loyihalar" %} aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5.5A1.5 1.5 0 0 1 5.5 4h7A1.5 1.5 0 0 1 14 5.5V21M14 10h4.5A1.5 1.5 0 0 1 20 11.5V21M3 21h18M7.5 8h3M7.5 12h3M7.5 16h3"/></svg>{% t "Smeta loyihalari" %} ({% t "Obyektlar" %})</a>
@@ -31,7 +28,10 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
       <input name="q" value="{{ request.GET.q }}" placeholder="{% t "Obyekt nomi bo'yicha qidirish…" %}" aria-label="{% t "Qidirish" %}">
     </form>
-    <a href="{% url 'app' %}" class="btn pri sm btn-new-smeta deskonly" style="text-decoration:none">+ {% t "Yangi smeta" %}</a>
+    {# yagona "Yangi smeta" tugmasi: kirgan foydalanuvchiga obyekt hisobida yaratiladi (mehmon rejimi /app/ emas) #}
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'obyekt_create' %}" class="tb-new">{% csrf_token %}<button type="submit" class="btn pri sm btn-new-smeta">+ {% t "Yangi smeta" %}</button></form>
+    {% endif %}
     {% include "smeta/_prefs.html" %}
     <div class="tb-user">
       {% if user.is_authenticated %}

@@ -17,6 +17,7 @@
       <input class="inp" id="o-name" data-o="name" aria-label="{% t 'Obyekt nomi' %}" placeholder="{% t 'Obyekt nomi' %}">
       <select class="inp" id="o-region" data-o="region" aria-label="{% t 'Hudud' %}" style="width:auto"></select>
       <select class="inp" id="o-quarter" data-o="quarter" aria-label="{% t 'Narxlar choragi' %}" style="width:auto"></select>
+      <span class="save-status save-saved" id="save-status" role="status" aria-live="polite"><i class="save-dot" aria-hidden="true"></i><span class="save-text">{% t "Saqlandi" %}</span></span>
     </div>
     {% include "smeta/_prefs.html" %}
   </div>
@@ -44,7 +45,6 @@ window.SMETAGO = {
 {# Holat brauzerda (localStorage), Excel umumiy endpoint orqali #}
 <script>window.SMETAGO_DEMO = {xlsxUrl: "{% url 'demo_excel' %}", csrf: "{{ csrf_token }}"};</script>
 {% endif %}
-<script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
 <script src="{% static 'smeta/js/calc.js' %}"></script>
 <script src="{% static 'smeta/js/app.js' %}"></script>

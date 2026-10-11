@@ -2,7 +2,7 @@
  * Obyektlar ro'yxati, hisob-kitoblar va tezkor beton kalkulyatori.
  */
 (function() {
-  let S;
+  // calc.js (buildSmeta, roomCalc, rate…) global `S` ni o'qiydi — shuning uchun holat window.S ga yoziladi
   const DASH = (() => {
     try {
       return JSON.parse(document.getElementById("dash-data").textContent);
@@ -73,7 +73,7 @@
     };
     if (!o.state || o.state.v !== 1) return r;
     try {
-      S = normState(JSON.parse(JSON.stringify(o.state)));
+      const S = window.S = normState(JSON.parse(JSON.stringify(o.state)));
       const sm = buildSmeta();
       Object.assign(r, {
         ok: true,
@@ -94,9 +94,10 @@
           r.concVol += k.vol;
         });
       }
-    } catch(e) {}
+    } catch(e) { console.error("SmetaGo: obyekt hisoblanmadi", o.id, e); }
     return r;
   });
+  window.S = null;  // tezkor beton kalkulyatori joriy narxlar bilan hisoblasin, oxirgi obyektnikida emas
 
   const tot = k => sum(rows.map(r => r[k] || 0));
   const okRows = rows.filter(r => r.ok);
@@ -124,7 +125,7 @@
   function renderConcrete() {
     const grade = $id("qc-grade");
     if (!grade) return;
-    if (!grade.children.length && window.MIX) {
+    if (!grade.children.length && typeof MIX !== "undefined") {  // const MIX window'ga yozilmaydi
       grade.innerHTML = Object.keys(MIX).map(k => `<option value="${k}"${k === "M250" ? " selected" : ""}>${k}</option>`).join("");
     }
 

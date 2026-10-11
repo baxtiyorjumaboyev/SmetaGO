@@ -1394,3 +1394,39 @@ form button.btn.pri.lg:hover {
   border-color: var(--accent);
   box-shadow: var(--shadow);
 }
+
+/* ================= UI/UX tuzatishlar (2026-10-09) ================= */
+/* avto-saqlash belgisi (obyekt muharriri sarlavhasida) */
+.save-status{display:inline-flex;align-items:center;gap:6px;align-self:center;font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.save-dot{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.save-saved .save-dot{background:var(--good)}
+.save-saving .save-dot{background:#eab308;animation:save-pulse 1s infinite}
+.save-offline .save-dot{background:#3b82f6}
+.save-error{color:var(--danger);border-color:var(--danger)}
+.save-error .save-dot{background:var(--danger)}
+@keyframes save-pulse{50%{opacity:.3}}
+/* yagona "Yangi smeta" tugmasi yuqori panelda */
+.tb-new{margin:0}
+/* o'chirish: aniq savatcha belgisi, bosish maydoni katta */
+.del-btn{min-width:36px;min-height:36px;padding:0;display:inline-grid;place-items:center;color:var(--muted)}
+.del-btn:hover{color:var(--danger);border-color:var(--danger)}
+/* bosh sahifa kalkulyatori: xona turi tugmalari barmoq bilan bosishga qulay */
+.calc-types .chip{min-height:40px}
+@media (max-width:760px){
+  .calc-types .chip{min-height:44px}
+  /* obyektlar jadvali telefonda kartochka bo'ladi: tugmalar ekrandan chiqib ketmaydi */
+  .dtable{overflow:visible}
+  .dtable thead{display:none}
+  .dtable table,.dtable tbody{display:block}
+  .dtable tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .dtable td{display:block;padding:0;border:0;text-align:left!important}
+  .dtable td:first-child,.dtable td:last-child{grid-column:1 / -1}
+  .dtable td.c-st:empty{display:none}
+  .dtable #empty-row{display:block}
+  .dtable .oacts{display:flex!important;justify-content:flex-start;gap:8px}
+  .dtable .oacts .btn{min-height:40px}
+  .dtable .oacts .del-btn{min-width:40px;margin-left:auto}
+  /* "+ Element qo'shish": ixchamroq, matn kiritilayotganda maydonlarni yopmaydi */
+  .fab{padding:10px 16px;font-size:14px}
+  body:has(input:focus,select:focus,textarea:focus) .fab{display:none}
+}

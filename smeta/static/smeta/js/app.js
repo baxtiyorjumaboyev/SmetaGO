@@ -67,6 +67,10 @@ if (initTab === "beton" || initTab === "smeta" || initTab === "xonalar") S.ui.ta
 // katalog guruhi nomi tilga bog'liq: til almashganda eski guruh topilmasa — "Tavsiya"
 if(S.ui.grp!=="Tavsiya"&&!CATALOG.some(g=>g.g===S.ui.grp))S.ui.grp="Tavsiya";
 let saveT=null,offlineNoted=false;
+// sarlavhadagi avto-saqlash belgisi: saving | saved | offline | error
+function updSaveStatus(st){const el=$("#save-status");if(!el)return;
+  el.className="save-status save-"+st;
+  el.querySelector(".save-text").textContent={saving:tr("Saqlanmoqda…"),saved:tr("Saqlandi"),offline:tr("Oflayn"),error:tr("Saqlanmadi")}[st]}
 function persist(){saveT=null;const body=JSON.stringify(S);
   if(!SERVER){
     try{
@@ -78,16 +82,16 @@ function persist(){saveT=null;const body=JSON.stringify(S);
       if(idx>=0)projs[idx]=entry;else projs.unshift(entry);
       localStorage.setItem("smetago-guest-projects",JSON.stringify(projs));
     }catch(e){}
-    return;
+    updSaveStatus("saved");return;
   }
   const ts=Date.now();try{localStorage.setItem(PKEY,JSON.stringify({ts,state:S}))}catch(e){}
   fetch(SERVER.saveUrl,{method:"PUT",credentials:"same-origin",keepalive:body.length<60000,headers:{"Content-Type":"application/json","X-CSRFToken":SERVER.csrf},body})
    .then(r=>{if(r.status===403||r.redirected)throw new Error("auth");if(!r.ok)throw new Error(r.status)})
-   .then(()=>{offlineNoted=false;window.smetagoNet?.(true);const p=readPending();if(p&&p.ts===ts)try{localStorage.removeItem(PKEY)}catch(e){}})
-   .catch(e=>{if(e.message==="auth")toast(tr("Sessiya tugagan — qayta kiring"));
-     else if(!navigator.onLine||e instanceof TypeError){window.smetagoNet?.(false);if(!offlineNoted){offlineNoted=true;toast(tr("Internet yo'q — o'zgarishlar qurilmada saqlandi"))}}
-     else toast(tr("Serverga saqlanmadi, qayta urinib ko'ring"))})}
-function save(){clearTimeout(saveT);saveT=setTimeout(persist,SERVER?700:300)}
+   .then(()=>{offlineNoted=false;window.smetagoNet?.(true);const p=readPending();if(p&&p.ts===ts)try{localStorage.removeItem(PKEY)}catch(e){}updSaveStatus("saved")})
+   .catch(e=>{if(e.message==="auth"){updSaveStatus("error");toast(tr("Sessiya tugagan — qayta kiring"))}
+     else if(!navigator.onLine||e instanceof TypeError){window.smetagoNet?.(false);updSaveStatus("offline");if(!offlineNoted){offlineNoted=true;toast(tr("Internet yo'q — o'zgarishlar qurilmada saqlandi"))}}
+     else{updSaveStatus("error");toast(tr("Serverga saqlanmadi, qayta urinib ko'ring"))}})}
+function save(){clearTimeout(saveT);updSaveStatus("saving");saveT=setTimeout(persist,SERVER?700:300)}
 addEventListener("pagehide",()=>{if(saveT){clearTimeout(saveT);persist()}});
 addEventListener("online",()=>{if(SERVER&&readPending()){persist();toast(tr("Aloqa tiklandi — o'zgarishlar yuborilmoqda"))}});
 // "online" hodisasi kelmasa ham (Wi-Fi bor, internet yo'q edi) navbat vaqti-vaqti bilan qayta yuboriladi
@@ -134,9 +138,9 @@ function viewRooms(){
     <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><span class="tag">${esc(rtLabel(r.type))}</span><button class="btn ghost sm" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
     <fieldset>${sec(1,"Xona o'lchami","Lenta bilan uzunligi, eni va balandligini o'lchang (metrda, masalan 4,5).")}
      <div class="grid3">
-      <label class="fld">${tr("Uzunligi")}${stepper(`<input class="inp numin" id="r-L" data-f="L" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00">`,"r-L",.1)}</label>
-      <label class="fld">${tr("Eni")}${stepper(`<input class="inp numin" id="r-W" data-f="W" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00">`,"r-W",.1)}</label>
-      <label class="fld">${tr("Balandligi")}${stepper(`<input class="inp numin" id="r-H" data-f="H" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00">`,"r-H",.1)}</label>
+      <label class="fld">${tr("Uzunligi")}${stepper(`<input class="inp numin" id="r-L" data-f="L" aria-label="${tr("Uzunligi")}" inputmode="decimal" value="${esc(r.L)}" placeholder="0,00">`,"r-L",.1)}</label>
+      <label class="fld">${tr("Eni")}${stepper(`<input class="inp numin" id="r-W" data-f="W" aria-label="${tr("Eni")}" inputmode="decimal" value="${esc(r.W)}" placeholder="0,00">`,"r-W",.1)}</label>
+      <label class="fld">${tr("Balandligi")}${stepper(`<input class="inp numin" id="r-H" data-f="H" aria-label="${tr("Balandligi")}" inputmode="decimal" value="${esc(r.H)}" placeholder="0,00">`,"r-H",.1)}</label>
      </div></fieldset>
     <fieldset>${sec(2,"Eshiklar","Har bir eshik: turi, eni × bo'yi (m). Devor va plintusdan o'zi ayiriladi.")}
      <div class="openings">${r.doors.map((d,i)=>`<span class="opening">${i+1}${d.own||(d.t&&!DOOR_TYPES.includes(d.t))
@@ -218,6 +222,7 @@ function renderDerived(){
     <td class="r c-price" data-l="${tr("Narx, so'm")}"><input class="inp numin price" id="ip-${it.uid}" data-it="${it.uid}" data-k="price" inputmode="decimal" value="${esc(it.price)}" aria-label="${tr("Narx")}"></td>
     <td class="num r c-sum" data-l="${tr("Jami")}" id="is-${it.uid}">${fmt(t.tot)}</td><td class="c-del"><button class="btn ghost sm" data-act="delItem" data-uid="${it.uid}" aria-label="${tr("O'chirish")}">×</button></td></tr>`}).join("");
   box.innerHTML=`
+   <div class="metrics">
     <div class="metric"><div class="v">${fd(c.floorA)}<small>${U("m²")}</small></div><div class="k">${tr("Pol maydoni")}</div></div>
     <div class="metric"><div class="v">${fd(c.perim)}<small>${U("m")}</small></div><div class="k">${tr("Perimetr")}</div></div>
     <div class="metric"><div class="v">${fd(c.wallNet)}<small>${U("m²")}</small></div><div class="k">${tr("Devor (sof)")}</div></div>

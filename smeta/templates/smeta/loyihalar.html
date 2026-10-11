@@ -12,12 +12,6 @@
 <div class="ly-grid">
   <div class="dcol">
     <section class="panel card ly-tools">
-      <form method="post" action="{% url 'obyekt_create' %}" style="margin:0">{% csrf_token %}
-        <button type="submit" class="btn pri lg btn-new-smeta">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          {% t "Yangi smeta yaratish" %}
-        </button>
-      </form>
       <div class="seg ly-seg" id="ly-filter" role="group" aria-label="{% t "Filtr" %}">
         <button type="button" data-f="all" aria-pressed="true">{% t "Barchasi" %} (<span data-cnt="all">0</span>)</button>
         <button type="button" data-f="new" aria-pressed="false">{% t "Bu oy" %} (<span data-cnt="new">0</span>)</button>
@@ -40,14 +34,14 @@
           <td class="r"><div class="oacts">
             <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">{% t "Ochish" %}</a>
             <form method="post" action="{% url 'obyekt_copy' o.pk %}">{% csrf_token %}<button class="btn sm">{% t "Nusxa" %}</button></form>
-            <form method="post" action="{% url 'obyekt_delete' o.pk %}" data-confirm="{% t "«{0}» o'chirilsinmi? Bu amalni qaytarib bo'lmaydi." o.name %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}<button class="btn sm ghost" aria-label="{% t "O'chirish" %}">×</button></form>
+            <form method="post" action="{% url 'obyekt_delete' o.pk %}" data-confirm="{% t "«{0}» o'chirilsinmi? Bu amalni qaytarib bo'lmaydi." o.name %}" onsubmit="return confirm(this.dataset.confirm)">{% csrf_token %}{% include "smeta/_del_btn.html" %}</form>
           </div></td>
         </tr>
         {% endfor %}
         </tbody></table></div>
       <div class="card-f pad2"><span class="ometa" id="ly-count"></span></div>
       {% else %}
-      <p class="empty">{% t "Hali obyekt yo'q. «Yangi smeta yaratish» tugmasi bilan boshlang." %}</p>
+      <p class="empty">{% t "Hali obyekt yo'q. «Yangi smeta» tugmasi bilan boshlang." %}</p>
       {% endif %}
     </section>
   </div>
@@ -73,7 +67,6 @@
 {{ ref|json_script:"smeta-ref" }}
 {% endblock %}
 {% block scripts %}
-<script src="{% static 'smeta/js/i18n.js' %}"></script>
 <script src="{% static 'smeta/js/data.js' %}"></script>
 <script src="{% static 'smeta/js/calc.js' %}"></script>
 <script src="{% static 'smeta/js/dashboard.js' %}"></script>
