@@ -17,6 +17,12 @@ CSRF_TRUSTED_ORIGINS = [
     o for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o
 ]
 
+# Android ilova (PWABuilder APK): /.well-known/assetlinks.json ilovani sayt bilan bog'laydi —
+# shunda ilova tepasida brauzer manzil satri ko'rinmaydi. SHA-256 — imzo kalitining ochiq barmoq izi (maxfiy emas),
+# PWABuilder arxividagi assetlinks.json dan olinadi; bir nechta bo'lsa vergul bilan.
+ANDROID_APP_PACKAGE = os.environ.get("SMETAGO_ANDROID_PACKAGE", "uz.smetago.app")
+ANDROID_APP_SHA256 = [f.strip() for f in os.environ.get("SMETAGO_ANDROID_SHA256", "").split(",") if f.strip()]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

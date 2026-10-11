@@ -479,6 +479,20 @@ class ErrorPageTests(TestCase):
         self.assertContains(r, "Sahifa topilmadi", status_code=404)
         self.assertContains(r, 'rel="manifest"', status_code=404)  # sayt uslubida (base.html)
 
+class AssetLinksTests(TestCase):
+    def test_empty_without_fingerprint(self):
+        with self.settings(ANDROID_APP_SHA256=[]):
+            r = self.client.get("/.well-known/assetlinks.json")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), [])
+
+    def test_lists_app(self):
+        with self.settings(ANDROID_APP_PACKAGE="uz.smetago.app", ANDROID_APP_SHA256=["AA:BB"]):
+            data = self.client.get("/.well-known/assetlinks.json").json()
+        self.assertEqual(data[0]["target"]["package_name"], "uz.smetago.app")
+        self.assertEqual(data[0]["target"]["sha256_cert_fingerprints"], ["AA:BB"])
+
+
 class ShellPagesTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user("ali", password="SmetaGo-2026!")

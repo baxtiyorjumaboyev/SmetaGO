@@ -103,3 +103,16 @@ def service_worker(request):
 
 def offline(request):
     return render(request, "smeta/offline.html")
+
+
+def assetlinks(request):
+    """Digital Asset Links: Android ilova (TWA) shu saytga tegishli ekanini tasdiqlaydi."""
+    from django.conf import settings
+    data = []
+    if settings.ANDROID_APP_SHA256:
+        data = [{
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": {"namespace": "android_app", "package_name": settings.ANDROID_APP_PACKAGE,
+                       "sha256_cert_fingerprints": settings.ANDROID_APP_SHA256},
+        }]
+    return JsonResponse(data, safe=False)

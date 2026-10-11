@@ -8,6 +8,7 @@ urlpatterns = [
     path("sw.js", pwa.service_worker, name="service_worker"),
     path("manifest.webmanifest", pwa.manifest, name="manifest"),
     path("offline/", pwa.offline, name="offline"),
+    path(".well-known/assetlinks.json", pwa.assetlinks, name="assetlinks"),  # Android ilova
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),  # set_language: UZ / RU tugmalari
     path("", include("smeta.urls")),
