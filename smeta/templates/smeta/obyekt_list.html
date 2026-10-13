@@ -110,7 +110,7 @@
             <div class="oacts" style="display:inline-flex;gap:6px">
               <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">{% t "Ochish" %}</a>
               <form method="post" action="{% url 'obyekt_copy' o.pk %}" style="margin:0">{% csrf_token %}<button class="btn sm">{% t "Nusxa" %}</button></form>
-              <form method="post" action="{% url 'obyekt_delete' o.pk %}" data-confirm="{% t "«{0}» o'chirilsinmi? Bu amalni qaytarib bo'lmaydi." o.name %}" onsubmit="return confirm(this.dataset.confirm)" style="margin:0">{% csrf_token %}{% include "smeta/_del_btn.html" %}</form>
+              <form method="post" action="{% url 'obyekt_delete' o.pk %}" data-del data-name="{{ o.name }}" style="margin:0">{% csrf_token %}{% include "smeta/_del_btn.html" %}</form>
             </div>
           </td>
         </tr>

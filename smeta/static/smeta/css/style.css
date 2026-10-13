@@ -1631,3 +1631,8 @@ button[type="submit"].btn.pri.lg,form button.btn.pri.lg,form button.btn.pri.lg:h
 }
 /* "Smeta loyihalari" sarlavhasidagi KPI kartalari oq fonda — raqamlar oq (.hero-g) bo'lib ko'rinmay qolardi */
 .hg-k .kpi2{color:var(--ink)}
+
+/* o'chirishdan keyin "Qaytarish" paneli (tasdiq oynasi o'rniga) */
+.undo-bar{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);background:var(--bar);color:var(--on-bar);padding:10px 12px 10px 16px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.28);font-weight:500}
+.undo-bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.undo-bar .btn{flex:none;background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}

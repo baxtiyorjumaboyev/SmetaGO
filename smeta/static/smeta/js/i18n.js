@@ -52,6 +52,7 @@ const RU={
  // umumiy
  "so'm":"сум","sm":"см","Vt":"Вт","avto":"авто","qo'lda":"вручную","katalog":"каталог","ish haqi":"оплата труда",
  "Sessiya tugagan — qayta kiring":"Сессия истекла — войдите снова",
+ "Qaytarish":"Отменить","«{0}» o'chirildi":"«{0}» удалён","O'chirilmadi — qayta urinib ko'ring":"Не удалено — попробуйте ещё раз",
  "Saqlanmoqda…":"Сохранение…","Saqlandi":"Сохранено","Saqlanmadi":"Не сохранено",
  "Serverga saqlanmadi, qayta urinib ko'ring":"Не сохранено на сервере, попробуйте ещё раз",
  "Internet yo'q — o'zgarishlar qurilmada saqlandi":"Нет интернета — изменения сохранены на устройстве",

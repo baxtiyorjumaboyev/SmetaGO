@@ -99,8 +99,10 @@
   });
   window.S = null;  // tezkor beton kalkulyatori joriy narxlar bilan hisoblasin, oxirgi obyektnikida emas
 
-  const tot = k => sum(rows.map(r => r[k] || 0));
-  const okRows = rows.filter(r => r.ok);
+  // o'chirilgan (lekin hali "Qaytarish" mumkin bo'lgan) obyektlar hisobga kirmaydi
+  const gone = new Set();
+  const live = () => rows.filter(r => !gone.has(String(r.id)));
+  const tot = k => sum(live().map(r => r[k] || 0));
 
   function kpis() {
     const el = $id("kpis") || $id("ly-kpis");
@@ -108,7 +110,7 @@
     const [gv, gu] = shortP(tot("grand"));
     const K = [
       [IC.sum, tr("Jami smeta qiymati"), gv, `${gu} ${SOMs()}`, tr("Materiallar"), short(tot("mat"))],
-      [IC.obj, tr("Faol obyektlar"), fmt(okRows.length), tr("ta loyiha"), tr("Xonalar"), fmt(sum(rows.map(r => r.rooms.length)))],
+      [IC.obj, tr("Faol obyektlar"), fmt(live().filter(r => r.ok).length), tr("ta loyiha"), tr("Xonalar"), fmt(sum(live().map(r => r.rooms.length)))],
       [IC.area, tr("Umumiy pol maydoni"), fd(tot("floor"), 1), "m²", tr("Devor (sof)"), `${fd(tot("wall"), 1)} m²`],
       [IC.concrete, tr("Beton ishlari"), fd(tot("concVol"), 1), "m³", tr("Standart"), "GOST/SNiP"]
     ];
@@ -220,11 +222,11 @@
       const f = (seg && seg.querySelector("[aria-pressed=true]")?.dataset.f) || "all";
       document.querySelectorAll("#dash-rows tr[data-id], #ly-rows tr[data-id]").forEach(tr_ => {
         const r = byId[tr_.dataset.id];
-        tr_.hidden = !!(q && !(tr_.dataset.name || "").includes(q)) || !(r && test[f](r));
+        tr_.hidden = gone.has(tr_.dataset.id) || !!(q && !(tr_.dataset.name || "").includes(q)) || !(r && test[f](r));
       });
     };
     if (seg) {
-      seg.querySelectorAll("[data-cnt]").forEach(el => { el.textContent = rows.filter(test[el.dataset.cnt] || test.all).length; });
+      seg.querySelectorAll("[data-cnt]").forEach(el => { el.textContent = live().filter(test[el.dataset.cnt] || test.all).length; });
       if (!seg.dataset.bound) {
         seg.dataset.bound = "1";
         seg.addEventListener("click", e => {
@@ -241,6 +243,53 @@
     }
     apply();
   }
+
+  /* O'chirish: tasdiq oynasisiz, darhol yashiriladi; ~7 soniya "Qaytarish" imkoni, keyin serverga yuboriladi.
+     Sahifa shu orada yopilsa ham so'rov ketadi (sendBeacon). */
+  const UNDO_MS = 7000;
+  const pending = new Map();  // form -> taymer
+  const send = f => fetch(f.action, { method: "POST", body: new FormData(f), credentials: "same-origin" });
+  function undoBar(text, onUndo) {
+    let bar = $id("undo-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "undo-bar"; bar.className = "undo-bar"; bar.setAttribute("role", "status"); bar.setAttribute("aria-live", "polite");
+      document.body.appendChild(bar);
+    }
+    bar.innerHTML = `<span></span><button type="button" class="btn sm">${esc(tr("Qaytarish"))}</button>`;
+    bar.querySelector("span").textContent = text;
+    bar.hidden = false;
+    clearTimeout(bar._t); bar._t = setTimeout(() => { bar.hidden = true; }, UNDO_MS);
+    bar.querySelector("button").onclick = () => { clearTimeout(bar._t); bar.hidden = true; onUndo(); };
+  }
+  function refresh() { kpis(); renderTable(); }
+  document.addEventListener("submit", e => {
+    const f = e.target.closest("form[data-del]");
+    if (!f) return;
+    e.preventDefault();
+    const tr_ = f.closest("tr[data-id]"), id = tr_ ? tr_.dataset.id : "";
+    if (!id || gone.has(id)) return;
+    gone.add(id); refresh();
+    const t = setTimeout(() => {
+      pending.delete(f);
+      send(f).then(r => { if (!r.ok) throw new Error(r.status); tr_.remove(); })
+        .catch(() => { gone.delete(id); refresh(); undoBar(tr("O'chirilmadi — qayta urinib ko'ring"), () => {}); });
+    }, UNDO_MS);
+    pending.set(f, t);
+    undoBar(tr("«{0}» o'chirildi", f.dataset.name || ""), () => { clearTimeout(t); pending.delete(f); gone.delete(id); refresh(); });
+  });
+  // sahifa yopilsa yoki ilova fonga o'tsa — kutilayotgan o'chirishlar darhol yuboriladi
+  // (sendBeacon sahifa almashganda yo'qolib qolardi; fetch keepalive yetib boradi)
+  const flush = () => {
+    pending.forEach((t, f) => {
+      clearTimeout(t);
+      fetch(f.action, { method: "POST", body: new FormData(f), credentials: "same-origin", keepalive: true });
+    });
+    pending.clear();
+    const bar = $id("undo-bar"); if (bar) bar.hidden = true;
+  };
+  addEventListener("pagehide", flush);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
 
   function init() {
     kpis();
