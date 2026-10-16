@@ -2,102 +2,38 @@
 {% block title %}SmetaGo — {% t "smeta kalkulyatori" %}{% endblock %}
 {% block nav %}
 <nav class="sitenav deskonly" aria-label="{% t "Sahifa bo'limlari" %}">
-  <a href="#qanday">{% t "Qanday ishlaydi" %}</a>
-  <a href="#beton-sec">{% t "Beton ishlari" %}</a>
   <a href="#imkoniyatlar">{% t "Imkoniyatlar" %}</a>
   <a href="#kim">{% t "Kim uchun" %}</a>
 </nav>
 {% endblock %}
 {% block main %}
 <main class="landing">
-  {# 1. Bosh qism: matn + jonli kalkulyator #}
+  {# 1. Bosh qism: sarlavha va bitta asosiy tugma #}
   <section class="hero-wrap">
-    <div class="wrap hero">
+    <div class="wrap hero solo">
       <div class="hero-text">
         <h1>{% t "Obyektni o'lchang," %} <em>{% t "smeta o'zi" %}</em> {% t "tayyor bo'ladi" %}</h1>
         <p class="lead">{% t "Xona o'lchamlarini kiriting, materiallarni katalogdan tanlang. SmetaGo hajm, narx va ish haqini hisoblab, tayyor smetani Excel'da beradi." %}</p>
         <div class="hero-cta">
           <a class="btn pri lg btn-new-smeta" href="{% url 'app' %}">{% t "Bepul boshlash" %} <span aria-hidden="true">→</span></a>
-          <a class="btn lg ol" href="#beton-sec">{% t "Beton kalkulyatori" %}</a>
         </div>
         <ul class="checks">
           <li>{% t "Login va karta talab qilinmaydi" %}</li>
-          <li>{% t "Internetsiz to'liq ishlaydi" %}</li>
           <li>{% t "Telefon, planshet va kompyuterda" %}</li>
         </ul>
       </div>
-
-      <div class="calc" id="calc" data-register="{% url 'app' %}">
-        <div class="calc-head">
-          <div>
-            <h2>{% t "Xonani o'lchab ko'ring" %}</h2>
-          </div>
-        </div>
-        <div class="calc-body">
-          <div class="calc-grid">
-            <label class="fld">{% t "Uzunligi, m" %}<span class="stepper"><button type="button" data-step="L" data-d="-1" aria-label="−">−</button><input id="calc-L" data-dim="L" inputmode="decimal" value="5" aria-label="{% t 'Uzunligi, m' %}"><button type="button" data-step="L" data-d="1" aria-label="+">+</button></span></label>
-            <label class="fld">{% t "Eni, m" %}<span class="stepper"><button type="button" data-step="W" data-d="-1" aria-label="−">−</button><input id="calc-W" data-dim="W" inputmode="decimal" value="4" aria-label="{% t 'Eni, m' %}"><button type="button" data-step="W" data-d="1" aria-label="+">+</button></span></label>
-            <label class="fld">{% t "Balandligi, m" %}<span class="stepper"><button type="button" data-step="H" data-d="-1" aria-label="−">−</button><input id="calc-H" data-dim="H" inputmode="decimal" value="2,8" aria-label="{% t 'Balandligi, m' %}"><button type="button" data-step="H" data-d="1" aria-label="+">+</button></span></label>
-          </div>
-          <div class="calc-grid">
-            <label class="fld">{% t "Pol" %}<select class="inp" id="calc-floor" data-cover="floor"></select></label>
-            <label class="fld">{% t "Devor" %}<select class="inp" id="calc-wall" data-cover="wall"></select></label>
-            <label class="fld">{% t "Shift" %}<select class="inp" id="calc-ceil" data-cover="ceil"></select></label>
-          </div>
-          <div class="calc-plan" id="calc-plan" aria-hidden="true"></div>
-          <p class="note calc-assume">{% t "Hisobda 1 ta eshik (0,90 m) bor — ilovada eshik va derazalarni o'zingiz qo'shasiz." %}</p>
-          <ul class="calc-lines" id="calc-lines"></ul>
-        </div>
-        <div class="calc-foot">
-          <div class="calc-total">
-            <div><span>{% t "Xona bo'yicha jami" %}</span><small id="calc-split"></small></div>
-            <b id="calc-sum"></b>
-          </div>
-          <a class="btn pri block btn-new-smeta" href="{% url 'app' %}" id="calc-save">{% t "Smetani saqlash va Excel yuklab olish" %}</a>
-          <p class="note">{% t "Bir zumda kirish — hech qanday to'siqsiz" %}</p>
-        </div>
-        <noscript><p class="note" style="padding:16px">{% t "Kalkulyator uchun JavaScript kerak." %}</p></noscript>
-      </div>
     </div>
   </section>
 
-  {# 2. Yangi: Ajratib ko'rsatilgan Beton Ishlari Bo'limi #}
-  <section class="wrap block" id="beton-sec">
-    <div class="beton-hero">
-      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px">
-        <div>
-          <span class="beton-badge">ГОСТ 7473-2010 · СНиП 82-02-95</span>
-          <h2 style="font-size:24px;margin:4px 0;color:#ffffff">{% t "Beton ishlari va qorishma kalkulyatori" %}</h2>
-          <p style="color:#94a3b8;margin:0;max-width:680px">{% t "Poydevor, pol styajkasi, ustun va yopma plitalar uchun sement, shag'al, qum va suv sarfini bir zumda aniq me'yorda hisoblang." %}</p>
-        </div>
-        <a class="btn pri lg btn-new-smeta" href="{% url 'app' %}?tab=beton">{% t "Beton hisobini ochish" %} →</a>
-      </div>
-      <div class="beton-recipes-grid">
-        <div class="beton-recipe-card"><small>M100 (B7.5)</small><b>166 kg</b><small>{% t "Sement / m³" %}</small></div>
-        <div class="beton-recipe-card"><small>M150 (B12.5)</small><b>205 kg</b><small>{% t "Sement / m³" %}</small></div>
-        <div class="beton-recipe-card"><small>M200 (B15)</small><b>241 kg</b><small>{% t "Sement / m³" %}</small></div>
-        <div class="beton-recipe-card"><small>M250 (B20)</small><b>300 kg</b><small>{% t "Sement / m³" %}</small></div>
-        <div class="beton-recipe-card"><small>M300 (B22.5)</small><b>356 kg</b><small>{% t "Sement / m³" %}</small></div>
-        <div class="beton-recipe-card"><small>M400 (B30)</small><b>440 kg</b><small>{% t "Sement / m³" %}</small></div>
-      </div>
-    </div>
-  </section>
-
-  {# 3. Interaktiv Asosiy Imkoniyatlar (Aniqlik, Oflayn, Yo'riqnoma) #}
+  {# 2. Imkoniyatlar #}
   <section class="wrap block" id="imkoniyatlar">
     <h2 class="sec-title">{% t "Imkoniyatlar" %}</h2>
-    <div class="steps3">
+    <div class="steps3 two">
       <article class="step feat-card" data-feat-aniqlik>
         <span class="fi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M16 11v4"/></svg></span>
         <h3>{% t "Aniqlik va ochiqlik" %}</h3>
         <p>{% t "Har bir qatorda o'lchov, zaxira va hisob manbasi ko'rinadi — formulalar va raqamlarni tekshirish oson." %}</p>
         <span class="lnk" style="margin-top:auto">{% t "Formulalarni ko'rish" %} →</span>
-      </article>
-      <article class="step feat-card" data-feat-oflayn>
-        <span class="fi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="5" width="13" height="10" rx="1.5"/><rect x="17" y="8" width="4" height="10" rx="1"/><path d="M7 19h6"/></svg></span>
-        <h3>{% t "Oflayn ishlash rejimi" %}</h3>
-        <p>{% t "Internet uzilganda ham ma'lumotlar qurilmada saqlanadi va aloqa tiklanganda o'zi xavfsiz sinxronlashadi." %}</p>
-        <span class="lnk" style="margin-top:auto">{% t "Qanday ishlaydi?" %} →</span>
       </article>
       <article class="step feat-card" data-feat-yordam>
         <span class="fi"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17.5v.01"/></svg></span>
@@ -108,26 +44,7 @@
     </div>
   </section>
 
-  {# 4. Qanday ishlaydi #}
-  <section class="wrap block" id="qanday">
-    <h2 class="sec-title">{% t "Qanday ishlaydi" %}</h2>
-    <div class="steps3">
-      <article class="step">
-        <h3>1. {% t "Xonalarni kiriting" %}</h3>
-        <p>{% t "Uzunlik, eni va balandlik. Eshik va derazalarni qo'shing — maydon avtomatik ayiriladi." %}</p>
-      </article>
-      <article class="step">
-        <h3>2. {% t "Material va betonni belgilang" %}</h3>
-        <p>{% t "Pol, devor, shift hamda beton ishlari: narxlarni o'zingiz kiritishingiz yoki o'zgartirishingiz mumkin." %}</p>
-      </article>
-      <article class="step">
-        <h3>3. {% t "Smetani yuboring" %}</h3>
-        <p>{% t "Zaxira foizi, ish haqi va jami summa tayyor. Buyurtmachiga Excel faylda yuboring." %}</p>
-      </article>
-    </div>
-  </section>
-
-  {# 5. Kim uchun #}
+  {# 3. Kim uchun #}
   <section class="wrap block who" id="kim">
     <div>
       <h2 class="sec-title">{% t "Qurilishdagi har bir rol uchun bitta vosita" %}</h2>
@@ -140,7 +57,7 @@
     </dl>
   </section>
 
-  {# 6. Chaqiruv #}
+  {# 4. Chaqiruv #}
   <section class="wrap">
     <div class="ctaband">
       <div>
@@ -151,8 +68,4 @@
     </div>
   </section>
 </main>
-{{ ref|json_script:"smeta-ref" }}
-<script src="{% static 'smeta/js/data.js' %}" defer></script>
-<script src="{% static 'smeta/js/calc.js' %}" defer></script>
-<script src="{% static 'smeta/js/landing.js' %}" defer></script>
 {% endblock %}

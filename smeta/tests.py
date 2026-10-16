@@ -304,13 +304,15 @@ class SmetaTests(TestCase):
         r = self.c.post(reverse("obyekt_excel", args=[other.pk]), json.dumps(self.XLSX_SHEETS), content_type="application/json")
         self.assertEqual(r.status_code, 404)
 
-    def test_landing_has_live_calculator(self):
+    def test_landing_is_simple(self):
         r = Client().get("/")
         html = r.content.decode()
-        for needle in ('id="calc"', 'id="smeta-ref"', "smeta/js/calc.js", "smeta/js/landing.js",
-                       'href="#qanday"', 'id="kim"', reverse("demo"), reverse("help"), reverse("privacy")):
+        for needle in ('id="imkoniyatlar"', 'id="kim"', reverse("app"), reverse("help"), reverse("privacy")):
             self.assertIn(needle, html)
-        self.assertNotIn("smeta/js/app.js", html)  # og'ir ilova kodi bosh sahifada yuklanmaydi
+        # foydalanuvchi talabi: kalkulyator, beton bo'limi, oflayn va "Qanday ishlaydi" bosh sahifada yo'q
+        for gone in ('id="calc"', 'id="beton-sec"', 'id="qanday"', "data-feat-oflayn", "Internetsiz",
+                     "smeta/js/calc.js", "smeta/js/landing.js", "smeta/js/app.js"):
+            self.assertNotIn(gone, html)
         self.assertNotIn("PDF", html)  # PDF funksiyasi yo'q — va'da qilinmaydi
 
     def test_demo_page_and_public_excel(self):

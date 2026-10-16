@@ -32,7 +32,6 @@ PRECACHE_STATIC = [
     "smeta/js/panels.js",
     "smeta/js/room3d.js",
     "smeta/js/auth.js",
-    "smeta/js/landing.js",
     "smeta/icons/icon-192.png",
     "smeta/icons/icon.svg",
 ]

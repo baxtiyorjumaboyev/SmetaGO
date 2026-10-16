@@ -45,9 +45,9 @@ def _my_obyekt(request, pk):
 # ---------- 1. Ommaviy sahifalar ----------
 
 def obyekt_list(request):
-    """Bosh sahifa: mehmonga — sayt (jonli kalkulyator bilan), kirgan foydalanuvchiga — boshqaruv paneli."""
+    """Bosh sahifa: mehmonga — sayt, kirgan foydalanuvchiga — boshqaruv paneli."""
     if not request.user.is_authenticated:
-        return render(request, "smeta/landing.html", {"ref": _ref()})
+        return render(request, "smeta/landing.html")
     return render(request, "smeta/obyekt_list.html", _dash_context(request))
 
 

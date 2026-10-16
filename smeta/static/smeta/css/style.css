@@ -1636,3 +1636,9 @@ button[type="submit"].btn.pri.lg,form button.btn.pri.lg,form button.btn.pri.lg:h
 .undo-bar{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);background:var(--bar);color:var(--on-bar);padding:10px 12px 10px 16px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.28);font-weight:500}
 .undo-bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .undo-bar .btn{flex:none;background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+
+/* bosh sahifa: kalkulyatorsiz, sodda bosh qism; imkoniyatlar — 2 ta karta */
+.hero.solo{grid-template-columns:minmax(0,1fr);max-width:900px;padding-block:72px 48px}
+.hero.solo .lead{max-width:60ch}
+.steps3.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:760px){.hero.solo{padding-block:40px 24px}.steps3.two{grid-template-columns:minmax(0,1fr)}}
