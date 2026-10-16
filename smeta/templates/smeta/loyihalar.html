@@ -29,7 +29,7 @@
         {% for o in obyektlar %}
         <tr data-id="{{ o.pk }}" data-name="{{ o.name|lower }}">
           <td><a class="oname" href="{% url 'obyekt_app' o.pk %}">{{ o.name }}</a>
-            <small>{% if o.region %}<span class="tag">{% t o.region %}</span> {% endif %}{% t "O'zgartirilgan" %}: {{ o.updated|date:"d.m.Y H:i" }}</small></td>
+            <small>{% t "O'zgartirilgan" %}: {{ o.updated|date:"d.m.Y H:i" }}</small></td>
           <td class="r c-rooms"><small>{% t "{0} xona" o.rooms_count %}</small></td><td class="r c-area">—</td><td class="r c-sum">—</td><td class="c-st"></td>
           <td class="r"><div class="oacts">
             <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">{% t "Ochish" %}</a>

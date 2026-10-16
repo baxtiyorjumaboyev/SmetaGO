@@ -2,16 +2,8 @@
  * Til localStorage, cookie yoki <html lang="..."> dan olinadi.
  * tr("o'zbekcha matn", ...qiymatlar) — matnni joriy tilda qaytaradi.
  */
+// Til faqat server bergan <html lang> dan olinadi (o'zbekcha yoki ruscha) — sahifa va skriptlar doim bir tilda.
 function getInitialLang() {
-  try {
-    const l = localStorage.getItem("smetago-lang");
-    if (l === "ru" || l === "uz_cyr" || l === "uz-cyr" || l === "uz") return l.replace("-", "_");
-  } catch(e) {}
-  const m = document.cookie.match(/django_language=([^;]+)/);
-  if (m) {
-    const l = decodeURIComponent(m[1]).trim();
-    if (l === "ru" || l === "uz_cyr" || l === "uz-cyr" || l === "uz") return l.replace("-", "_");
-  }
   return /^ru/i.test(document.documentElement.lang || "") ? "ru" : "uz";
 }
 let LANG = getInitialLang();
@@ -52,6 +44,39 @@ const RU={
  // umumiy
  "so'm":"сум","sm":"см","Vt":"Вт","avto":"авто","qo'lda":"вручную","katalog":"каталог","ish haqi":"оплата труда",
  "Sessiya tugagan — qayta kiring":"Сессия истекла — войдите снова",
+ "Beton ishlari":"Бетонные работы",
+ "Beton ishlari va qorishma hisobi":"Расчёт бетонных работ и смеси",
+ "Hali beton ishi yo'q. «+ Yangi beton ishi» tugmasini bosing.":"Бетонных работ пока нет. Нажмите «+ Новая бетонная работа».",
+ "Marka va hajmni kiriting — sement, shag'al, qum va suv sarfi ГОСТ 7473-2010 va СНиП 82-02-95 bo'yicha hisoblanadi.":"Укажите марку и объём — расход цемента, щебня, песка и воды рассчитывается по ГОСТ 7473-2010 и СНиП 82-02-95.",
+ "Retseptlar: СНиП 82-02-95 va ГОСТ 7473-2010 asosidagi ma'lumotnoma jadvali, 1 m³ uchun, portlandsement PC M500. PC M400 tanlansa sement sarfi 15% ga oshiriladi.":"Рецептуры: справочная таблица по СНиП 82-02-95 и ГОСТ 7473-2010 на 1 м³, портландцемент ПЦ М500. При выборе ПЦ М400 расход цемента увеличивается на 15%.",
+ "Sement / m³":"Цемент / м³",
+ "Mening smetam":"Моя смета",
+ "Ochish":"Открыть",
+ "Oflayn":"Офлайн",
+ "Qurilmada saqlangan":"Сохранено на устройстве",
+ "Smeta va Excel":"Смета и Excel",
+ "Xonalar va ta'mirlash":"Комнаты и ремонт",
+ "Standart":"Стандарт",
+ "ta loyiha":"шт.",
+ "Yangi smeta":"Новая смета",
+ "Tushunarli":"Понятно",
+ "Aniqlik va ochiqlik":"Точность и прозрачность",
+ "Har bir raqam qanday hisoblangani ko'rinib turadi:":"Видно, как посчитана каждая цифра:",
+ "1. Sof devor maydoni":"1. Чистая площадь стен",
+ "2 × (uzunlik + eni) × balandlik − eshiklar − derazalar":"2 × (длина + ширина) × высота − двери − окна",
+ "Eshik va derazalar devor va plintusdan avtomatik ayiriladi.":"Двери и окна автоматически вычитаются из площади стен и длины плинтуса.",
+ "2. Material zaxirasi":"2. Запас материала",
+ "Pol qoplamasi va plintusga 10% zaxira qo'shiladi va qatorda alohida ko'rsatiladi.":"К покрытию пола и плинтусу добавляется запас 10% — он показан отдельно в строке.",
+ "3. Excel fayl":"3. Файл Excel",
+ "Barcha qatorlar, oraliq va umumiy jami bilan tayyor .xlsx fayl yuklab olinadi.":"Скачивается готовый файл .xlsx со всеми строками, промежуточными и общим итогом.",
+ "Qisqa qo'llanma":"Краткое руководство",
+ "Xonani o'lchang":"Измерьте комнату",
+ "Uzunlik, eni va balandlikni kiriting, eshik va derazalarni qo'shing.":"Введите длину, ширину и высоту, добавьте двери и окна.",
+ "Pol, devor va shiftni tanlang":"Выберите пол, стены и потолок",
+ "Qoplamani ro'yxatdan tanlang yoki «+ O'zim qo'shaman» bilan o'zingiz yozing.":"Выберите отделку из списка или впишите свою кнопкой «+ Добавлю сам».",
+ "Excel'ni yuklab oling":"Скачайте Excel",
+ "Material va ish haqi bilan tayyor smetani buyurtmachiga yuboring.":"Отправьте заказчику готовую смету с материалами и оплатой труда.",
+ "Smeta tuzishni boshlash":"Начать смету",
  "Qaytarish":"Отменить","«{0}» o'chirildi":"«{0}» удалён","O'chirilmadi — qayta urinib ko'ring":"Не удалено — попробуйте ещё раз",
  "Saqlanmoqda…":"Сохранение…","Saqlandi":"Сохранено","Saqlanmadi":"Не сохранено",
  "Serverga saqlanmadi, qayta urinib ko'ring":"Не сохранено на сервере, попробуйте ещё раз",
@@ -349,27 +374,6 @@ window.latinToCyrillic = latinToCyrillic;
 window.setAppLanguage = setAppLanguage;
 window.translatePageDOM = translatePageDOM;
 
-// Global event listener for language clicks - prevent page reload!
-document.addEventListener("click", function(e) {
-  const btn = e.target.closest && e.target.closest("[data-lang]");
-  if (!btn) return;
-  e.preventDefault();
-  e.stopPropagation();
-  setAppLanguage(btn.getAttribute("data-lang"));
-});
-
-// Prevent form submission on language switcher
-document.addEventListener("submit", function(e) {
-  if (e.target.closest && e.target.closest("[data-lang-switcher]")) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-});
-
-// If initial language is uz_cyr or ru, apply initial translation on DOM load
-document.addEventListener("DOMContentLoaded", function() {
-  if (LANG === "uz_cyr" || LANG === "uz-cyr" || LANG === "ru") {
-    translatePageDOM(LANG);
-  }
-});
+// Til tugmasi (UZ / RU) oddiy forma: server tilni saqlaydi va sahifani to'liq shu tilda qaytaradi.
+// Brauzerda matnlarni birma-bir almashtirish olib tashlandi — u ruscha sahifada o'zbekcha qoldiqlar qoldirardi.
 
