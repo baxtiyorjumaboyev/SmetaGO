@@ -527,17 +527,18 @@ class ShellPagesTests(TestCase):
         self.assertTrue(c2.session.get_expire_at_browser_close())  # belgilanmagan — brauzer yopilganda tugaydi
 
 class SimpleEditorTests(TestCase):
-    """Soddalashtirilgan xona muharriri: "+ O'zim qo'shaman" va "3 qadam" yo'riqnomasi sahifada bor."""
+    """Soddalashtirilgan xona muharriri: "+ O'zim qo'shaman" bor; "Qanday ishlaydi?" yo'riqnomasi olib tashlangan."""
 
-    def test_manual_add_and_guide_present(self):
+    def test_manual_add_present_guide_removed(self):
         u = User.objects.create_user("ali", password="SmetaGo-2026!")
         c = Client()
         c.force_login(u)
         self.assertContains(c.get("/"), 'btn-new-smeta')
         js = finders.find("smeta/js/app.js")
         src = open(js, encoding="utf-8").read()
-        for marker in ('data-act="ownFinish"', 'data-act="custom"', '"__own"', "function guide(", 'class="adv"'):
+        for marker in ('data-act="ownFinish"', 'data-act="custom"', '"__own"', 'class="adv"'):
             self.assertIn(marker, src)
+        self.assertNotIn("function guide(", src)  # foydalanuvchi talabi: yo'riqnoma kerak emas
 
 
 class GuestModeTests(TestCase):

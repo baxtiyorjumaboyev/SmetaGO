@@ -136,7 +136,6 @@ function viewRooms(){
   const sec=(n,t,h)=>`<legend class="sec-h"><span class="sec-n">${n}</span><span><b>${tr(t)}</b><small>${tr(h)}</small></span></legend>`;
   const plus=(kind)=>`<button type="button" class="plus" data-act="ownFinish" data-k="${kind}" title="${tr("Ro'yxatda yo'q bo'lsa — o'zingiz yozing")}">+ ${tr("O'zim yozaman")}</button>`;
   const edit=`<section class="stack">
-   ${guide(r)}
    <div class="panel pad stack">
     <div class="roomhead"><input id="r-name" data-f="name" value="${esc(r.name)}" aria-label="${tr("Xona nomi")}"><button class="btn sm btn-del" data-act="delRoom">${S.ui.confirmDel===r.id?tr("O'chirishni tasdiqlang"):tr("Xonani o'chirish")}</button></div>
     <fieldset>${sec(1,"Xona o'lchami","Lenta bilan uzunligi, eni va balandligini o'lchang (metrda, masalan 4,5).")}
@@ -185,14 +184,6 @@ function viewRooms(){
    <div class="catbody"><div id="catItems" class="stack"></div><button class="addown" data-act="custom">${tr("+ Ro'yxatda yo'q narsani qo'shish")}</button></div></aside>`;
   return `<div class="layout">${list}${edit}${cat}</div><button class="fab mobonly" data-act="openCat">${tr("+ Element qo'shish")}</button><button class="catbg" hidden data-act="closeCat" aria-label="${tr("Katalogni yopish")}"></button>`;
 }
-// "Qanday ishlaydi" — 4 qadam; bajarilgani ✓ bilan (yopilsa S.ui.noGuide)
-function guide(r){if(S.ui.noGuide)return "";
-  const st=[[num(r.L)>0&&num(r.W)>0,"Xonani o'lchang"],[r.doors.length+r.windows.length>0,"Eshik va derazani qo'shing"],
-    [!!(r.floor||r.wall||r.ceil),"Pol, devor, shiftni tanlang"],[r.items.length>0,"Xonadagi narsalarni qo'shing"]];
-  return `<div class="guide" role="note"><div class="g-h"><b>${tr("Qanday ishlaydi?")}</b><span>${tr("Qadamma-qadam to'ldiring — narx o'zi hisoblanadi.")}</span>
-    <button class="x" data-act="hideGuide" aria-label="${tr("Yo'riqnomani yopish")}">×</button></div>
-    <ol>${st.map(([ok,t],i)=>`<li class="${ok?"ok":""}"><i>${ok?"✓":i+1}</i>${tr(t)}</li>`).join("")}
-    <li class="go"><button class="btn sm pri" data-act="tab" data-k="smeta">${tr("Tayyor smetani ko'rish")} →</button></li></ol></div>`}
 function renderCatItems(){
   const box=$("#catItems");if(!box)return;const r=curRoom();const q=S.ui.q.trim().toLowerCase();
   const card=(it,s)=>`<button class="cat-item${s?" sugg":""}" data-act="pick" data-cid="${it.id}"><b>${esc(it.n)}</b><span>${it.v?tr("dan")+" ":""}${fmt(it.v?Math.min(...it.v.map(v=>v[1])):it.p)} / ${esc(U(it.u))}</span></button>`;
@@ -217,7 +208,6 @@ function updOpenings(r,c){const m2=U("m²");const set=(id,t)=>{const el=document
 }
 function renderDerived(){
   const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);updOpenings(r,c);
-  {const g=$(".guide");if(g)g.outerHTML=guide(r)}  // qadamlar ✓ har kiritishda yangilanadi
   const autoRows=c.lines.map(l=>{const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)} <span class="tag auto">${tr("avto")}</span></div><div class="itemsub">${esc(l.sub)}</div></td><td class="num r c-qty" data-l="${tr("Miqdor")}">${fd(l.qty)} ${esc(U(l.unit))}</td><td class="num r c-price" data-l="${tr("Narx")}">${fmt(l.price)}</td><td class="num r c-sum" data-l="${tr("Jami")}">${fmt(t.tot)}</td><td class="c-del"></td></tr>`}).join("");
   const itemRows=r.items.map(it=>{const l=itemLine(it);const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)}${it.custom?` <span class="tag own">${tr("o'zim qo'shdim")}</span>`:""}</div><div class="itemsub">${esc(l.sub)||"&nbsp;"}</div></td>
     <td class="num r c-qty" data-l="${tr("Miqdor")}">${stepper(`<input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}">`,`iq-${it.uid}`,1)} <span class="note">${esc(U(it.unit))}</span></td>
@@ -436,7 +426,6 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "ownFinish":{const c=roomCalc(r),k=b.dataset.k;  // ro'yxatda yo'q qoplama: nom + m² (xonaning maydoni bilan)
     const q={pol:c.floorA,devor:c.wallNet,shift:c.ceilA}[k];
     openCustom({name:{pol:tr("Pol"),devor:tr("Devor"),shift:tr("Shift")}[k]+": ",unit:"m²",qty:fd(q)});break}
-   case "hideGuide":S.ui.noGuide=true;render();break;
    case "delDoor":r.doors.splice(+b.dataset.i,1);render();break;
    case "addWin":r.windows.push({w:"1,2",h:"1,4"});render();$("#w-"+(r.windows.length-1)+"-w")?.select();break;
    case "delWin":r.windows.splice(+b.dataset.i,1);render();break;
