@@ -80,7 +80,7 @@ def main():
 
     # qator oxirlari doim LF: fayl baytlari (sha256) Windows'da ham, GitHub'da ham bir xil bo'lsin
     read = lambda p: p.read_text(encoding="utf-8").replace("\r\n", "\n")
-    logo = "data:image/svg+xml;base64," + base64.b64encode((STATIC / "icons" / "logo.svg").read_bytes()).decode()
+    logo = "data:image/svg+xml;base64," + base64.b64encode((STATIC / "icons" / "logo.svg").read_bytes().replace(b"\r\n", b"\n")).decode()
     parts = {
         "/*@@PREFS_JS@@*/": safe_script(read(STATIC / "js" / "prefs.js"), "prefs.js"),
         "/*@@CSS@@*/": read(STATIC / "css" / "style.css").replace("</style", "<\\/style"),
