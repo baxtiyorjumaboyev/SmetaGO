@@ -174,8 +174,8 @@
   function summary(st) {
     try {
       window.S = normState(JSON.parse(JSON.stringify(st)));
-      const s = buildSmeta(); const rooms = (window.S.rooms || []).length; window.S = null;
-      return { grand: s.grand, rooms };
+      const rooms = window.S.rooms || [], floor = rooms.reduce((a, r) => a + roomCalc(r).floorA, 0); window.S = null;
+      return { floor, rooms: rooms.length };
     } catch (e) { window.S = null; return null; }
   }
   const dt = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleString(LANG === "ru" ? "ru-RU" : "uz-UZ", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }); };
@@ -186,7 +186,7 @@
       return `<article class="off-card" data-id="${esc2(p.id)}">
         <a class="off-open" href="#p=${esc2(p.id)}"><b>${esc2(p.name)}</b>
           <small>${sm ? `${tr("{0} xona", sm.rooms)} · ` : ""}${esc2(dt(p.updated))}</small>
-          ${sm ? `<span class="off-sum mono">${fmt(sm.grand)} ${tr("so'm")}</span>` : ""}</a>
+          ${sm ? `<span class="off-sum mono">${fd(sm.floor)} ${U("m²")}</span>` : ""}</a>
         <div class="off-acts">
           <button type="button" class="btn sm" data-off="copy">${tr("Nusxa")}</button>
           <button type="button" class="btn sm ghost del-btn" data-off="del" title="${tr("O'chirish")}" aria-label="${tr("O'chirish")}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg></button>

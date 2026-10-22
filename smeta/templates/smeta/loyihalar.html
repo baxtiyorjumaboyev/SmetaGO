@@ -4,7 +4,7 @@
 <section class="hero-g" style="grid-template-columns:1fr">
   <div class="hg-text">
     <h1>{% t "Smeta loyihalari va hisob-kitobi" %}</h1>
-    <p>{% t "Barcha obyektlaringiz bir joyda: xonalar, pol maydoni, material va ish haqi bo'yicha smeta. Hisob ilovadagi formulalar bilan bir xil." %}</p>
+    <p>{% t "Barcha obyektlaringiz bir joyda: xonalar, pol maydoni va materiallar hajmi." %}</p>
     <div class="hg-k" id="ly-kpis"></div>
   </div>
 </section>
@@ -21,16 +21,16 @@
     </section>
 
     <section class="panel card flush">
-      <div class="card-h pad2"><div><h2>{% t "Faol obyektlar" %}</h2><p class="ometa" style="margin:2px 0 0">{% t "Joriy narxlar bo'yicha hisoblangan smeta" %}</p></div></div>
+      <div class="card-h pad2"><div><h2>{% t "Faol obyektlar" %}</h2><p class="ometa" style="margin:2px 0 0">{% t "Xonalar va maydonlar" %}</p></div></div>
       {% if obyektlar %}
       <div class="tscroll dtable ly-table"><table>
-        <thead><tr><th>{% t "Obyekt va hudud" %}</th><th class="r">{% t "Xonalar" %}</th><th class="r">{% t "Hajm" %}</th><th class="r">{% t "Smeta (jami / material)" %}</th><th></th><th class="r">{% t "Amallar" %}</th></tr></thead>
+        <thead><tr><th>{% t "Obyekt va hudud" %}</th><th class="r">{% t "Xonalar" %}</th><th class="r">{% t "Hajm" %}</th><th class="r">{% t "Amallar" %}</th></tr></thead>
         <tbody id="ly-rows">
         {% for o in obyektlar %}
         <tr data-id="{{ o.pk }}" data-name="{{ o.name|lower }}">
           <td><a class="oname" href="{% url 'obyekt_app' o.pk %}">{{ o.name }}</a>
             <small>{% t "O'zgartirilgan" %}: {{ o.updated|date:"d.m.Y H:i" }}</small></td>
-          <td class="r c-rooms"><small>{% t "{0} xona" o.rooms_count %}</small></td><td class="r c-area">—</td><td class="r c-sum">—</td><td class="c-st"></td>
+          <td class="r c-rooms"><small>{% t "{0} xona" o.rooms_count %}</small></td><td class="r c-area">—</td>
           <td class="r"><div class="oacts">
             <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">{% t "Ochish" %}</a>
             <form method="post" action="{% url 'obyekt_copy' o.pk %}">{% csrf_token %}<button class="btn sm">{% t "Nusxa" %}</button></form>
@@ -57,8 +57,6 @@
       <label class="qc-f" style="color:#cbd5e1">{% t "Sement markasi" %}<select class="inp" id="qc-cem" style="background:#0f172a;color:#ffffff;border-color:#334155"><option value="M500">PC M500</option><option value="M400">PC M400</option></select></label>
       <label class="qc-f" style="color:#cbd5e1">{% t "Hajm, m³" %}<span class="stp qc-stp"><button type="button" class="stp-b" data-act="step" data-for="qc-v" data-d="-1" aria-label="−">−</button><input class="inp numin" id="qc-v" inputmode="decimal" value="10" style="background:#0f172a;color:#ffffff;border-color:#334155"><button type="button" class="stp-b" data-act="step" data-for="qc-v" data-d="1" aria-label="+">+</button></span></label>
       <div class="qc-lines" id="qc-lines"></div>
-      <label class="qc-vat" style="color:#cbd5e1"><input type="checkbox" id="qc-vat"> {% t "QQS (12%) qo'shish" %}</label>
-      <div class="qc-sum" id="qc-sum" style="color:#f97316"></div>
       <a class="btn pri block btn-new-smeta" href="{% url 'app' %}?tab=beton" style="text-align:center;text-decoration:none">{% t "Beton bo'limida ochish" %} →</a>
     </section>
   </div>

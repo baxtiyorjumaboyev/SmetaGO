@@ -127,10 +127,14 @@ function render(){renderHeader();const t=S.ui.tab;
 }
 function curRoom(){return S.rooms.find(r=>r.id===S.ui.room)||S.rooms[0]}
 function roomTotal(r){const c=roomCalc(r);return sum([...c.lines,...r.items.map(itemLine)].map(l=>lineTotals(l).tot))}
+// narx ko'rsatilmaydi (foydalanuvchi talabi) — xona yonida pol maydoni
+const roomArea=r=>`${fd(roomCalc(r).floorA)} ${U("m²")}`;
+// smeta va Excel'da faqat material/hajm qatorlari — ish vaqti (masalan, "Qorishma tayyorlash va quyish") ko'rsatilmaydi
+const qtyLines=g=>g.lines.filter(l=>l.src!==tr("ish haqi"));
 
 function viewRooms(){
   const r=curRoom();
-  const list=`<aside class="panel roomlist"><ul>${S.rooms.map(x=>`<li><button class="roombtn" data-act="room" data-id="${x.id}" aria-current="${r&&x.id===r.id}"><b>${esc(x.name)}</b><span id="rl-${x.id}">${fmt(roomTotal(x))} ${SOM}</span></button><button class="roomdel" data-act="delRoomId" data-id="${x.id}" title="${tr("Xonani o'chirish")}" aria-label="${tr("Xonani o'chirish")}">×</button></li>`).join("")}</ul>
+  const list=`<aside class="panel roomlist"><ul>${S.rooms.map(x=>`<li><button class="roombtn" data-act="room" data-id="${x.id}" aria-current="${r&&x.id===r.id}"><b>${esc(x.name)}</b><span id="rl-${x.id}">${roomArea(x)}</span></button><button class="roomdel" data-act="delRoomId" data-id="${x.id}" title="${tr("Xonani o'chirish")}" aria-label="${tr("Xonani o'chirish")}">×</button></li>`).join("")}</ul>
    <div class="addroom"><input class="inp" id="newName" aria-label="${tr("Xona nomi")}" placeholder="${tr("Xona nomini yozing")}" maxlength="60"><button class="btn pri" data-act="addRoom">${tr("+ Xona qo'shish")}</button></div></aside>`;
   if(!r)return `<div class="layout">${list}<section class="panel pad empty">${tr("Xona qo'shing — o'lchamlarni kiritgach, hisob avtomatik chiqadi.")}</section></div>`;
   const opt=(o,cur)=>Object.entries(o).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${esc(lab(v))}</option>`).join("");
@@ -190,7 +194,7 @@ function viewRooms(){
 }
 function renderCatItems(){
   const box=$("#catItems");if(!box)return;const r=curRoom();const q=S.ui.q.trim().toLowerCase();
-  const card=(it,s)=>`<button class="cat-item${s?" sugg":""}" data-act="pick" data-cid="${it.id}"><b>${esc(it.n)}</b><span>${it.v?tr("dan")+" ":""}${fmt(it.v?Math.min(...it.v.map(v=>v[1])):it.p)} / ${esc(U(it.u))}</span></button>`;
+  const card=(it,s)=>`<button class="cat-item${s?" sugg":""}" data-act="pick" data-cid="${it.id}"><b>${esc(it.n)}</b><span>${esc(U(it.u))}</span></button>`;
   // har ro'yxatning boshida: ro'yxatda yo'q narsani o'zi qo'shish
   const own=(name="")=>`<button class="cat-item own-card" data-act="custom" data-name="${esc(name)}"><b>+ ${tr("O'zim qo'shaman")}</b><span>${tr("ro'yxatda yo'q bo'lsa")}</span></button>`;
   const sugg=()=>{const t=ROOM_TYPES[r?.type]||ROOM_DEFAULT;return `<p class="eyebrow" style="margin:0">${esc(tr("{0} uchun odatiy",r?r.name:""))}</p><div class="catgrid">${own()}${t.s.map(id=>CAT_INDEX[id]).filter(Boolean).map(it=>card(it,1)).join("")}</div>`};
@@ -212,27 +216,27 @@ function updOpenings(r,c){const m2=U("m²");const set=(id,t)=>{const el=document
 }
 function renderDerived(){
   const box=$("#derived");const r=curRoom();if(!box||!r)return;const c=roomCalc(r);updOpenings(r,c);
-  const autoRows=c.lines.map(l=>{const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)} <span class="tag auto">${tr("avto")}</span></div><div class="itemsub">${esc(l.sub)}</div></td><td class="num r c-qty" data-l="${tr("Miqdor")}">${fd(l.qty)} ${esc(U(l.unit))}</td><td class="num r c-price" data-l="${tr("Narx")}">${fmt(l.price)}</td><td class="num r c-sum" data-l="${tr("Jami")}">${fmt(t.tot)}</td><td class="c-del"></td></tr>`}).join("");
+  const autoRows=c.lines.map(l=>{const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)} <span class="tag auto">${tr("avto")}</span></div><div class="itemsub">${esc(l.sub)}</div></td><td class="num r c-qty" data-l="${tr("Miqdor")}">${fd(l.qty)} ${esc(U(l.unit))}</td><td class="c-del"></td></tr>`}).join("");
   const itemRows=r.items.map(it=>{const l=itemLine(it);const t=lineTotals(l);return `<tr><td class="c-name"><div class="itemname">${esc(l.name)}${it.custom?` <span class="tag own">${tr("o'zim qo'shdim")}</span>`:""}</div><div class="itemsub">${esc(l.sub)||"&nbsp;"}</div></td>
     <td class="num r c-qty" data-l="${tr("Miqdor")}">${stepper(`<input class="inp numin qty" id="iq-${it.uid}" data-it="${it.uid}" data-k="qty" inputmode="decimal" value="${esc(it.qty)}" aria-label="${tr("Miqdor")}">`,`iq-${it.uid}`,1)} <span class="note">${esc(U(it.unit))}</span></td>
-    <td class="r c-price" data-l="${tr("Narx, so'm")}"><input class="inp numin price" id="ip-${it.uid}" data-it="${it.uid}" data-k="price" inputmode="decimal" value="${esc(it.price)}" aria-label="${tr("Narx")}"></td>
-    <td class="num r c-sum" data-l="${tr("Jami")}" id="is-${it.uid}">${fmt(t.tot)}</td><td class="c-del"><button class="btn ghost sm" data-act="delItem" data-uid="${it.uid}" aria-label="${tr("O'chirish")}">×</button></td></tr>`}).join("");
+    <td class="c-del"><button class="btn ghost sm" data-act="delItem" data-uid="${it.uid}" aria-label="${tr("O'chirish")}">×</button></td></tr>`}).join("");
   box.innerHTML=`
    <div class="metrics">
     <div class="metric"><div class="v">${fd(c.floorA)}<small>${U("m²")}</small></div><div class="k">${tr("Pol maydoni")}</div></div>
     <div class="metric"><div class="v">${fd(c.perim)}<small>${U("m")}</small></div><div class="k">${tr("Perimetr")}</div></div>
     <div class="metric"><div class="v">${fd(c.wallNet)}<small>${U("m²")}</small></div><div class="k">${tr("Devor (sof)")}</div></div>
     <div class="metric"><div class="v">${fd(c.pl)}<small>${U("m")}</small></div><div class="k">${tr("Plintus")}${String(r.plinthOv).trim()!==""?" ("+tr("qo'lda")+")":""}</div></div></div>
-   <div class="tscroll"><table class="rtable"><thead><tr><th>${tr("Nomi")}</th><th class="r">${tr("Miqdor")}</th><th class="r">${tr("Narx, so'm")}</th><th class="r">${tr("Jami*, so'm")}</th><th></th></tr></thead>
-   <tbody>${autoRows||`<tr><td colspan="5" class="note">${tr("O'lchamlarni kiriting — pol, plintus, devor va shift hisobi shu yerda chiqadi.")}</td></tr>`}
-   <tr class="grp"><td colspan="5"><span class="grp-t"><span class="sec-n">5</span>${tr("Xonadagi narsalar ({0})",r.items.length)}</span>
+   <div class="tscroll"><table class="rtable"><thead><tr><th>${tr("Nomi")}</th><th class="r">${tr("Miqdor")}</th><th></th></tr></thead>
+   <tbody>${autoRows||`<tr><td colspan="3" class="note">${tr("O'lchamlarni kiriting — pol, plintus, devor va shift hisobi shu yerda chiqadi.")}</td></tr>`}
+   <tr class="grp"><td colspan="3"><span class="grp-t"><span class="sec-n">5</span>${tr("Xonadagi narsalar ({0})",r.items.length)}</span>
      <span class="grp-b"><button class="btn sm pri mobonly" data-act="openCat">${tr("+ Katalogdan")}</button><button class="btn sm plus" data-act="custom">+ ${tr("O'zim qo'shaman")}</button></span></td></tr>
-   ${itemRows||`<tr><td colspan="5" class="note">${tr("Mebel, rozetka, santexnika va boshqalar: katalogdan tanlang yoki ro'yxatda yo'q bo'lsa «+ O'zim qo'shaman» ni bosing.")}</td></tr>`}</tbody></table></div>
-   <p class="note" style="margin:0">${tr("* Jami = material + ish haqi (soatlik stavka {0} so'm, o'rtacha oylikdan). Xona bo'yicha:",fmt(rate()))} <b class="mono">${fmt(roomTotal(r))} ${SOM}</b></p>`;
+   ${itemRows||`<tr><td colspan="3" class="note">${tr("Mebel, rozetka, santexnika va boshqalar: katalogdan tanlang yoki ro'yxatda yo'q bo'lsa «+ O'zim qo'shaman» ni bosing.")}</td></tr>`}</tbody></table></div>`;
 }
-function renderTotal(){const s=buildSmeta();
-  $("#totalbar").innerHTML=`<div class="wrap"><div class="t"><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div class="t"><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div class="t"><span>${esc(tr("Kutilmagan {0}%",S.settings.contingency))}${S.settings.vat?" + "+tr("QQS"):""}</span><b>${fmt(s.cont+s.vat)}</b></div><div class="t grand"><span>${tr("Jami smeta, so'm")}</span><b>${fmt(s.grand)}</b></div><div class="spacer"></div><button class="btn xlbtn" data-act="xlsx" title="${tr("Excel yuklab olish")}" aria-label="${tr("Excel yuklab olish")}">${DL_ICON}<span>Excel</span></button>${S.ui.tab!=="smeta"?`<button class="btn" data-act="tab" data-k="smeta">${tr("Smetani ochish →")}</button>`:""}</div>`;
-  S.rooms.forEach(r=>{const el=$("#rl-"+r.id);if(el)el.textContent=fmt(roomTotal(r))+" "+SOM});
+function renderTotal(){
+  // pul emas — butun obyekt bo'yicha hajmlar
+  const t=S.rooms.reduce((a,r)=>{const c=roomCalc(r);a.f+=c.floorA;a.w+=c.wallNet;a.p+=c.pl;return a},{f:0,w:0,p:0});
+  $("#totalbar").innerHTML=`<div class="wrap"><div class="t"><span>${tr("Xonalar")}</span><b>${S.rooms.length}</b></div><div class="t"><span>${tr("Devor (sof)")}</span><b>${fd(t.w)} ${U("m²")}</b></div><div class="t"><span>${tr("Plintus")}</span><b>${fd(t.p)} ${U("m")}</b></div><div class="t grand"><span>${tr("Pol maydoni")}</span><b>${fd(t.f)} ${U("m²")}</b></div><div class="spacer"></div><button class="btn xlbtn" data-act="xlsx" title="${tr("Excel yuklab olish")}" aria-label="${tr("Excel yuklab olish")}">${DL_ICON}<span>Excel</span></button>${S.ui.tab!=="smeta"?`<button class="btn" data-act="tab" data-k="smeta">${tr("Smetani ochish →")}</button>`:""}</div>`;
+  S.rooms.forEach(r=>{const el=$("#rl-"+r.id);if(el)el.textContent=roomArea(r)});
 }
 
 function viewConcrete(){
@@ -255,14 +259,11 @@ function viewConcrete(){
     </div>
     ${c.mode==="dims"?`<div class="grid3"><label class="fld">${tr("Uzunligi, m")}<input class="inp numin" id="c-${c.id}-L" data-c="${c.id}" data-k="L" inputmode="decimal" value="${esc(c.L)}"></label><label class="fld">${tr("Eni, m")}<input class="inp numin" id="c-${c.id}-W" data-c="${c.id}" data-k="W" inputmode="decimal" value="${esc(c.W)}"></label><label class="fld">${tr("Qalinligi, m")}<input class="inp numin" id="c-${c.id}-T" data-c="${c.id}" data-k="T" inputmode="decimal" value="${esc(c.T)}"></label></div>`
      :`<div class="grid3"><label class="fld">${tr("Hajm, m³")}<input class="inp numin" id="c-${c.id}-V" data-c="${c.id}" data-k="V" inputmode="decimal" value="${esc(c.V)}"></label></div>`}
-    <label class="fld" style="max-width:260px">${tr("Zavod narxi, so'm/m³ (solishtirish uchun)")}<input class="inp numin" id="c-${c.id}-factory" data-c="${c.id}" data-k="factory" inputmode="decimal" value="${esc(c.factory)}" placeholder="${tr("ixtiyoriy")}"></label>
     <div id="cd-${c.id}"></div></div>`).join("")||`<div class="panel empty">${tr("Hali beton ishi yo'q. «+ Yangi beton ishi» tugmasini bosing.")}</div>`}</div>
   <p class="note">${tr("Retseptlar: СНиП 82-02-95 va ГОСТ 7473-2010 asosidagi ma'lumotnoma jadvali, 1 m³ uchun, portlandsement PC M500. PC M400 tanlansa sement sarfi 15% ga oshiriladi.")}</p></div>`;
 }
-function renderConcreteDerived(){S.concrete.forEach(c=>{const el=$("#cd-"+c.id);if(!el)return;const k=concreteCalc(c);const f=num(c.factory);
-  el.innerHTML=`<div class="mix"><div><span>${tr("Sement")}</span><b>${fmt(k.cem*k.vol)} ${U("kg")}</b><span>${tr("{0} qop × 50 kg",fd(k.cem*k.vol/50,1))}</span></div><div><span>${tr("Shag'al")}</span><b>${fd(k.lines[1].qty)} ${U("m³")}</b><span>${fmt(k.sheb*k.vol)} ${U("kg")}</span></div><div><span>${tr("Qum")}</span><b>${fd(k.lines[2].qty)} ${U("m³")}</b><span>${fmt(k.qum*k.vol)} ${U("kg")}</span></div><div><span>${tr("Suv")}</span><b>${fmt(k.suv*k.vol)} ${U("l")}</b><span>${tr("{0} m³ beton",fd(k.vol))}</span></div></div>
-  <div class="row" style="justify-content:space-between;align-items:end;margin-top:4px"><div><div class="eyebrow">${tr("1 m³ tannarxi (materiallar)")}</div><div class="big">${fmt(k.perM3)} ${SOM}</div></div><div style="text-align:right"><div class="eyebrow">${tr("Jami materiallar")}</div><div class="big">${fmt(k.mat)} ${SOM}</div></div></div>
-  ${f>0&&k.perM3>0?`<p class="note" style="margin:6px 0 0">${tr("Zavod narxi {0} so'm/m³ — o'zingiz qorishtirsangiz",fmt(f))} ${k.perM3<f?`<b style="color:var(--good)">${tr("{0} so'm arzon",fmt(f-k.perM3))}</b>`:`<b style="color:var(--danger)">${tr("{0} so'm qimmat",fmt(k.perM3-f))}</b>`} ${tr("(ish haqisiz).")}</p>`:""}`})}
+function renderConcreteDerived(){S.concrete.forEach(c=>{const el=$("#cd-"+c.id);if(!el)return;const k=concreteCalc(c);
+  el.innerHTML=`<div class="mix"><div><span>${tr("Sement")}</span><b>${fmt(k.cem*k.vol)} ${U("kg")}</b><span>${tr("{0} qop × 50 kg",fd(k.cem*k.vol/50,1))}</span></div><div><span>${tr("Shag'al")}</span><b>${fd(k.lines[1].qty)} ${U("m³")}</b><span>${fmt(k.sheb*k.vol)} ${U("kg")}</span></div><div><span>${tr("Qum")}</span><b>${fd(k.lines[2].qty)} ${U("m³")}</b><span>${fmt(k.qum*k.vol)} ${U("kg")}</span></div><div><span>${tr("Suv")}</span><b>${fmt(k.suv*k.vol)} ${U("l")}</b><span>${tr("{0} m³ beton",fd(k.vol))}</span></div></div>`})}
 
 /* ---------- Excel: varaq modeli ----------
  * Bitta model ikki joyda ishlatiladi: yuklab olinadigan .xlsx (smeta/excel.py).
@@ -273,56 +274,38 @@ const todayStr=()=>{const d=new Date(),p=x=>String(x).padStart(2,"0");return `${
 const DL_ICON=`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>`;
 // butun qatorni bir uslubda to'ldirish (Excel'dagi rangli qator), berilgan ustunlarga qiymat
 const xlRow=(n,style,vals)=>Array.from({length:n},(_,i)=>vals[i]!==undefined?XC(vals[i][0],vals[i][1],style):XC("",null,style));
-function sheetSmeta(){const s=buildSmeta();const N=9;const R=[];let n=0;
+function sheetSmeta(){const s=buildSmeta();const N=5;const R=[];let n=0;
   R.push([XC(`${tr("SMETA")}: ${S.obj.name}`,null,"title")]);
   R.push([XC(tr("Tuzilgan: {0}",todayStr()),null,"meta")]);
   R.push([]);
   const head=R.length;
-  R.push(["№",tr("Nomi"),tr("Tafsilot"),tr("Birlik"),tr("Miqdor"),tr("Narx, so'm"),tr("Material, so'm"),tr("Ish haqi, so'm"),tr("Jami, so'm")].map(h=>XC(h,null,"head")));
+  R.push(["№",tr("Nomi"),tr("Tafsilot"),tr("Birlik"),tr("Miqdor")].map(h=>XC(h,null,"head")));
   s.groups.forEach(g=>{
     R.push(xlRow(N,"group",{1:[`${g.title}  (${g.sub})`]}));
-    g.lines.forEach(l=>{const t=lineTotals(l);n++;
-      R.push([XC(n,"int"),XC(l.name),XC(l.sub),XC(U(l.unit)),XC(r2(l.qty),"dec2"),XC(Math.round(l.price),"money"),XC(Math.round(t.mat),"money"),XC(Math.round(t.lab),"money"),XC(Math.round(t.tot),"money","b")])});
-    R.push(xlRow(N,"sub",{1:[tr("Jami: {0}",g.title)],6:[Math.round(g.mat),"money"],7:[Math.round(g.lab),"money"],8:[Math.round(g.mat+g.lab),"money"]}))});
-  const last=R.length-1;
-  R.push([]);
-  const tot=(label,v)=>xlRow(N,undefined,{1:[label],8:[Math.round(v),"money"]}).map((c,i)=>i===1||i===8?{...c,s:"total"}:null);
-  R.push(tot(tr("Materiallar"),s.mat),tot(tr("Ish haqi"),s.lab),tot(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency),s.cont));
-  if(S.settings.vat)R.push(tot(tr("QQS 12%"),s.vat));
-  R.push(xlRow(N,"grand",{1:[tr("JAMI, so'm")],8:[Math.round(s.grand),"money"]}));
-  return{name:tr("Smeta"),cols:[5,36,30,8,10,13,15,14,15],rows:R,freeze:head+1,table:[head,Math.max(head,last)]};
+    qtyLines(g).forEach(l=>{n++;R.push([XC(n,"int"),XC(l.name),XC(l.sub),XC(U(l.unit)),XC(r2(l.qty),"dec2","b")])})});
+  return{name:tr("Smeta"),cols:[5,40,52,9,12],rows:R,freeze:head+1,table:[head,R.length-1]};
 }
-function sheetRooms(){const R=[];const N=16;let sumF=0,sumW=0,sumP=0,sumT=0;
+function sheetRooms(){const R=[];const N=15;let sumF=0,sumW=0,sumP=0;
   R.push([XC(`${tr("Xonalar hisobi")}: ${S.obj.name}`,null,"title")]);
   R.push([XC(tr("Tuzilgan: {0}",todayStr()),null,"meta")]);
   R.push([]);
   const head=R.length;
-  R.push(["№",tr("Xona"),tr("Xona turi"),tr("Uzunligi, m"),tr("Eni, m"),tr("Balandligi, m"),tr("Pol maydoni, m²"),tr("Perimetr, m"),tr("Devor (sof), m²"),tr("Plintus, m"),tr("Eshiklar"),tr("Derazalar"),tr("Pol"),tr("Devor"),tr("Shift"),tr("Jami, so'm")].map(h=>XC(h,null,"head")));
-  S.rooms.forEach((r,i)=>{const c=roomCalc(r);const tot=roomTotal(r);sumF+=c.floorA;sumW+=c.wallNet;sumP+=c.pl;sumT+=tot;
-    R.push([XC(i+1,"int"),XC(r.name),XC(rtLabel(r.type)),XC(r2(num(r.L)),"dec2"),XC(r2(num(r.W)),"dec2"),XC(r2(num(r.H)),"dec2"),XC(r2(c.floorA),"dec2"),XC(r2(c.perim),"dec2"),XC(r2(c.wallNet),"dec2"),XC(r2(c.pl),"dec2"),XC(sum(r.doors.map(doorQ)),"int"),XC(r.windows.length,"int"),XC(lab(FLOOR[r.floor])),XC(lab(WALL[r.wall])),XC(lab(CEIL[r.ceil])),XC(Math.round(tot),"money","b")])});
-  R.push(xlRow(N,"grand",{1:[tr("JAMI")],6:[r2(sumF),"dec2"],8:[r2(sumW),"dec2"],9:[r2(sumP),"dec2"],15:[Math.round(sumT),"money"]}));
-  return{name:tr("Xonalar"),cols:[5,24,18,11,9,12,14,12,14,11,10,11,14,24,18,16],rows:R,freeze:head+1,table:[head,R.length-1]};
+  R.push(["№",tr("Xona"),tr("Xona turi"),tr("Uzunligi, m"),tr("Eni, m"),tr("Balandligi, m"),tr("Pol maydoni, m²"),tr("Perimetr, m"),tr("Devor (sof), m²"),tr("Plintus, m"),tr("Eshiklar"),tr("Derazalar"),tr("Pol"),tr("Devor"),tr("Shift")].map(h=>XC(h,null,"head")));
+  S.rooms.forEach((r,i)=>{const c=roomCalc(r);sumF+=c.floorA;sumW+=c.wallNet;sumP+=c.pl;
+    R.push([XC(i+1,"int"),XC(r.name),XC(rtLabel(r.type)),XC(r2(num(r.L)),"dec2"),XC(r2(num(r.W)),"dec2"),XC(r2(num(r.H)),"dec2"),XC(r2(c.floorA),"dec2"),XC(r2(c.perim),"dec2"),XC(r2(c.wallNet),"dec2"),XC(r2(c.pl),"dec2"),XC(sum(r.doors.map(doorQ)),"int"),XC(r.windows.length,"int"),XC(lab(FLOOR[r.floor])),XC(lab(WALL[r.wall])),XC(lab(CEIL[r.ceil]))])});
+  R.push(xlRow(N,"grand",{1:[tr("JAMI")],6:[r2(sumF),"dec2"],8:[r2(sumW),"dec2"],9:[r2(sumP),"dec2"]}));
+  return{name:tr("Xonalar"),cols:[5,24,18,11,9,12,14,12,14,11,10,11,14,24,18],rows:R,freeze:head+1,table:[head,R.length-1]};
 }
 const xlSheets=()=>[sheetSmeta(),sheetRooms()];
 const safeFile=s=>String(s).replace(/[\\/:*?"<>|\u0000-\u001f]+/g," ").replace(/\s+/g," ").trim().slice(0,120)||"Smeta";
 function downloadClientSpreadsheet(){
   const s = buildSmeta();
-  let csv = "\uFEFF№\t" + tr("Nomi") + "\t" + tr("Tafsilot") + "\t" + tr("Birlik") + "\t" + tr("Miqdor") + "\t" + tr("Narx, so'm") + "\t" + tr("Material, so'm") + "\t" + tr("Ish haqi, so'm") + "\t" + tr("Jami, so'm") + "\n";
+  let csv = "\uFEFF№\t" + tr("Nomi") + "\t" + tr("Tafsilot") + "\t" + tr("Birlik") + "\t" + tr("Miqdor") + "\n";
   let n = 0;
   s.groups.forEach(g => {
-    csv += `\t${g.title} (${g.sub})\t\t\t\t\t\t\t\n`;
-    g.lines.forEach(l => {
-      const t = lineTotals(l);
-      n++;
-      csv += `${n}\t${l.name}\t${l.sub || ""}\t${U(l.unit)}\t${fd(l.qty)}\t${Math.round(l.price)}\t${Math.round(t.mat)}\t${Math.round(t.lab)}\t${Math.round(t.tot)}\n`;
-    });
-    csv += `\t${tr("Jami: {0}", g.title)}\t\t\t\t\t${Math.round(g.mat)}\t${Math.round(g.lab)}\t${Math.round(g.mat + g.lab)}\n`;
+    csv += `\t${g.title} (${g.sub})\t\t\t\n`;
+    qtyLines(g).forEach(l => { n++; csv += `${n}\t${l.name}\t${l.sub || ""}\t${U(l.unit)}\t${fd(l.qty)}\n`; });
   });
-  csv += `\n\t${tr("Materiallar")}\t\t\t\t\t${Math.round(s.mat)}\n`;
-  csv += `\t${tr("Ish haqi")}\t\t\t\t\t\t${Math.round(s.lab)}\n`;
-  csv += `\t${tr("Kutilmagan xarajatlar {0}%", S.settings.contingency)}\t\t\t\t\t\t\t${Math.round(s.cont)}\n`;
-  if(S.settings.vat) csv += `\t${tr("QQS 12%")}\t\t\t\t\t\t\t${Math.round(s.vat)}\n`;
-  csv += `\t${tr("JAMI, so'm")}\t\t\t\t\t\t\t${Math.round(s.grand)}\n`;
   const blob = new Blob([csv], { type: "application/vnd.ms-excel;charset=utf-8;" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -349,13 +332,11 @@ async function downloadXlsx(){
 
 function viewSmeta(){
   const s=buildSmeta();let n=0;
-  const rows=s.groups.map(g=>`<tr class="grp"><td colspan="9">${esc(g.title)} <span class="note" style="font-family:var(--f-mono);font-weight:400">${esc(g.sub)}</span></td></tr>`+
-   g.lines.map(l=>{const t=lineTotals(l);n++;return `<tr><td class="num hm">${n}</td><td><div class="itemname">${esc(l.name)}</div>${l.sub?`<div class="itemsub">${esc(l.sub)}</div>`:""}<div class="itemsub mobonly mono">${fmt(l.price)} ${SOM}/${esc(U(l.unit))}</div></td><td class="hm">${esc(U(l.unit))}</td><td class="num r">${fd(l.qty)}<span class="mobonly"> ${esc(U(l.unit))}</span></td><td class="num r hm">${fmt(l.price)}</td><td class="num r hm">${fmt(t.mat)}</td><td class="num r hm">${fmt(t.lab)}</td><td class="num r"><b>${fmt(t.tot)}</b></td><td class="hm"><span class="tag${l.kind==="auto"?" auto":l.kind==="own"?" own":""}">${esc(l.src)}</span></td></tr>`}).join("")+
-   `<tr class="sub"><td class="hm"></td><td colspan="2" class="colfix">${esc(tr("Jami: {0}",g.title))}</td><td class="hm" colspan="2"></td><td class="num r hm">${fmt(g.mat)}</td><td class="num r hm">${fmt(g.lab)}</td><td class="num r">${fmt(g.mat+g.lab)}</td><td class="hm"></td></tr>`).join("");
+  const rows=s.groups.map(g=>`<tr class="grp"><td colspan="4">${esc(g.title)} <span class="note" style="font-family:var(--f-mono);font-weight:400">${esc(g.sub)}</span></td></tr>`+
+   qtyLines(g).map(l=>{n++;return `<tr><td class="num hm">${n}</td><td><div class="itemname">${esc(l.name)}</div>${l.sub?`<div class="itemsub">${esc(l.sub)}</div>`:""}</td><td class="hm">${esc(U(l.unit))}</td><td class="num r"><b>${fd(l.qty)}</b><span class="mobonly"> ${esc(U(l.unit))}</span></td></tr>`}).join("")).join("");
   return `<div class="pagehead"><div><h2>${esc(tr("Smeta: {0}",S.obj.name))}</h2></div>
    <div class="row"><button class="btn pri btn-new-smeta" data-act="xlsx">${DL_ICON} ${tr("Excel yuklab olish")}</button></div></div>
-  <div class="section"><div class="sumgrid"><div><span>${tr("Materiallar")}</span><b>${fmt(s.mat)}</b></div><div><span>${tr("Ish haqi")}</span><b>${fmt(s.lab)}</b></div><div><span>${esc(tr("Kutilmagan xarajatlar {0}%",S.settings.contingency))}</span><b>${fmt(s.cont)}</b></div>${S.settings.vat?`<div><span>${tr("QQS 12%")}</span><b>${fmt(s.vat)}</b></div>`:""}<div class="g"><span>${tr("Jami, so'm")}</span><b>${fmt(s.grand)}</b></div></div>
-  <div class="tscroll"><table><thead><tr><th class="hm">№</th><th>${tr("Nomi")}</th><th class="hm">${tr("Birlik")}</th><th class="r">${tr("Miqdor")}</th><th class="r hm">${tr("Narx")}</th><th class="r hm">${tr("Material")}</th><th class="r hm">${tr("Ish haqi")}</th><th class="r">${tr("Jami")}</th><th class="hm">${tr("Manba")}</th></tr></thead><tbody>${rows||`<tr><td colspan="9" class="empty">${tr("Smeta bo'sh.")}</td></tr>`}</tbody></table></div></div>`;
+  <div class="section"><div class="tscroll"><table><thead><tr><th class="hm">№</th><th>${tr("Nomi")}</th><th class="hm">${tr("Birlik")}</th><th class="r">${tr("Miqdor")}</th></tr></thead><tbody>${rows||`<tr><td colspan="4" class="empty">${tr("Smeta bo'sh.")}</td></tr>`}</tbody></table></div></div>`;
 }
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2200)}
 
@@ -366,15 +347,13 @@ function openPick(cid){const c=CAT_INDEX[cid];M={cid,vi:0};
   $("#modal").innerHTML=`<div class="backdrop" data-act="closeBg"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="m-t">
    <div class="sh"><div><div class="eyebrow">${esc(c.g)}</div><h3 id="m-t" style="font-size:20px">${esc(c.n)}</h3></div><button class="btn ghost" data-act="close" aria-label="${tr("Yopish")}">×</button></div>
    <div class="sb">
-    ${v?`<label class="fld">${tr("Turi")}<select class="inp" id="m-variant">${v.map((x,i)=>`<option value="${i}">${esc(x[0])} — ${fmt(x[1])} ${SOM}</option>`).join("")}</select></label>`:""}
+    ${v?`<label class="fld">${tr("Turi")}<select class="inp" id="m-variant">${v.map((x,i)=>`<option value="${i}">${esc(x[0])}</option>`).join("")}</select></label>`:""}
     <div class="grid3">
      <label class="fld">${c.u==="dona"?tr("Soni"):tr("Miqdori")}, ${u}<input class="inp numin" id="m-qty" inputmode="decimal" value="1"></label>
-     <label class="fld">${tr("Narx, so'm/{0}",u)}<input class="inp numin" id="m-price" inputmode="decimal" value="${v?v[0][1]:c.p}"></label>
      ${c.w?`<label class="fld">${tr("Quvvati, Vt")}<input class="inp numin" id="m-watt" inputmode="decimal" placeholder="36"></label>`:""}
     </div>
     ${c.dims?`<fieldset><legend class="eyebrow">${tr("O'lchami, sm (ixtiyoriy)")}</legend><div class="grid3"><label class="fld">${tr("Uzunligi / eni")}<input class="inp numin" id="m-l" inputmode="decimal"></label><label class="fld">${tr("Chuqurligi")}<input class="inp numin" id="m-w" inputmode="decimal"></label><label class="fld">${tr("Balandligi")}<input class="inp numin" id="m-h" inputmode="decimal"></label></div></fieldset>`:""}
     <label class="fld">${tr("Izoh (holati, rangi, joyi)")}<input class="inp" id="m-note" placeholder="${tr("masalan: eski, almashtiriladi")}"></label>
-    <div class="preview"><span>${tr("O'rnatish: {0} soat/{1}",fd(v&&v[0][2]!=null?v[0][2]:c.h,1),u)}</span><b class="mono" id="m-sum"></b></div>
    </div>
    <div class="sf"><button class="btn" data-act="close">${tr("Bekor qilish")}</button><button class="btn pri" data-act="modalAdd">${tr("Xonaga qo'shish")}</button></div></div></div>`;
   $("#modal").hidden=false;updModalSum();setTimeout(()=>$("#m-qty")?.select(),30);
@@ -387,27 +366,25 @@ function openCustom(p={}){M={custom:true};  // p: {name, unit, qty} — oldindan
     <div class="grid3">
      <label class="fld">${tr("Birlik")}<select class="inp" id="m-unit">${["dona","m","m²","m³","kg","komplekt"].map(u=>`<option value="${u}"${u===p.unit?" selected":""}>${esc(U(u))}</option>`).join("")}</select></label>
      <label class="fld">${tr("Miqdori")}<input class="inp numin" id="m-qty" inputmode="decimal" value="${esc(p.qty||"1")}"></label>
-     <label class="fld">${tr("Narx, so'm")}<input class="inp numin" id="m-price" inputmode="decimal" placeholder="0"></label>
     </div>
     <div class="grid3">
      <label class="fld">${tr("O'lchami (erkin)")}<input class="inp" id="m-dims" placeholder="60×80 ${tr("sm")}"></label>
-     <label class="fld">${tr("O'rnatish, soat/birlik")}<input class="inp numin" id="m-hours" inputmode="decimal" value="0"></label>
      <label class="fld">${tr("Izoh")}<input class="inp" id="m-note"></label>
     </div>
-    <div class="preview"><span>${tr("Smetaga \"qo'lda\" belgisi bilan tushadi")}</span><b class="mono" id="m-sum"></b></div>
+    <p class="note" style="margin:0">${tr("Smetaga \"qo'lda\" belgisi bilan tushadi")}</p>
     <p class="note" id="m-err" style="margin:0;color:var(--danger)" hidden>${tr("Nomini yozing.")}</p>
    </div>
    <div class="sf"><button class="btn" data-act="close">${tr("Bekor qilish")}</button><button class="btn pri" data-act="modalAdd">${tr("Xonaga qo'shish")}</button></div></div></div>`;
   $("#modal").hidden=false;updModalSum();setTimeout(()=>{const n=$("#m-name");if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}},30);
 }
-function updModalSum(){const el=$("#m-sum");if(!el)return;el.textContent=fmt(num($("#m-qty")?.value)*num($("#m-price")?.value))+" "+SOM}
+function updModalSum(){}  // narx ko'rsatilmaydi
 function closeModal(){$("#modal").hidden=true;$("#modal").innerHTML="";M=null}
 function modalAdd(){const r=curRoom();if(!r||!M)return;
   if(M.custom){const name=$("#m-name").value.trim();if(!name){$("#m-err").hidden=false;$("#m-name").focus();return}
-    r.items.push({uid:uid(),cid:null,name,variant:"",unit:$("#m-unit").value,qty:$("#m-qty").value||"1",price:$("#m-price").value||"0",h:$("#m-hours").value||"0",dims:$("#m-dims").value.trim(),watt:"",note:$("#m-note").value.trim(),custom:true})}
+    r.items.push({uid:uid(),cid:null,name,variant:"",unit:$("#m-unit").value,qty:$("#m-qty").value||"1",price:"0",h:"0",dims:$("#m-dims").value.trim(),watt:"",note:$("#m-note").value.trim(),custom:true})}
   else{const c=CAT_INDEX[M.cid];const vi=$("#m-variant")?+$("#m-variant").value:0;const v=c.v&&c.v[vi];
     const d=["#m-l","#m-w","#m-h"].map(s=>$(s)?.value.trim()).filter(Boolean);
-    r.items.push({uid:uid(),cid:c.id,name:c.n,variant:v?v[0]:"",unit:c.u,qty:$("#m-qty").value||"1",price:$("#m-price").value||"0",h:v&&v[2]!=null?v[2]:c.h,dims:d.length?d.join("×")+" "+tr("sm"):"",watt:$("#m-watt")?.value.trim()||"",note:$("#m-note").value.trim(),custom:false})}
+    r.items.push({uid:uid(),cid:c.id,name:c.n,variant:v?v[0]:"",unit:c.u,qty:$("#m-qty").value||"1",price:v?v[1]:c.p,h:v&&v[2]!=null?v[2]:c.h,dims:d.length?d.join("×")+" "+tr("sm"):"",watt:$("#m-watt")?.value.trim()||"",note:$("#m-note").value.trim(),custom:false})}
   const nm=M.custom?$("#m-name").value.trim():CAT_INDEX[M.cid].n;
   closeModal();document.body.classList.remove("cat-open");S.sample=false;renderDerived();renderTotal();save();toast(tr("{0} qo'shildi",nm));
 }
@@ -451,7 +428,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
 document.addEventListener("input",e=>{const t=e.target;const r=curRoom();
   if(t.dataset.o){S.obj[t.dataset.o]=t.value;save();return}
   if(t.id==="catq"){S.ui.q=t.value;renderCatItems();return}
-  if(t.closest("#modal")){if(t.id==="m-variant"){const c=CAT_INDEX[M.cid];$("#m-price").value=c.v[+t.value][1]}updModalSum();return}
+  if(t.closest("#modal")){if(t.id==="m-variant"){}updModalSum();return}
   if(t.dataset.f&&r){r[t.dataset.f]=t.value;S.sample=false;if(t.dataset.f==="name"){const b=document.querySelector(`.roombtn[data-id="${r.id}"] b`);if(b)b.textContent=t.value}
     renderDerived();renderTotal();save();return}
   if(t.dataset.door!=null){const d=r.doors[+t.dataset.door];

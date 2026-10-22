@@ -97,6 +97,7 @@ const RU={
  "Tungi rejim":"Ночной режим",
  "Kunduzgi rejim":"Дневной режим",
  "Saqlandi: {0}":"Сохранено: {0}",
+ "Hajmlar bilan tayyor smetani buyurtmachiga yuboring.":"Отправьте заказчику готовую смету с объёмами.",
  "Qaytarish":"Отменить","«{0}» o'chirildi":"«{0}» удалён","O'chirilmadi — qayta urinib ko'ring":"Не удалено — попробуйте ещё раз",
  "Saqlanmoqda…":"Сохранение…","Saqlandi":"Сохранено","Saqlanmadi":"Не сохранено",
  "Serverga saqlanmadi, qayta urinib ko'ring":"Не сохранено на сервере, попробуйте ещё раз",

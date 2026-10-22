@@ -107,11 +107,11 @@
   function kpis() {
     const el = $id("kpis") || $id("ly-kpis");
     if (!el) return;
-    const [gv, gu] = shortP(tot("grand"));
+    // pul ko'rsatilmaydi (foydalanuvchi talabi) — faqat hajmlar
     const K = [
-      [IC.sum, tr("Jami smeta qiymati"), gv, `${gu} ${SOMs()}`, tr("Materiallar"), short(tot("mat"))],
       [IC.obj, tr("Faol obyektlar"), fmt(live().filter(r => r.ok).length), tr("ta loyiha"), tr("Xonalar"), fmt(sum(live().map(r => r.rooms.length)))],
-      [IC.area, tr("Umumiy pol maydoni"), fd(tot("floor"), 1), "m²", tr("Devor (sof)"), `${fd(tot("wall"), 1)} m²`],
+      [IC.area, tr("Umumiy pol maydoni"), fd(tot("floor"), 1), "m²", tr("Xonalar"), fmt(sum(live().map(r => r.rooms.length)))],
+      [IC.sum, tr("Devor (sof)"), fd(tot("wall"), 1), "m²", tr("Pol maydoni"), `${fd(tot("floor"), 1)} m²`],
       [IC.concrete, tr("Beton ishlari"), fd(tot("concVol"), 1), "m³", tr("Standart"), "GOST/SNiP"]
     ];
     el.innerHTML = K.map(([ic, lab, v, u, fl, fv], i) => `
@@ -137,9 +137,6 @@
       const vol = ($id("qc-v") && num($id("qc-v").value)) || 10;
       window.S = window.S || { settings: { ...DEFAULT_SETTINGS }, prices: defaultPrices(), rooms: [], concrete: [] };
       const k = concreteCalc({ grade: g, cem: cem, mode: "vol", V: vol });
-      const labr = sum(k.lines.map(l => lineTotals(l).lab));
-      const direct = k.mat + labr;
-      const vat = $id("qc-vat") && $id("qc-vat").checked ? direct * 0.12 : 0;
 
       const linesEl = $id("qc-lines");
       if (linesEl) {
@@ -151,10 +148,6 @@
         `).join("");
       }
 
-      const sumEl = $id("qc-sum");
-      if (sumEl) {
-        sumEl.innerHTML = `${tr("Jami")}: <b class="mono" style="color:#f97316">${fmt(direct + vat)}</b> <small style="font-size:13px;color:#cbd5e1">${SOMs()}</small>`;
-      }
     };
 
     const box = $id("qc-section") || $id("qc");
@@ -182,7 +175,7 @@
         const cArea = tr_.querySelector(".c-area");
         if (cArea) cArea.innerHTML = r.ok ? `<b class="mono">${fd(r.floor, 1)} m²</b>` : "—";
         const cSum = tr_.querySelector(".c-sum");
-        if (cSum) cSum.innerHTML = r.ok ? `<b class="mono" style="color:var(--accent)">${fmt(r.grand)} ${SOMs()}</b>` : `<small style="color:var(--muted)">${tr("hali ochilmagan")}</small>`;
+        if (cSum && false) cSum.innerHTML = r.ok ? `<b class="mono" style="color:var(--accent)">${fmt(r.grand)} ${SOMs()}</b>` : `<small style="color:var(--muted)">${tr("hali ochilmagan")}</small>`;
       });
 
       // If empty and we have local guest objects, insert them
@@ -198,7 +191,6 @@
               </td>
               <td class="r c-rooms"><b class="mono">${r.rooms.length}</b> <small>${tr("xona")}</small></td>
               <td class="r c-area"><b class="mono">${fd(r.floor, 1)} m²</b></td>
-              <td class="r c-sum" style="font-weight:600;color:var(--accent)">${fmt(r.grand)} ${SOMs()}</td>
               <td class="r">
                 <a class="btn sm pri" href="${r.url}">${tr("Ochish")}</a>
               </td>

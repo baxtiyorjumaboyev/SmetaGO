@@ -56,15 +56,10 @@
           <button type="button" class="stp-b" data-act="step" data-for="qc-v" data-d="1" aria-label="+">+</button>
         </span>
       </label>
-      <div style="display:flex;align-items:flex-end">
-        <label style="display:flex;align-items:center;gap:6px;color:#cbd5e1;font-size:13px;cursor:pointer;margin-bottom:8px">
-          <input type="checkbox" id="qc-vat"> {% t "QQS (12%) qo'shish" %}
-        </label>
-      </div>
     </div>
     <div id="qc-lines" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1)">
-      <div id="qc-sum" style="font-size:18px;font-weight:700;color:#f97316"></div>
+      <span></span>
       <a href="{% url 'app' %}?tab=beton" class="btn sm pri btn-new-smeta" style="text-decoration:none">+ {% t "Smetaga qo'shish" %}</a>
     </div>
   </div>
@@ -91,7 +86,6 @@
           <th>{% t "Obyekt nomi va hudud" %}</th>
           <th class="r">{% t "Xonalar" %}</th>
           <th class="r">{% t "Maydon" %}</th>
-          <th class="r">{% t "Smeta (jami / material)" %}</th>
           <th class="r">{% t "Amallar" %}</th>
         </tr>
       </thead>
@@ -105,7 +99,6 @@
           </td>
           <td class="r c-rooms"><small>{% t "{0} xona" o.rooms_count %}</small></td>
           <td class="r c-area">—</td>
-          <td class="r c-sum" style="font-weight:600">—</td>
           <td class="r">
             <div class="oacts" style="display:inline-flex;gap:6px">
               <a class="btn sm pri" href="{% url 'obyekt_app' o.pk %}">{% t "Ochish" %}</a>

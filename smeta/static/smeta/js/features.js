@@ -58,7 +58,7 @@
       <div style="display:flex;flex-direction:column;gap:14px">
         ${box(`1. ${t("Xonani o'lchang")}`, t("Uzunlik, eni va balandlikni kiriting, eshik va derazalarni qo'shing."))}
         ${box(`2. ${t("Pol, devor va shiftni tanlang")}`, t("Qoplamani ro'yxatdan tanlang yoki «+ O'zim qo'shaman» bilan o'zingiz yozing."))}
-        ${box(`3. ${t("Excel'ni yuklab oling")}`, t("Material va ish haqi bilan tayyor smetani buyurtmachiga yuboring."))}
+        ${box(`3. ${t("Excel'ni yuklab oling")}`, t("Hajmlar bilan tayyor smetani buyurtmachiga yuboring."))}
       </div>`,
       `<a href="/app/" class="btn pri btn-new-smeta" style="text-decoration:none">${t("Smeta tuzishni boshlash")} →</a>
        <button type="button" class="btn ol" data-sg-close>${t("Yopish")}</button>`);
