@@ -1,0 +1,37 @@
+# Sayt kodi o'zgarganda oflayn ilova faylini (offline/SmetaGo.html + version.json) avtomatik qayta yig'adi.
+# Telefondagi SmetaGo ilovasi internet bo'lganda version.json ni tekshirib, yangi faylni o'zi yuklab oladi —
+# APK'ni qayta o'rnatish shart emas.
+name: Oflayn ilova fayli
+
+on:
+  push:
+    branches: [main]
+    paths: ["smeta/static/**", "offline/src/**", "tools/build_offline.py", ".github/workflows/offline-build.yml"]
+  workflow_dispatch:   # masalan, admin panelda katalog/narxlar o'zgarganda qo'lda ishga tushiriladi
+
+permissions:
+  contents: write
+
+concurrency:
+  group: offline-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Yig'ish (katalog va narxlar ishlab turgan saytdan)
+        run: python tools/build_offline.py
+      - name: O'zgargan bo'lsa — commit
+        run: |
+          git add offline/SmetaGo.html offline/version.json
+          if git diff --cached --quiet; then echo "o'zgarish yo'q"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Oflayn ilova avtomatik yangilandi (versiya $(python -c 'import json;print(json.load(open("offline/version.json"))["version"])'))"
+          git pull --rebase -q origin main
+          git push -q origin HEAD:main

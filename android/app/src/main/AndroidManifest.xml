@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- INTERNET ruxsati yo'q: ilova to'liq oflayn ishlaydi, hech qayerga ulanmaydi. -->
+<!-- Ilova to'liq oflayn ishlaydi. INTERNET faqat yangilanishni tekshirish uchun: GitHub'dagi offline/version.json va SmetaGo.html.
+     Smetalar hech qayerga yuborilmaydi. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="SmetaGo"
         android:icon="@mipmap/ic_launcher"

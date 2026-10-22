@@ -144,6 +144,14 @@
   document.querySelectorAll("[data-t-title]").forEach(el => { el.title = tr(el.dataset.tTitle); el.setAttribute("aria-label", tr(el.dataset.tTitle)); });
   document.querySelectorAll("[data-off-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.offLang === LANG)));
 
+  // ---------- avto-yangilanish: Android ilova yangi versiyani yuklab bo'lgach chaqiradi ----------
+  // (APK internet bo'lganda GitHub'dagi offline/version.json ni tekshiradi; yangi fayl keyingi ochilishda ishlaydi)
+  window.smetagoUpdateReady = function () { const b = $("#update-bar"); if (b) b.hidden = false; };
+  $("#update-btn").addEventListener("click", () => {
+    if (window.SMETAGO_STORE && typeof window.persist === "function") { try { window.persist(); } catch (e) {} }
+    location.reload();
+  });
+
   // ---------- qaysi ekran: #p=<id> — muharrir, aks holda — smetalar ro'yxati ----------
   const m = /^#p=([\w-]+)$/.exec(location.hash);
   const curId = m && readState(m[1]) ? m[1] : null;

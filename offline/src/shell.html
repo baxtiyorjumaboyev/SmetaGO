@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
+<meta name="smetago-version" content="@@VERSION@@">
 <title>SmetaGo</title>
 <script>
 /* til (UZ/RU) va ekran (ro'yxat yoki muharrir) — sahifa chizilishidan oldin */
@@ -32,6 +33,8 @@
 .off-backup p{margin:0 0 12px;color:var(--muted);font-size:13.5px}
 .off-backup .row{display:flex;flex-wrap:wrap;gap:8px}
 .top .prefs .seg button{min-width:40px}
+.off-ver{margin:18px 0 8px;text-align:center;color:var(--muted);font-size:12px}
+#update-bar{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 </style>
 </head>
 <body class="in">
@@ -76,11 +79,13 @@
       <button type="button" class="btn" id="import-btn" data-t="Zaxiradan tiklash">Zaxiradan tiklash</button>
     </div>
   </section>
+  <p class="off-ver"><span data-t="Versiya">Versiya</span>: @@VERSION_LABEL@@</p>
 </main>
 
 <div id="modal" hidden></div>
 <div id="toast" class="toast" hidden></div>
 <div id="undo-bar" class="undo-bar" role="status" aria-live="polite" hidden><span></span><button type="button" class="btn sm" data-t="Qaytarish">Qaytarish</button></div>
+<div id="update-bar" class="undo-bar" role="status" aria-live="polite" hidden><span data-t="Yangi versiya tayyor">Yangi versiya tayyor</span><button type="button" class="btn sm" id="update-btn" data-t="Yangilash">Yangilash</button></div>
 <input type="file" id="import-file" accept=".json,application/json" hidden>
 
 <script type="application/json" id="ref-uz">@@REF_UZ@@</script>

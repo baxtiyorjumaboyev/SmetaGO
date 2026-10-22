@@ -1,5 +1,6 @@
 # SmetaGo oflayn Android ilovasi (APK).
 # offline/SmetaGo.html (bitta fayl) → android/app/src/main/assets/index.html → APK.
+# Keyingi o'zgarishlar APK'ni qayta o'rnatmasdan yetib boradi: ilova GitHub'dagi offline/version.json ni tekshiradi.
 # Natija: "Releases" bo'limida SmetaGo-1.0.<N>.apk (telefonga yuklab o'rnatiladi).
 # Imzo kaliti GitHub sirlarida (ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD) — har versiya bir xil kalit bilan
 # imzolanadi, shuning uchun yangi APK eskisining ustidan o'rnatiladi va smetalar saqlanib qoladi.
@@ -8,7 +9,9 @@ name: Android APK
 on:
   push:
     branches: [main]
-    paths: ["offline/**", "android/**", ".github/workflows/android-apk.yml"]
+    # sayt yoki oflayn fayl o'zgarsa APK qayta yig'ilmaydi — telefondagi ilova o'zini o'zi yangilaydi
+    # (offline-build.yml → offline/version.json). APK faqat Android kodi o'zgarganda kerak.
+    paths: ["android/**", ".github/workflows/android-apk.yml"]
   workflow_dispatch:
 
 permissions:
@@ -33,6 +36,7 @@ jobs:
         run: |
           mkdir -p android/app/src/main/assets
           cp offline/SmetaGo.html android/app/src/main/assets/index.html
+          cp offline/version.json android/app/src/main/assets/version.json
 
       - name: Imzo kaliti
         env:
