@@ -1,0 +1,70 @@
+# SmetaGo oflayn Android ilovasi (APK).
+# offline/SmetaGo.html (bitta fayl) → android/app/src/main/assets/index.html → APK.
+# Natija: "Releases" bo'limida SmetaGo-1.0.<N>.apk (telefonga yuklab o'rnatiladi).
+# Imzo kaliti GitHub sirlarida (ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD) — har versiya bir xil kalit bilan
+# imzolanadi, shuning uchun yangi APK eskisining ustidan o'rnatiladi va smetalar saqlanib qoladi.
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    paths: ["offline/**", "android/**", ".github/workflows/android-apk.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Ilova fayli (bitta HTML)
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp offline/SmetaGo.html android/app/src/main/assets/index.html
+
+      - name: Imzo kaliti
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/smetago.jks"
+            echo "KEYSTORE_FILE=$RUNNER_TEMP/smetago.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Imzo kaliti yo'q — APK sinov (debug) kaliti bilan imzolanadi"
+          fi
+
+      - name: APK yig'ish
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+        run: |
+          gradle -p android assembleRelease --no-daemon --stacktrace
+          cp android/app/build/outputs/apk/release/app-release.apk "SmetaGo-1.0.${{ github.run_number }}.apk"
+          rm -f "$RUNNER_TEMP/smetago.jks"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SmetaGo-1.0.${{ github.run_number }}
+          path: SmetaGo-*.apk
+
+      - name: Release (yuklab olish sahifasi)
+        if: env.KEYSTORE_FILE != ''   # faqat doimiy kalit bilan imzolangan versiya chiqariladi
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "apk-1.0.${{ github.run_number }}" SmetaGo-*.apk \
+            --title "SmetaGo 1.0.${{ github.run_number }} (oflayn Android ilova)" \
+            --notes "Telefonga o'rnatish: APK faylni yuklab oling va oching. Ilova internetsiz ishlaydi, smetalar telefonning o'zida saqlanadi."

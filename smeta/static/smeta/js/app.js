@@ -37,6 +37,8 @@ function blank(base,name){
 const SERVER=window.SMETAGO||null;
 // namuna (demo) sahifasi: serversiz, holat faqat shu brauzerda; Excel — umumiy endpoint orqali
 const DEMO=window.SMETAGO_DEMO||null;
+// oflayn ilova (offline/SmetaGo.html, APK): holat va Excel — qurilmaning o'zida (offline/src/store.js)
+const STORE=window.SMETAGO_STORE||null;
 const LKEY="smetago-v1";
 const XLSX=SERVER&&SERVER.xlsxUrl?{url:SERVER.xlsxUrl,csrf:SERVER.csrf}:DEMO?{url:DEMO.xlsxUrl,csrf:DEMO.csrf}:null;
 /* Bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js, "smetago-draft") yangi bo'sh obyektga
@@ -61,7 +63,8 @@ if(SERVER){
   else if(pend){try{localStorage.removeItem(PKEY)}catch(e){}}
   if(!S){S=blank(null,SERVER.name);applyDraft(S)}
 }else{
-  try{const raw=localStorage.getItem(LKEY);S=raw?JSON.parse(raw):null}catch(e){S=null}
+  if(STORE)S=STORE.load();
+  else{try{const raw=localStorage.getItem(LKEY);S=raw?JSON.parse(raw):null}catch(e){S=null}}
   if(!S||S.v!==1)S=blank(null,tr("Yangi smeta"));
   applyDraft(S);
 }
@@ -77,6 +80,7 @@ function updSaveStatus(st){const el=$("#save-status");if(!el)return;
   el.className="save-status save-"+st;
   el.querySelector(".save-text").textContent={saving:tr("Saqlanmoqda…"),saved:tr("Saqlandi"),offline:tr("Oflayn"),error:tr("Saqlanmadi")}[st]}
 function persist(){saveT=null;const body=JSON.stringify(S);
+  if(STORE){STORE.save(S);updSaveStatus("saved");return}
   if(!SERVER){
     try{
       localStorage.setItem(LKEY,body);
@@ -329,6 +333,7 @@ function downloadClientSpreadsheet(){
   toast(tr("Excel fayl yuklab olindi"));
 }
 async function downloadXlsx(){
+  if(STORE){STORE.xlsx(xlSheets(),safeFile(`${tr("Smeta")} - ${S.obj.name} - ${todayStr()}`)+".xlsx");return}
   if(!XLSX){downloadClientSpreadsheet();return}
   const btns=document.querySelectorAll('[data-act="xlsx"]');btns.forEach(b=>b.disabled=true);
   try{

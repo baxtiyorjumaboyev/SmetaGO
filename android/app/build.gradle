@@ -1,0 +1,50 @@
+// SmetaGo oflayn ilova: offline/SmetaGo.html (bitta fayl) APK ichida, WebView orqali ochiladi.
+// Yig'ish GitHub Actions'da (.github/workflows/android-apk.yml): assets/index.html shu faylning nusxasi.
+plugins {
+    id 'com.android.application'
+}
+
+def env = { String k, String d -> System.getenv(k) ?: d }
+def keystore = System.getenv("KEYSTORE_FILE")
+
+android {
+    namespace 'uz.smetago.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'uz.smetago.app'
+        minSdk 24
+        targetSdk 34
+        versionCode env("VERSION_CODE", "1") as int   // har yig'ishda oshadi — yangi APK eskisining ustidan o'rnatiladi
+        versionName env("VERSION_NAME", "1.0")
+    }
+
+    signingConfigs {
+        release {
+            if (keystore) {
+                storeFile file(keystore)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias 'smetago'
+                keyPassword System.getenv("KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // doimiy kalit bo'lmasa (masalan, birinchi sinov) — debug kalit
+            signingConfig keystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'androidx.core:core:1.13.1'
+}

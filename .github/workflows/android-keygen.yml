@@ -1,0 +1,29 @@
+# Bir martalik: Android imzo kalitini yaratish (qo'lda ishga tushiriladi).
+# Parol oldindan GitHub siri ANDROID_KEYSTORE_PASSWORD da bo'lishi kerak.
+# Kalit 1 kunlik artefakt bo'lib chiqadi — uni yuklab, ANDROID_KEYSTORE_B64 siriga qo'yib, artefaktni o'chiring.
+name: Android imzo kaliti
+
+on:
+  workflow_dispatch:
+
+jobs:
+  keygen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Kalit yaratish
+        env:
+          PW: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          test -n "$PW" || { echo "ANDROID_KEYSTORE_PASSWORD siri yo'q"; exit 1; }
+          keytool -genkeypair -keystore smetago.jks -storetype PKCS12 -alias smetago -keyalg RSA -keysize 2048 \
+            -validity 10000 -storepass "$PW" -keypass "$PW" -dname "CN=SmetaGo, O=SmetaGo, C=UZ"
+          base64 -w0 smetago.jks > smetago.jks.b64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smetago-keystore
+          path: smetago.jks.b64
+          retention-days: 1

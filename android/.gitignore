@@ -1,0 +1,8 @@
+.gradle/
+build/
+app/build/
+local.properties
+# offline/SmetaGo.html dan yig'ishda nusxalanadi
+app/src/main/assets/
+*.jks
+*.keystore
