@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="smetago-version" content="1792685872">
+<meta name="smetago-version" content="1793040615">
 <title>SmetaGo</title>
 <script>
 /* til (UZ/RU) va ekran (ro'yxat yoki muharrir) — sahifa chizilishidan oldin */
@@ -1696,6 +1696,8 @@ button[type="submit"].btn.pri.lg,form button.btn.pri.lg,form button.btn.pri.lg:h
 .off-backup p{margin:0 0 12px;color:var(--muted);font-size:13.5px}
 .off-backup .row{display:flex;flex-wrap:wrap;gap:8px}
 .top .prefs .seg button{min-width:40px}
+/* son maydonlari butunlay bo'sh ko'rinsin (kulrang "0,00", "1" maslahatlari ham yo'q) — foydalanuvchi o'zi kiritadi */
+.m-editor input.numin::placeholder,.m-editor #m-qty::placeholder{color:transparent}
 .off-ver{margin:18px 0 8px;text-align:center;color:var(--muted);font-size:12px}
 #update-bar{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 </style>
@@ -1742,7 +1744,7 @@ button[type="submit"].btn.pri.lg,form button.btn.pri.lg,form button.btn.pri.lg:h
       <button type="button" class="btn" id="import-btn" data-t="Zaxiradan tiklash">Zaxiradan tiklash</button>
     </div>
   </section>
-  <p class="off-ver"><span data-t="Versiya">Versiya</span>: 2026-10-22 21:17</p>
+  <p class="off-ver"><span data-t="Versiya">Versiya</span>: 2026-10-26 23:50</p>
 </main>
 
 <div id="modal" hidden></div>
@@ -2606,6 +2608,7 @@ document.querySelectorAll("[data-l-night]").forEach(function(b){b.setAttribute("
   if (curId) {
     document.body.classList.add("in-editor");
     window.SMETAGO_STORE = {
+      emptyDefaults: true,   // yangi eshik/deraza/xona maydonlari bo'sh (foydalanuvchi talabi)
       load: () => { const s = readState(curId); return s && s.__fresh ? null : s; },   // yangi — app.js o'zi to'ldiradi
       save: st => { try { writeState(curId, st); } catch (e) { toast(tr("Xotira to'lgan — saqlanmadi")); } },
       xlsx: (sheets, name) => { try { saveFile(name, buildXlsx(sheets), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); } catch (e) { toast(tr("Excel faylni yaratib bo'lmadi, qayta urinib ko'ring")); } },
@@ -2719,13 +2722,13 @@ function guessType(name){const n=String(name||"").toLowerCase();
   return Object.keys(ROOM_TYPES).find(k=>n.includes(k.toLowerCase())||n.includes(rtLabel(k).toLowerCase()))||GEN_TYPE}
 
 /* ---------- state ---------- */
-function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??"2,8",doors:[mkDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
+function mkRoom(type,name,L,W,H){const t=ROOM_TYPES[type]||ROOM_DEFAULT;return{id:uid(),type,name:name||rtLabel(type),L:L??"",W:W??"",H:H??dflt("2,8"),doors:[newDoor()],windows:[],floor:t.floor,wall:t.wall,ceil:t.ceil,tileLen:"",tileH:"",plinthOv:"",items:[]}}
 function mkItem(cid,opt={}){const c=CAT_INDEX[cid];if(!c)return null;const v=c.v&&c.v[opt.vi??0];return{uid:uid(),cid,name:c.n,variant:v?v[0]:"",unit:c.u,qty:opt.qty??1,price:v?v[1]:c.p,h:v&&v[2]!=null?v[2]:c.h,dims:opt.dims||"",watt:opt.watt||"",note:opt.note||"",custom:false}}
 function sample(){
   return blank(null, tr("Yangi smeta"));
 }
 function blank(base,name){
-  const nr=mkRoom(GEN_TYPE,tr("{0}-xona",1),"5","4","2,8");
+  const nr=mkRoom(GEN_TYPE,tr("{0}-xona",1),dflt("5"),dflt("4"),dflt("2,8"));
   return{
     v:1,sample:false,
     obj:{name:name||tr("Yangi smeta"),region:(base&&base.obj&&base.obj.region)||"Toshkent sh.",quarter:(base&&base.obj&&base.obj.quarter)||QUARTERS[0]},
@@ -2743,6 +2746,10 @@ const SERVER=window.SMETAGO||null;
 const DEMO=window.SMETAGO_DEMO||null;
 // oflayn ilova (offline/SmetaGo.html, APK): holat va Excel — qurilmaning o'zida (offline/src/store.js)
 const STORE=window.SMETAGO_STORE||null;
+// oflayn ilovada (APK) eshik, deraza, xona o'lchami va miqdor maydonlari bo'sh boshlanadi — foydalanuvchi o'zi kiritadi
+const EMPTY=!!(STORE&&STORE.emptyDefaults);
+const newDoor=t=>EMPTY?mkDoor(t,"","",""):mkDoor(t);
+const dflt=v=>EMPTY?"":v;
 const LKEY="smetago-v1";
 const XLSX=SERVER&&SERVER.xlsxUrl?{url:SERVER.xlsxUrl,csrf:SERVER.csrf}:DEMO?{url:DEMO.xlsxUrl,csrf:DEMO.csrf}:null;
 /* Bosh sahifadagi kalkulyatorda o'lchangan xona (landing.js, "smetago-draft") yangi bo'sh obyektga
@@ -3053,7 +3060,7 @@ function openPick(cid){const c=CAT_INDEX[cid];M={cid,vi:0};
    <div class="sb">
     ${v?`<label class="fld">${tr("Turi")}<select class="inp" id="m-variant">${v.map((x,i)=>`<option value="${i}">${esc(x[0])}</option>`).join("")}</select></label>`:""}
     <div class="grid3">
-     <label class="fld">${c.u==="dona"?tr("Soni"):tr("Miqdori")}, ${u}<input class="inp numin" id="m-qty" inputmode="decimal" value="1"></label>
+     <label class="fld">${c.u==="dona"?tr("Soni"):tr("Miqdori")}, ${u}<input class="inp numin" id="m-qty" inputmode="decimal" value="${dflt("1")}" placeholder="1"></label>
      ${c.w?`<label class="fld">${tr("Quvvati, Vt")}<input class="inp numin" id="m-watt" inputmode="decimal" placeholder="36"></label>`:""}
     </div>
     ${c.dims?`<fieldset><legend class="eyebrow">${tr("O'lchami, sm (ixtiyoriy)")}</legend><div class="grid3"><label class="fld">${tr("Uzunligi / eni")}<input class="inp numin" id="m-l" inputmode="decimal"></label><label class="fld">${tr("Chuqurligi")}<input class="inp numin" id="m-w" inputmode="decimal"></label><label class="fld">${tr("Balandligi")}<input class="inp numin" id="m-h" inputmode="decimal"></label></div></fieldset>`:""}
@@ -3069,7 +3076,7 @@ function openCustom(p={}){M={custom:true};  // p: {name, unit, qty} — oldindan
     <label class="fld">${tr("Nomi")}<input class="inp" id="m-name" value="${esc(p.name||"")}" placeholder="${tr("masalan: Oyna, Akvarium, Sport trenajyori")}"></label>
     <div class="grid3">
      <label class="fld">${tr("Birlik")}<select class="inp" id="m-unit">${["dona","m","m²","m³","kg","komplekt"].map(u=>`<option value="${u}"${u===p.unit?" selected":""}>${esc(U(u))}</option>`).join("")}</select></label>
-     <label class="fld">${tr("Miqdori")}<input class="inp numin" id="m-qty" inputmode="decimal" value="${esc(p.qty||"1")}"></label>
+     <label class="fld">${tr("Miqdori")}<input class="inp numin" id="m-qty" inputmode="decimal" value="${esc(p.qty||dflt("1"))}" placeholder="1"></label>
     </div>
     <div class="grid3">
      <label class="fld">${tr("O'lchami (erkin)")}<input class="inp" id="m-dims" placeholder="60×80 ${tr("sm")}"></label>
@@ -3107,13 +3114,13 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "syncPrices":if(!S.ui.confirmSync){S.ui.confirmSync=true;render();break}
     defaultPrices().forEach(np=>{const p=S.prices.find(x=>x.id===np.id);if(p)Object.assign(p,{n:np.n,u:np.u,g:np.g,src:np.src,s:np.s});else S.prices.push(np)});
     S.ui.confirmSync=false;render();toast(tr("Manba narxlari yangilandi"));break;
-   case "addDoor":if(b.dataset.t==="__own"){r.doors.push({...mkDoor(""),own:true});render();$("#d-"+(r.doors.length-1)+"-t")?.focus();break}
-    r.doors.push(mkDoor(b.dataset.t));render();$("#d-"+(r.doors.length-1)+"-w")?.select();break;
+   case "addDoor":if(b.dataset.t==="__own"){r.doors.push({...newDoor(""),own:true});render();$("#d-"+(r.doors.length-1)+"-t")?.focus();break}
+    r.doors.push(newDoor(b.dataset.t));render();$("#d-"+(r.doors.length-1)+"-w")?.select();break;
    case "ownFinish":{const c=roomCalc(r),k=b.dataset.k;  // ro'yxatda yo'q qoplama: nom + m² (xonaning maydoni bilan)
     const q={pol:c.floorA,devor:c.wallNet,shift:c.ceilA}[k];
     openCustom({name:{pol:tr("Pol"),devor:tr("Devor"),shift:tr("Shift")}[k]+": ",unit:"m²",qty:fd(q)});break}
    case "delDoor":r.doors.splice(+b.dataset.i,1);render();break;
-   case "addWin":r.windows.push({w:"1,2",h:"1,4"});render();$("#w-"+(r.windows.length-1)+"-w")?.select();break;
+   case "addWin":r.windows.push({w:dflt("1,2"),h:dflt("1,4")});render();$("#w-"+(r.windows.length-1)+"-w")?.select();break;
    case "delWin":r.windows.splice(+b.dataset.i,1);render();break;
    case "grp":S.ui.grp=b.dataset.g;S.ui.q="";$("#catq").value="";document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.g===S.ui.grp));renderCatItems();save();break;
    case "openCat":document.body.classList.add("cat-open");break;
@@ -3123,7 +3130,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(
    case "close":case "closeBg":closeModal();break;
    case "modalAdd":modalAdd();break;
    case "delItem":r.items=r.items.filter(i=>i.uid!==b.dataset.uid);renderDerived();renderTotal();save();break;
-   case "addConc":S.concrete.push({id:uid(),name:tr("Yangi beton ishi"),grade:"M200",cem:"M500",mode:"vol",L:"",W:"",T:"",V:"1",factory:""});render();renderConcreteDerived();break;
+   case "addConc":S.concrete.push({id:uid(),name:tr("Yangi beton ishi"),grade:"M200",cem:"M500",mode:"vol",L:"",W:"",T:"",V:dflt("1"),factory:""});render();renderConcreteDerived();break;
    case "delConc":S.concrete=S.concrete.filter(c=>c.id!==b.dataset.id);render();renderConcreteDerived();break;
    case "xlsx":downloadXlsx();break;
    case "step":stepInput(document.getElementById(b.dataset.for),+b.dataset.d);break;

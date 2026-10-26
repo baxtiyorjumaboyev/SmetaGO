@@ -169,6 +169,7 @@
   if (curId) {
     document.body.classList.add("in-editor");
     window.SMETAGO_STORE = {
+      emptyDefaults: true,   // yangi eshik/deraza/xona maydonlari bo'sh (foydalanuvchi talabi)
       load: () => { const s = readState(curId); return s && s.__fresh ? null : s; },   // yangi — app.js o'zi to'ldiradi
       save: st => { try { writeState(curId, st); } catch (e) { toast(tr("Xotira to'lgan — saqlanmadi")); } },
       xlsx: (sheets, name) => { try { saveFile(name, buildXlsx(sheets), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); } catch (e) { toast(tr("Excel faylni yaratib bo'lmadi, qayta urinib ko'ring")); } },
