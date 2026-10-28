@@ -1642,3 +1642,6 @@ button[type="submit"].btn.pri.lg,form button.btn.pri.lg,form button.btn.pri.lg:h
 .hero.solo .lead{max-width:60ch}
 .steps3.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (max-width:760px){.hero.solo{padding-block:40px 24px}.steps3.two{grid-template-columns:minmax(0,1fr)}}
+
+/* Muharrir: son maydonlari butunlay bo'sh ko'rinsin (kulrang "0,00", "1" maslahatlari yo'q) — oflayn ilova bilan bir xil */
+#app input.numin::placeholder,#modal input.numin::placeholder{color:transparent}

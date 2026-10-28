@@ -39,8 +39,9 @@ const SERVER=window.SMETAGO||null;
 const DEMO=window.SMETAGO_DEMO||null;
 // oflayn ilova (offline/SmetaGo.html, APK): holat va Excel — qurilmaning o'zida (offline/src/store.js)
 const STORE=window.SMETAGO_STORE||null;
-// oflayn ilovada (APK) eshik, deraza, xona o'lchami va miqdor maydonlari bo'sh boshlanadi — foydalanuvchi o'zi kiritadi
-const EMPTY=!!(STORE&&STORE.emptyDefaults);
+// eshik, deraza, xona o'lchami va miqdor maydonlari bo'sh boshlanadi — foydalanuvchi o'zi kiritadi
+// (avval faqat oflayn ilovada edi; 2026-10-28 dan saytda ham — foydalanuvchi talabi: sayt ilova bilan bir xil)
+const EMPTY=true;
 const newDoor=t=>EMPTY?mkDoor(t,"","",""):mkDoor(t);
 const dflt=v=>EMPTY?"":v;
 const LKEY="smetago-v1";
