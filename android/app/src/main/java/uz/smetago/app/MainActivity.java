@@ -1,6 +1,7 @@
 package uz.smetago.app;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -234,7 +235,8 @@ public class MainActivity extends Activity {
         web.saveState(out);
     }
 
-    /** JavaScript → Android: faylni "Download/SmetaGo" ga saqlash va ulashish oynasini ochish. */
+    /** JavaScript → Android: faylni "Download/SmetaGo" ga saqlash; Excel fayl darhol Excel/WPS/Sheets'da ochiladi
+     *  (bunday ilova bo'lmasa — ulashish oynasi), zaxira (.json) — ulashish oynasi. */
     private class Bridge {
         @JavascriptInterface
         public String saveFile(String name, String base64, String mime) {
@@ -264,7 +266,16 @@ public class MainActivity extends Activity {
                         .setType(mime)
                         .putExtra(Intent.EXTRA_STREAM, uri)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                boolean sheet = safe.toLowerCase().endsWith(".xlsx") || mime.contains("spreadsheet");
+                Intent view = new Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(uri, mime)
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 runOnUiThread(() -> {
+                    if (sheet) {
+                        try { startActivity(view); return; }          // Excel o'zi ochiladi (foydalanuvchi talabi)
+                        catch (ActivityNotFoundException ignored) { }  // ochadigan ilova yo'q — ulashish oynasi
+                        catch (Exception ignored) { }
+                    }
                     try { startActivity(Intent.createChooser(send, safe)); } catch (Exception ignored) { }
                 });
             } catch (Exception ignored) { }
