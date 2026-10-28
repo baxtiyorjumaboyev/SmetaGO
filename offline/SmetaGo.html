@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<meta name="smetago-version" content="1793040615">
+<meta name="smetago-version" content="1793163056">
 <title>SmetaGo</title>
 <script>
 /* til (UZ/RU) va ekran (ro'yxat yoki muharrir) — sahifa chizilishidan oldin */
@@ -1675,6 +1675,9 @@ button[type="submit"].btn.pri.lg,form button.btn.pri.lg,form button.btn.pri.lg:h
 .hero.solo .lead{max-width:60ch}
 .steps3.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (max-width:760px){.hero.solo{padding-block:40px 24px}.steps3.two{grid-template-columns:minmax(0,1fr)}}
+
+/* Muharrir: son maydonlari butunlay bo'sh ko'rinsin (kulrang "0,00", "1" maslahatlari yo'q) — oflayn ilova bilan bir xil */
+#app input.numin::placeholder,#modal input.numin::placeholder{color:transparent}
 </style>
 <style>
 /* oflayn ilova: ro'yxat / muharrir ekranlari */
@@ -1744,7 +1747,7 @@ button[type="submit"].btn.pri.lg,form button.btn.pri.lg,form button.btn.pri.lg:h
       <button type="button" class="btn" id="import-btn" data-t="Zaxiradan tiklash">Zaxiradan tiklash</button>
     </div>
   </section>
-  <p class="off-ver"><span data-t="Versiya">Versiya</span>: 2026-10-26 23:50</p>
+  <p class="off-ver"><span data-t="Versiya">Versiya</span>: 2026-10-28 09:50</p>
 </main>
 
 <div id="modal" hidden></div>
@@ -2746,8 +2749,9 @@ const SERVER=window.SMETAGO||null;
 const DEMO=window.SMETAGO_DEMO||null;
 // oflayn ilova (offline/SmetaGo.html, APK): holat va Excel — qurilmaning o'zida (offline/src/store.js)
 const STORE=window.SMETAGO_STORE||null;
-// oflayn ilovada (APK) eshik, deraza, xona o'lchami va miqdor maydonlari bo'sh boshlanadi — foydalanuvchi o'zi kiritadi
-const EMPTY=!!(STORE&&STORE.emptyDefaults);
+// eshik, deraza, xona o'lchami va miqdor maydonlari bo'sh boshlanadi — foydalanuvchi o'zi kiritadi
+// (avval faqat oflayn ilovada edi; 2026-10-28 dan saytda ham — foydalanuvchi talabi: sayt ilova bilan bir xil)
+const EMPTY=true;
 const newDoor=t=>EMPTY?mkDoor(t,"","",""):mkDoor(t);
 const dflt=v=>EMPTY?"":v;
 const LKEY="smetago-v1";
