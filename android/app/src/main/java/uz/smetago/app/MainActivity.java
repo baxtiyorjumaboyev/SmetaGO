@@ -1,10 +1,13 @@
 package uz.smetago.app;
 
+import android.Manifest;
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,6 +22,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
 import androidx.webkit.WebViewAssetLoader;
@@ -49,6 +53,7 @@ public class MainActivity extends Activity {
     private static final String START = "https://" + HOST + "/assets/index.html";
     private static final String RAW = "https://raw.githubusercontent.com/baxtiyorjumaboyev/SmetaGO/main/offline/";
     private static final int PICK_FILE = 1;
+    private static final int PERM_STORAGE = 2;
     private static final long CHECK_EVERY_MS = 10 * 60 * 1000;
     private static final int MAX_HTML = 8 * 1024 * 1024;
 
@@ -235,50 +240,108 @@ public class MainActivity extends Activity {
         web.saveState(out);
     }
 
-    /** JavaScript → Android: faylni "Download/SmetaGo" ga saqlash; Excel fayl darhol Excel/WPS/Sheets'da ochiladi
-     *  (bunday ilova bo'lmasa — ulashish oynasi), zaxira (.json) — ulashish oynasi. */
+    /** Faylni "Download/SmetaGo" ga yozadi. Qaytaradi: [ochish uchun Uri, "Download/SmetaGo/<nom>"]. */
+    private Object[] saveToDownloads(String safe, byte[] data, String mime) throws Exception {
+        if (Build.VERSION.SDK_INT >= 29) {
+            ContentValues v = new ContentValues();
+            v.put(MediaStore.Downloads.DISPLAY_NAME, safe);
+            v.put(MediaStore.Downloads.MIME_TYPE, mime);
+            v.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/SmetaGo");
+            v.put(MediaStore.Downloads.IS_PENDING, 1);
+            Uri u = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+            if (u == null) throw new Exception("Download papkasiga yozib bo'lmadi");
+            try (OutputStream o = getContentResolver().openOutputStream(u)) {
+                if (o == null) throw new Exception("Download papkasiga yozib bo'lmadi");
+                o.write(data);
+            } catch (Exception e) {
+                getContentResolver().delete(u, null, null);
+                throw e;
+            }
+            ContentValues done = new ContentValues();
+            done.put(MediaStore.Downloads.IS_PENDING, 0);
+            getContentResolver().update(u, done, null, null);
+            String shown = safe;   // bir xil nomli fayl bo'lsa, Android "nom (1).xlsx" qiladi
+            try (Cursor c = getContentResolver().query(u, new String[]{MediaStore.Downloads.DISPLAY_NAME}, null, null, null)) {
+                if (c != null && c.moveToFirst()) shown = c.getString(0);
+            }
+            return new Object[]{u, "Download/SmetaGo/" + shown};
+        }
+        // Android 9 va eski: umumiy Download papkasiga yozish uchun ruxsat kerak
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            runOnUiThread(() -> requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERM_STORAGE));
+            throw new Exception("fayllarni saqlashga ruxsat bering va tugmani qayta bosing");
+        }
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "SmetaGo");
+        if (!dir.isDirectory() && !dir.mkdirs()) throw new Exception("Download/SmetaGo papkasini ochib bo'lmadi");
+        int dot = safe.lastIndexOf('.');
+        String base = dot > 0 ? safe.substring(0, dot) : safe;
+        String ext = dot > 0 ? safe.substring(dot) : "";
+        File f = new File(dir, safe);
+        for (int i = 1; f.exists(); i++) f = new File(dir, base + " (" + i + ")" + ext);
+        try (FileOutputStream o = new FileOutputStream(f)) { o.write(data); }
+        MediaScannerConnection.scanFile(this, new String[]{f.getPath()}, new String[]{mime}, null);
+        return new Object[]{exportUri(f.getName(), data), "Download/SmetaGo/" + f.getName()};
+    }
+
+    /** Ilovaning ichki nusxasi (FileProvider) — boshqa ilovada ochish/yuborish uchun. */
+    private Uri exportUri(String safe, byte[] data) throws Exception {
+        File dir = new File(getCacheDir(), "export");
+        dir.mkdirs();
+        File f = new File(dir, safe);
+        try (FileOutputStream o = new FileOutputStream(f)) { o.write(data); }
+        return FileProvider.getUriForFile(this, "uz.smetago.app.files", f);
+    }
+
+    private void toastLong(String m) { runOnUiThread(() -> Toast.makeText(this, m, Toast.LENGTH_LONG).show()); }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode == PERM_STORAGE && results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED)
+            toastLong("Ruxsat berildi — Excel tugmasini qayta bosing");
+    }
+
+    /** JavaScript → Android: faylni "Download/SmetaGo" ga saqlash. Excel fayl darhol Excel/WPS/Sheets'da ochiladi
+     *  (ochadigan ilova bo'lmasa — ulashish oynasi), zaxira (.json) — ulashish oynasi. Xato bo'lsa — sababi ekranda. */
     private class Bridge {
         @JavascriptInterface
         public String saveFile(String name, String base64, String mime) {
             String safe = name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_");
             byte[] data = Base64.decode(base64, Base64.DEFAULT);
+            boolean sheet = safe.toLowerCase().endsWith(".xlsx") || mime.contains("spreadsheet");
             String savedTo = "";
+            Uri open = null;
             try {
-                if (Build.VERSION.SDK_INT >= 29) {
-                    ContentValues v = new ContentValues();
-                    v.put(MediaStore.Downloads.DISPLAY_NAME, safe);
-                    v.put(MediaStore.Downloads.MIME_TYPE, mime);
-                    v.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/SmetaGo");
-                    Uri u = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
-                    if (u != null) {
-                        try (OutputStream o = getContentResolver().openOutputStream(u)) { o.write(data); }
-                        savedTo = "Download/SmetaGo/" + safe;
-                    }
-                }
-            } catch (Exception ignored) { }
+                Object[] r = saveToDownloads(safe, data, mime);
+                open = (Uri) r[0];
+                savedTo = (String) r[1];
+            } catch (Exception e) {
+                toastLong("Download papkasiga saqlanmadi: " + e.getMessage());
+            }
             try {
-                File dir = new File(getCacheDir(), "export");
-                dir.mkdirs();
-                File f = new File(dir, safe);
-                try (FileOutputStream o = new FileOutputStream(f)) { o.write(data); }
-                Uri uri = FileProvider.getUriForFile(MainActivity.this, "uz.smetago.app.files", f);
+                Uri shareUri = exportUri(safe, data);
+                if (open == null) open = shareUri;
                 Intent send = new Intent(Intent.ACTION_SEND)
                         .setType(mime)
-                        .putExtra(Intent.EXTRA_STREAM, uri)
+                        .putExtra(Intent.EXTRA_STREAM, shareUri)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                boolean sheet = safe.toLowerCase().endsWith(".xlsx") || mime.contains("spreadsheet");
                 Intent view = new Intent(Intent.ACTION_VIEW)
-                        .setDataAndType(uri, mime)
+                        .setDataAndType(open, mime)
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                final String where = savedTo;
                 runOnUiThread(() -> {
                     if (sheet) {
-                        try { startActivity(view); return; }          // Excel o'zi ochiladi (foydalanuvchi talabi)
-                        catch (ActivityNotFoundException ignored) { }  // ochadigan ilova yo'q — ulashish oynasi
-                        catch (Exception ignored) { }
+                        try { startActivity(view); return; }   // Excel o'zi ochiladi (foydalanuvchi talabi)
+                        catch (Exception e) {
+                            toastLong("Excel faylni ochadigan ilova topilmadi (Microsoft Excel yoki WPS Office o'rnating)."
+                                    + (where.isEmpty() ? "" : " Fayl: " + where));
+                        }
                     }
                     try { startActivity(Intent.createChooser(send, safe)); } catch (Exception ignored) { }
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception e) {
+                toastLong("Faylni ochib bo'lmadi: " + e.getMessage());
+            }
             return savedTo;
         }
 

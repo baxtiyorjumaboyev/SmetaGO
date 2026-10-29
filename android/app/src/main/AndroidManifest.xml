@@ -3,6 +3,8 @@
      Smetalar hech qayerga yuborilmaydi. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Faqat Android 9 va eski: Excel/zaxira faylni umumiy Download/SmetaGo papkasiga yozish (10+ da ruxsat kerak emas) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <application
         android:label="SmetaGo"
         android:icon="@mipmap/ic_launcher"
